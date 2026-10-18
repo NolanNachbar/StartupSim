@@ -72,7 +72,7 @@ The core visual of the game is the ratio of dotted to solid route. A player who 
 ## Money
 
 - Burn = fixed costs + contracted people + test costs. Revenue comes from paying customers at the chosen price.
-- Runway in pivots = cash divided by a typical pivot cost, shown beside raw cash.
+- Runway in pivots = floor(cash / pivotCost), shown beside raw cash. A pivot is one interview round plus one paid test, so `pivotCost` = (interview cash + test cash) + weekly burn x the weeks that round takes, held as integer cents of at least 1. It is fixed per run, visible to the player, and a tuning value.
 - Pricing sets a conversion curve: too low attracts more demanding, lower-value customers and starves cash (M1); too high loses buyers. The optimum is hidden and learnable by testing.
 - Cash-flow traps (M5): late-paying customers, bad short-term financing offers presented as help, payroll growing ahead of revenue.
 - Fundraising (M2, M6): extends cash but costs weeks of progress and adds expectations that shorten the time before the next raise.

@@ -23,13 +23,18 @@ Vite, Preact with signals, TypeScript (strict), plain CSS with tokens. No game e
 
 ## Architecture rules
 
-- `src/sim/` is pure, deterministic TypeScript. Seeded RNG only (`createRng`), no `Math.random`, no `Date.now`, no DOM or UI imports. The same seed must produce the same world and the same run.
-- `src/ui/` reads sim state and sends actions. It never computes game rules.
-- Hidden world truth (true demand, segment willingness to pay) must never reach the UI. The UI sees evidence only.
-- State changes go through a single reducer so runs can be replayed from a seed and an action list.
+- `src/sim/` is pure, deterministic TypeScript. Randomness only through the keyed draw `rand(seed, ...keys)` (every draw names its key), no `Math.random`, no `Date.now`, no DOM or UI imports. The same seed must produce the same world and the same run.
+- Numbers in `src/sim/`: money is integer cents; no `Math.exp`, `Math.log`, `Math.pow`, `**` or trig functions (engines may differ in the last bits); curves are piecewise-linear tables. ESLint enforces this.
+- `src/ui/` reads the sim only through `view()` and sends actions. It never computes game rules.
+- Hidden world truth (true demand, segment willingness to pay) lives in a `Secret` type that `src/ui/` may not import (ESLint). `view()` returns `PublicState`, which holds evidence only. A test checks that `view()` has no hidden-field keys and is the same for worlds that differ only in hidden parameters.
+- State changes go through a single reducer, `{ ok, state }` or `{ ok: false, reason }`, so runs can be replayed from `{ simVersion, seed, actions }`. Bump `simVersion` whenever outcomes for a fixed seed and action list change.
 - Every roadmap check gets a test written before the implementation.
 - All visual assets are generated in code (SVG, CSS, Web Audio). No imported images or models in v1.
 - Keep files small and named for what they hold. Prefer several focused modules over one large file.
+
+## Testing
+
+Framework: Vitest with fast-check for the simulation (`src/**/*.test.ts`, `tests/unit/**/*.test.ts`, run with `npm test`); Playwright with axe for the browser (`tests/e2e/`, run with `npm run e2e`). `npm run verify` runs every gate. Rules: write the test before the implementation; use property tests for sim invariants and golden fixtures for replay stability; never weaken an assertion, a lint rule, or a budget to make something pass. There are no LLM or prompt features, so no eval suites.
 
 ## Design rules (short form; DESIGN.md is authoritative)
 

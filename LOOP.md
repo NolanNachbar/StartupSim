@@ -59,6 +59,21 @@ Stop and report when any of these happens:
 - A new dependency or a change to DESIGN.md or GAME-DESIGN.md seems needed. Ask first.
 - Anything that spends money or sends data to an outside service.
 
+## gstack skills in the loop
+
+gstack is installed globally (telemetry, update checks and outside reviews off). Use these where they fit; none of them replaces the roadmap checks.
+
+| Loop step | Skill | How it is used |
+|---|---|---|
+| Plan | `/spec` | Turn a large roadmap item into a precise spec before building, saved under `docs/specs/` |
+| Plan | `/plan-eng-review` | Re-run on a milestone's plan when its architecture changes; reports live in `docs/` |
+| Verify, Adversary | `/review` | Diff review with the gate-integrity check: every weakened test, timeout, snapshot or suppression is reported by name. A flagged item is a blocker |
+| Build, when stuck | `/investigate` | Root-cause debugging; stops after three failed fixes, matching the three-attempt rule above |
+| Any unattended run | `/careful`, `/freeze` | Warn before destructive commands; restrict edits to the folder in scope |
+| After M6 | `/design-review`, `/qa`, `/benchmark` | Visual QA with before and after screenshots, browser QA, and Core Web Vitals against the DESIGN.md budgets |
+
+Do not run gstack's office-hours or CEO review (the vault's own idea-shaper and red-team cover that), and do not use its parallel-sprint features.
+
 ## Parallelism
 
 Default is one agent at a time. The only sanctioned fan-out is the three read-only checkers in the Verify node. Do not launch parallel builders, researchers, or explorers unless Nolan asks.
