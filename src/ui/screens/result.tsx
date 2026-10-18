@@ -6,11 +6,11 @@ import { go, last } from "../store";
 function Interview({ e }: { e: Extract<Evidence, { kind: "interview" }> }) {
   const who = e.customer === "friend" ? "A friend of yours" : e.customer === "stranger" ? "A stranger" : "No one";
   return (
-    <li class="entry">
+    <li class={`entry${e.tag ? ` entry--${e.tag}` : ""}`}>
       <p class="entry__head">{`${who}, asked: ${questionLabel(e.question)}`}</p>
       <p class="entry__quote">{e.quote}</p>
       {e.outcome === "completed" && e.tag ? (
-        <p class="entry__debrief">{`${tagLabel(e.tag)}. ${tagExplain(e.tag)}`}</p>
+        <p class="entry__debrief"><span class={`tag tag--${e.tag}`}>{tagLabel(e.tag)}</span>{` ${tagExplain(e.tag)}`}</p>
       ) : e.outcome === "ended-early" ? (
         <p class="entry__debrief">The customer ended the call early. You learned little.</p>
       ) : (

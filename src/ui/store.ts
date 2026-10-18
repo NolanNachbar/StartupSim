@@ -288,3 +288,17 @@ export async function saveShareCard(): Promise<void> {
   }
   announcement.value = shareNotice.value ?? "";
 }
+
+/** The window size, so the world map can draw itself to fit. */
+export const viewport = signal({ w: typeof innerWidth === "number" ? innerWidth : 390, h: typeof innerHeight === "number" ? innerHeight : 844 });
+
+export function trackViewport(): void {
+  let frame = 0;
+  window.addEventListener("resize", () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => (viewport.value = { w: innerWidth, h: innerHeight }));
+  });
+}
+
+/** Phone only: whether the log and details sheet is open. From 600 px the panel is always shown. */
+export const sheetOpen = signal(false);

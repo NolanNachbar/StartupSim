@@ -1,21 +1,18 @@
-import { Chart } from "../parts";
-import { challengeSeed, continueFlight, discardSaved, notice, openSetup, savedRun, takeOff } from "../store";
+import { continueFlight, discardSaved, notice, openSetup, savedRun, takeOff, challengeSeed } from "../store";
 import { Panel } from "../panel";
-import type { Hypothesis } from "../../sim";
-
-const EMPTY: readonly Hypothesis[] = [];
 
 export function Board() {
   const hasSaved = savedRun.value !== null;
   return (
     <>
-      <main class="board">
-        <h1 class="board__title" tabIndex={-1}>Runway</h1>
-        <p class="board__lede">Run a startup. Learn why most fail. Fly again.</p>
-        {notice.value ? <p class="notice" role="status">{notice.value}</p> : null}
-        {challengeSeed.value !== null ? <p class="notice" role="status">A shared flight is waiting: the same world, your decisions.</p> : null}
-        <Chart hypotheses={EMPTY} focus={0} />
-        <p class="board__empty">No tests yet. Interview a customer to start your route.</p>
+      <main class="board board--open">
+        <div class="plate">
+          <h1 class="board__title board__title--hero" tabIndex={-1}>Runway</h1>
+          <p class="board__lede">Run a startup. Learn why most fail. Fly again.</p>
+          {notice.value ? <p class="notice" role="status">{notice.value}</p> : null}
+          {challengeSeed.value !== null ? <p class="notice" role="status">A shared flight is waiting: the same world, your decisions.</p> : null}
+          <p class="board__empty">No tests yet. Interview a customer to start your route.</p>
+        </div>
       </main>
       <Panel idle />
       <footer class="actions">

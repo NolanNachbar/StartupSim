@@ -1,6 +1,7 @@
 import { useEffect } from "preact/hooks";
-import { newRun, view } from "./sim";
-import { Strip } from "./ui/parts";
+import { CATALOG, newRun, view } from "./sim";
+import { SectionalMap } from "./ui/art/SectionalMap";
+import { BOARD_HYPOTHESES, BOARD_NAMES, Strip } from "./ui/parts";
 import { Actions } from "./ui/screens/actions";
 import { Board } from "./ui/screens/board";
 import { FormScreen } from "./ui/screens/form";
@@ -10,7 +11,7 @@ import { ReportScreen } from "./ui/screens/report";
 import { Result } from "./ui/screens/result";
 import { Setup } from "./ui/screens/setup";
 import { Week } from "./ui/screens/week";
-import { announcement, screen, settings } from "./ui/store";
+import { announcement, currentSeed, baseSeed, screen, selected, settings, state, viewport } from "./ui/store";
 
 const FRESH = view(newRun(1));
 
@@ -45,11 +46,29 @@ export function App() {
     else root.setAttribute("data-theme", settings.value.theme);
     root.toggleAttribute("data-reduce-motion", settings.value.reduceMotion);
   }, [settings.value]);
+  const st = state.value;
+  const open = screen.value.name === "week" || screen.value.name === "board";
+  const inRun = st !== null && screen.value.name !== "board";
+  const vp = viewport.value;
   return (
+    <>
+      <SectionalMap
+        hypotheses={inRun ? st.hypotheses : BOARD_HYPOTHESES}
+        names={inRun ? st.segmentNames : BOARD_NAMES}
+        focus={inRun ? st.focusSegment : -1}
+        seed={inRun ? currentSeed.value : baseSeed.value}
+        progress={inRun ? st.week / CATALOG.maxWeeks : 0}
+        selected={inRun ? selected.value : null}
+        w={vp.w}
+        h={vp.h}
+        onSelect={(i) => (selected.value = i)}
+      />
+      <div class={open ? "veil" : "veil veil--on"} aria-hidden="true" />
     <div class="shell" data-screen={screen.value.name}>
       <Strip fresh={FRESH} />
       <Current />
       <div class="sr-only" role="status" aria-live="polite">{announcement.value}</div>
     </div>
+    </>
   );
 }

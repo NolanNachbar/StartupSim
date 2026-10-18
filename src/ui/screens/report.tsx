@@ -1,7 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { CalloutHost } from "../parts";
 import { Panel } from "../panel";
-import { copyChallengeLink, finalReport, flyAgain, revealDone, revealMode, saveShareCard, settings, shareNotice } from "../store";
+import { copyChallengeLink, currentSeed, finalReport, state, flyAgain, revealDone, revealMode, saveShareCard, settings, shareNotice } from "../store";
 
 const FULL_MS = 2400;
 const COMPRESSED_MS = 800;
@@ -25,6 +25,12 @@ export function ReportScreen() {
     <>
       <main class="board">
         <article class="report" data-reveal={phase} data-outcome={r.outcome} onClick={() => (revealDone.value = true)}>
+          <p class="report__form">Accident investigation report</p>
+          <dl class="report__fields">
+            <dt>Flight</dt><dd>{String(currentSeed.value)}</dd>
+            <dt>Weeks flown</dt><dd>{String(state.value?.week ?? 0)}</dd>
+            <dt>Outcome</dt><dd>{landed ? "Landed" : r.outcome === "stalled" ? "Stalled" : "Crashed"}</dd>
+          </dl>
           <header class={landed ? "report__head report__head--landed" : "report__head"}>
             <h1 class="report__title" tabIndex={-1}>{r.headline}</h1>
           </header>
@@ -66,6 +72,7 @@ export function ReportScreen() {
               <p>{r.numbers.join(", ")}</p>
             </section>
           ) : null}
+          <div class="stamp" aria-hidden="true">{landed ? "Default alive" : r.probableCause ? "Cause found" : "Inconclusive"}</div>
         </article>
         {shareNotice.value ? <p class="notice" role="status">{shareNotice.value}</p> : null}
         <CalloutHost screen="report" />

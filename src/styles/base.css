@@ -34,9 +34,10 @@ body {
   align-items: end;
   gap: var(--s-2) var(--gutter);
   padding: var(--s-3) var(--gutter);
-  border-bottom: 1px solid var(--line);
+  background: var(--paper-raised);
+  border-bottom: 2px solid var(--ink);
 }
-.strip > .gauge { grid-area: gauge; }
+.strip > .gauge { grid-area: gauge; width: 96px; height: auto; align-self: center; justify-self: start; }
 .strip > .button--menu { grid-area: menu; align-self: start; }
 .strip > .button--sound { grid-area: sound; align-self: end; }
 
@@ -46,32 +47,12 @@ body {
 .instrument__value { font-size: var(--t-xl); line-height: 32px; font-weight: 600; text-align: right; }
 .instrument--large .instrument__value { font-size: var(--t-2xl); line-height: 44px; text-align: left; }
 
-.gauge { display: flex; gap: var(--s-1); align-self: center; padding-bottom: var(--s-2); }
-.gauge__segment {
-  flex: 1;
-  height: 10px;
-  max-width: 28px;
-  border: 1px solid var(--ink-soft);
-  border-radius: 2px;
-}
-.gauge__segment--on { background: var(--ink); border-color: var(--ink); }
-
 .board { grid-area: board; padding: var(--gutter); }
 .board__title { margin: 0 0 var(--s-1); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
 .board__lede { margin: 0 0 var(--gutter); color: var(--ink-soft); max-width: 60ch; }
 
-.chart {
-  width: 100%;
-  max-width: 560px;
-  height: auto;
-  display: block;
-  background: var(--paper-raised);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-}
-
-.panel { grid-area: panel; }
-.panel--board { display: none; }
+.panel { grid-area: panel; display: none; background: var(--paper-raised); }
+.panel--open { display: block; max-height: 45dvh; overflow-y: auto; border-top: 1px solid var(--line); }
 .panel__section { padding: var(--gutter); border-bottom: 1px solid var(--line); }
 .panel__title { margin: 0 0 var(--s-2); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
 .panel__text { margin: 0; color: var(--ink-soft); max-width: 60ch; }
@@ -82,7 +63,8 @@ body {
   gap: var(--s-2);
   padding: var(--gutter);
   padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
+  background: var(--paper-raised);
+  border-top: 2px solid var(--ink);
 }
 
 .button {
@@ -112,6 +94,7 @@ body {
     grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
     grid-template-areas: "pivots gauge cash week sound menu";
   }
-  .panel, .panel--board { display: block; border-left: 1px solid var(--line); }
+  .panel, .panel--board { display: block; max-height: none; border-left: 1px solid var(--line); }
+  .button--phone { display: none; }
   .actions { border-left: 1px solid var(--line); }
 }

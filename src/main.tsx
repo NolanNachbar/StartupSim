@@ -11,12 +11,13 @@ import { App } from "./app";
 import { installGamepad, installKeyboard } from "./ui/input";
 import { installErrorReporting } from "./ui/errors";
 import { SIM_VERSION } from "./sim";
-import { init, screen } from "./ui/store";
+import { init, screen, trackViewport } from "./ui/store";
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app root element");
 init(location.search);
 installErrorReporting(import.meta.env.VITE_ERROR_ENDPOINT as string | undefined, () => ({ simVersion: SIM_VERSION, screen: screen.value.name }));
 installKeyboard();
+trackViewport();
 installGamepad();
 render(<App />, root);

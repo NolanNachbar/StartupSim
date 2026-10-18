@@ -38,8 +38,9 @@ test("tab order follows the reading order: banner controls, then content, then a
   const at = (needle: RegExp) => order.findIndex((t) => needle.test(t));
   expect(at(/^Menu/)).toBeGreaterThanOrEqual(0);
   expect(at(/^Menu/)).toBeLessThan(at(/^1\./));
-  expect(at(/^1\./)).toBeLessThan(at(/^Got it/));
-  expect(at(/^Got it/)).toBeLessThan(at(/Choose an action/));
+  // The callout sits above the route plate, so it comes first in the reading order.
+  expect(at(/^Got it/)).toBeLessThan(at(/^1\./));
+  expect(at(/^1\./)).toBeLessThan(at(/Choose an action/));
   expect(at(/Choose an action/)).toBeLessThan(at(/Wait a week/));
 });
 

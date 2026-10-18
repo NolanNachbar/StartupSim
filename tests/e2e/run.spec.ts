@@ -153,6 +153,9 @@ test.describe("saving, keyboard and the reveal", () => {
     await page.keyboard.press("ArrowDown");
     await expect(rows.nth(1)).toBeFocused();
     await page.keyboard.press("Enter");
+    // On phone the details live in a sheet behind this button.
+    const sheet = page.getByRole("button", { name: "Log and details" });
+    if (await sheet.isVisible()) await sheet.click();
     await expect(page.getByRole("region", { name: "Selected" })).toContainText("Interviews");
   });
 

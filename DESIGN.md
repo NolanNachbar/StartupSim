@@ -22,6 +22,18 @@ The first instinct for a startup game is a dark theme with a neon accent, or cre
 
 The night theme is the likeliest place to slip back into the template (navy plus one hot accent), so its primary action is pale ink, not a bright color (decision D3). Cards are used only where a card is the interaction, such as a selectable problem space. Screens are layouts, not stacks of cards.
 
+## Illustrated direction (added after the first playable build)
+
+Decision D6 (Nolan, 2026-10-17): the first build read as a web form, so the game commits to illustrated aviation. All art is drawn in code, seeded so each world draws its own terrain.
+
+- The world fills the screen behind the game. In a run and on the board the map is open, with a cockpit bar on top and a plate and dock at the bottom; every other screen is a card over the dimmed map. The route sits in the open band between the HUD parts, and the details panel is a sheet behind "Log and details" on phone.
+- The route chart is a sectional map: grid, contour lines, a lake, tree marks, a compass, an airfield marker per customer group and a flag at the destination. The evidence line language is unchanged (dotted untested, dashed weak, solid blue verified) and every segment still carries a text label in the list below.
+- A plane flies the route as weeks pass (the map is the answer to "Wait a week"; the move is 700 ms, ease-out, removed under reduced motion).
+- Pivots remaining is also a cockpit dial: one arc per pivot beside the large number.
+- Interview answers are paper entries with a tag that echoes the line language: solid border for fact, dashed for fluff, dotted for compliment.
+- The accident report is a taped paper form with a flight number, weeks flown and outcome, the orange headline band, and a stamp that slams in once as part of the reveal ("Cause found", or "Default alive" in green for a landing).
+- A faint paper grain sits behind the page. Still no gradients, no shadows, and the black-box orange stays on the report.
+
 ## Screens and navigation
 
 Screen inventory:

@@ -2,7 +2,7 @@
 import { CATALOG } from "../sim";
 import { hypothesisLabel, money } from "./format";
 import { Section } from "./parts";
-import { selected, state } from "./store";
+import { selected, sheetOpen, state } from "./store";
 
 export function Panel({ idle }: { idle?: boolean }) {
   const s = state.value;
@@ -22,7 +22,7 @@ export function Panel({ idle }: { idle?: boolean }) {
   const h = sel === null ? null : s.hypotheses[sel];
   const log = s.log.slice(-8).reverse();
   return (
-    <aside class={idle ? "panel panel--board" : "panel"} aria-label="Log and details">
+    <aside class={`${idle ? "panel panel--board" : "panel"}${sheetOpen.value ? " panel--open" : ""}`} aria-label="Log and details">
       <Section title="Business" id="biz-h">
         <dl class="facts">
           <dt>Price</dt><dd>{`${money(s.priceCents)} a month`}</dd>
