@@ -10,6 +10,11 @@ function freezePublic(pub: PublicState): PublicState {
   Object.freeze(pub.segmentNames);
   for (const c of pub.channels) Object.freeze(c);
   Object.freeze(pub.channels);
+  for (const r of pub.receivables) Object.freeze(r);
+  Object.freeze(pub.receivables);
+  Object.freeze(pub.marketing);
+  if (pub.offer) Object.freeze(pub.offer);
+  if (pub.loan) Object.freeze(pub.loan);
   for (const h of pub.hypotheses) Object.freeze(h);
   Object.freeze(pub.hypotheses);
   for (const entry of pub.evidence) Object.freeze(entry);

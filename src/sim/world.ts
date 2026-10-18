@@ -1,6 +1,7 @@
 // The hidden world, generated from the seed. Every draw names its key (see rng.ts).
 import { randChance, randInt, randPick } from "./rng";
-import type { Channel, Secret, Segment, Weather } from "./types";
+import { LATE_PAYER_DELAY_WEEKS, LATE_PAYER_PCT } from "./runway";
+import type { Channel, LateWindow, Secret, Segment, Weather } from "./types";
 
 export const PROBLEMS = [
   "Appointment booking for small clinics",
@@ -47,6 +48,13 @@ function generateWeather(seed: number): Weather | null {
   return { startWeek, endWeek, demandMultiplierPct: WEATHER_DEMAND_PCT };
 }
 
+function generateLateWindow(seed: number): LateWindow | null {
+  if (!randChance(seed, 0.5, "world", "late")) return null;
+  const startWeek = randInt(seed, 15, 70, "world", "lstart");
+  const endWeek = startWeek + randInt(seed, 8, 16, "world", "llen");
+  return { startWeek, endWeek, pct: LATE_PAYER_PCT, delayWeeks: LATE_PAYER_DELAY_WEEKS };
+}
+
 /** Build the hidden world for a seed. Pure: equal seeds give deep-equal worlds. */
 export function generateWorld(seed: number): Secret {
   const segmentCount = randInt(seed, 3, 5, "world", "segmentCount");
@@ -62,6 +70,7 @@ export function generateWorld(seed: number): Secret {
     segments,
     channels,
     weather: generateWeather(seed),
+    lateWindow: generateLateWindow(seed),
     startFocus: randInt(seed, 0, segmentCount - 1, "world", "focus"),
   };
 }

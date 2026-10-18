@@ -13,6 +13,7 @@ const HIDDEN_KEYS = [
   "incumbentSatisfactionPct",
   "trueDemand",
   "fit",
+  "lateWindow",
   "needsIt",
   "weather",
   "secret",
@@ -33,6 +34,7 @@ function mutatedSecret(secret: Secret, k: number): Partial<Secret> {
     })),
     channels: secret.channels.map((c) => ({ ...c, costPerLeadCents: c.costPerLeadCents + k + 1 })),
     weather: secret.weather ? null : { startWeek: 30, endWeek: 40, demandMultiplierPct: 70 },
+    lateWindow: secret.lateWindow ? null : { startWeek: 20, endWeek: 30, pct: 40, delayWeeks: 6 },
   };
 }
 

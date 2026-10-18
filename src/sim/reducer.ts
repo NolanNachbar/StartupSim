@@ -4,31 +4,43 @@
 //                 │
 //                 └─ illegal: { ok: false, reason }, run unchanged
 //
-// A tick: demand target, customers ramp, revenue, cash, week, profit streak, then end checks.
+// A tick: marketing wins customers, churn takes some, the market ceiling caps them, revenue accrues,
+// late payers delay some cash, costs and loan repayments go out, the week advances, then end checks.
 import { hasKnownType, isBuildKind, isQuestionTriple, PRICE_LADDER_CENTS, RESERVED_ACTION_TYPES } from "./actions";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
 import {
+  ACQUISITION_DIVISOR,
+  BUDGET_LEVELS_CENTS,
   BUILD_TABLE,
   CHANNEL_TEST_BUDGET_CENTS,
+  CREDIBILITY_FLOOR_PCT,
+  HIRE_WEEKLY_CENTS,
   INTERVIEW_ROUND_CASH_CENTS,
   LANDING_STREAK_WEEKS,
+  LOAN_AMOUNT_CENTS,
+  LOAN_OFFER_LIFETIME_WEEKS,
+  LOAN_OFFER_MIN_WEEK,
+  LOAN_WEEKLY_REPAYMENT_CENTS,
+  LOAN_WEEKS,
+  MAX_HIRES,
   MAX_RAISES,
   MAX_WEEKS,
   RAISE_AMOUNT_CENTS,
-  RAISE_EQUITY_PCT,
-  WEEKLY_BURN_CENTS,
+  RAISE_EQUITY_PCTS,
+  acquiredCustomers,
+  churnedCustomers,
   conversionPct,
-  moveToward,
+  marketCeiling,
+  marketingLeads,
   pivotsRemaining,
   priceRatioPct,
-  targetCustomers,
   weeklyRevenue,
 } from "./runway";
 import { randInt } from "./rng";
 import type { InternalRun } from "./state";
-import type { Action, EndReason, Evidence, IllegalReason, LogEntry, PublicState, RunStatus } from "./types";
+import type { Action, EndReason, Evidence, IllegalReason, LoanOffer, LogEntry, PublicState, Receivable, RunStatus } from "./types";
 import { weatherPctAt } from "./world";
 
 export type InternalStepResult =
@@ -75,6 +87,12 @@ function canonical(action: Action): Action {
       return Object.freeze({ type: "pickChannel", segment: action.segment, channel: action.channel });
     case "chargeTest":
       return Object.freeze({ type: "chargeTest", segment: action.segment, channel: action.channel });
+    case "setMarketing":
+      return Object.freeze({ type: "setMarketing", channel: action.channel, level: action.level });
+    case "hire":
+      return Object.freeze({ type: "hire" });
+    case "respondOffer":
+      return Object.freeze({ type: "respondOffer", accept: action.accept });
     default:
       return Object.freeze({ type: "wait" });
   }
@@ -91,19 +109,48 @@ function tick(run: InternalRun): InternalRun {
   const segment = secret.segments[pub.focusSegment];
   if (!segment) throw new RangeError(`focus segment ${pub.focusSegment} does not exist`);
 
-  const conversion = conversionPct(priceRatioPct(pub.priceCents, segment.willingnessToPayCents));
-  const target = targetCustomers(
+  // Marketing: the budget is spent, and paid leads turn into customers.
+  const channel = pub.marketing.channel === null ? undefined : secret.channels[pub.marketing.channel];
+  const marketingSpend = channel ? (BUDGET_LEVELS_CENTS[pub.marketing.level] ?? 0) : 0;
+  let acquired = 0;
+  if (channel && marketingSpend > 0) {
+    const credibility = Math.max(CREDIBILITY_FLOOR_PCT, pub.productProgressPct);
+    const buyPct = Math.floor((conversionPct(priceRatioPct(pub.priceCents, segment.willingnessToPayCents)) * credibility) / 100);
+    acquired = acquiredCustomers({
+      leads: marketingLeads(marketingSpend, channel.costPerLeadCents, pub.hires),
+      fit: channel.fit[pub.focusSegment] ?? 0,
+      need: segment.pain * (100 - segment.incumbentSatisfactionPct),
+      buyPct,
+      draw: randInt(run.seed, 1, 100_000_000 * ACQUISITION_DIVISOR, "acq", pub.week),
+    });
+  }
+
+  // Churn, then the market ceiling (weather shrinks the market).
+  const withNew = pub.payingCustomers + acquired;
+  const churned = churnedCustomers(withNew, pub.productProgressPct, randInt(run.seed, 1, 10_000, "churn", pub.week));
+  const ceiling = marketCeiling(
     segment.trueDemand,
-    pub.productProgressPct,
-    conversion,
     weatherPctAt(secret, pub.week),
+    conversionPct(priceRatioPct(pub.priceCents, segment.willingnessToPayCents)),
   );
-  const payingCustomers = moveToward(pub.payingCustomers, target);
+  const payingCustomers = Math.min(ceiling, withNew - churned);
+
+  // Revenue accrues; during a late-payer window part of it arrives weeks later.
   const weeklyRevenueCents = weeklyRevenue(payingCustomers, pub.priceCents);
-  const cashCents = pub.cashCents + weeklyRevenueCents - WEEKLY_BURN_CENTS;
   const week = pub.week + 1;
+  const window = secret.lateWindow;
+  const late = window && pub.week >= window.startWeek && pub.week < window.endWeek ? Math.floor((weeklyRevenueCents * window.pct) / 100) : 0;
+  const owed: Receivable[] = late > 0 ? [...pub.receivables, { week: week + (window?.delayWeeks ?? 0), amountCents: late }] : [...pub.receivables];
+  const collected = owed.filter((r) => r.week <= week).reduce((sum, r) => sum + r.amountCents, 0);
+  const receivables = owed.filter((r) => r.week > week);
+
+  // Loan repayment drains cash but is not an operating cost.
+  const repayment = pub.loan ? pub.loan.weeklyRepaymentCents : 0;
+  const loan = pub.loan && pub.loan.weeksLeft > 1 ? { ...pub.loan, weeksLeft: pub.loan.weeksLeft - 1 } : null;
+
+  const cashCents = pub.cashCents + (weeklyRevenueCents - late) + collected - pub.weeklyBurnCents - marketingSpend - repayment;
   const profitableStreakWeeks =
-    weeklyRevenueCents >= WEEKLY_BURN_CENTS ? pub.profitableStreakWeeks + 1 : 0;
+    weeklyRevenueCents >= pub.weeklyBurnCents + marketingSpend ? pub.profitableStreakWeeks + 1 : 0;
 
   let status: RunStatus = "running";
   let endReason: EndReason | null = null;
@@ -122,18 +169,51 @@ function tick(run: InternalRun): InternalRun {
     endText = `Week ${MAX_WEEKS} passed without a viable business.`;
   }
 
-  const next: PublicState = {
-    ...pub,
-    week,
-    status,
-    endReason,
-    cashCents,
-    payingCustomers,
-    weeklyRevenueCents,
-    profitableStreakWeeks,
-    pivotsRemaining: pivotsRemaining(cashCents, pub.pivotCostCents),
+  const runway = pivotsRemaining(cashCents, pub.pivotCostCents);
+  let log = pub.log;
+  const note = (text: string): void => {
+    log = [...log, { week, text }];
   };
-  return { ...run, pub: endText ? { ...next, log: withLog(next, endText) } : next };
+  if (pub.loan && !loan) note("The loan is paid off.");
+
+  // A cash offer appears once, when the runway is nearly gone, and lapses after a few weeks.
+  let offer: LoanOffer | null = pub.offer;
+  let offersShown = pub.offersShown;
+  if (offer && week >= offer.expiresWeek) {
+    offer = null;
+    note("The cash offer expired.");
+  }
+  if (status === "running" && !offer && offersShown === 0 && week >= LOAN_OFFER_MIN_WEEK && runway <= 1) {
+    offer = {
+      amountCents: LOAN_AMOUNT_CENTS,
+      weeklyRepaymentCents: LOAN_WEEKLY_REPAYMENT_CENTS,
+      weeks: LOAN_WEEKS,
+      expiresWeek: week + LOAN_OFFER_LIFETIME_WEEKS,
+    };
+    offersShown = 1;
+    note("A lender offers $40,000 today.");
+  }
+  if (endText) note(endText);
+
+  return {
+    ...run,
+    pub: {
+      ...pub,
+      week,
+      status,
+      endReason,
+      cashCents,
+      payingCustomers,
+      weeklyRevenueCents,
+      profitableStreakWeeks,
+      pivotsRemaining: runway,
+      receivables,
+      loan,
+      offer,
+      offersShown,
+      log,
+    },
+  };
 }
 
 function advance(run: InternalRun, weeks: number): InternalRun {
@@ -163,6 +243,10 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
 
     case "raiseMoney": {
       if (run.pub.raisesUsed >= MAX_RAISES) return fail("raise-limit");
+      // Investors fund evidence: a second raise needs a verified hypothesis.
+      if (run.pub.raisesUsed >= 1 && !run.pub.hypotheses.some((h) => h.state === "verified")) {
+        return fail("investors-want-proof");
+      }
       const weeks = randInt(run.seed, 3, 9, "raise", run.pub.raisesUsed);
       const after = advance(run, weeks);
       if (after.pub.status !== "running") return ok(recorded(after, action));
@@ -172,9 +256,9 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
           withPub(after, {
             cashCents,
             pivotsRemaining: pivotsRemaining(cashCents, after.pub.pivotCostCents),
-            equityGivenPct: after.pub.equityGivenPct + RAISE_EQUITY_PCT,
+            equityGivenPct: after.pub.equityGivenPct + (RAISE_EQUITY_PCTS[after.pub.raisesUsed] ?? 20),
             raisesUsed: after.pub.raisesUsed + 1,
-            log: withLog(after.pub, "Raised $100,000 for 15% equity."),
+            log: withLog(after.pub, `Raised $100,000 for ${RAISE_EQUITY_PCTS[after.pub.raisesUsed] ?? 20}% equity.`),
           }),
           action,
         ),
@@ -213,7 +297,8 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       const alreadyThere = action.kind === "landing-page" ? run.pub.landingPageBuilt : run.pub.productProgressPct >= 100;
       if (alreadyThere) return fail("already-built");
       if (run.pub.cashCents < spec.cashCents) return fail("insufficient-cash");
-      const after = advance(withPub(run, { cashCents: run.pub.cashCents - spec.cashCents }), spec.weeks);
+      const weeks = Math.max(1, spec.weeks - run.pub.hires);
+      const after = advance(withPub(run, { cashCents: run.pub.cashCents - spec.cashCents }), weeks);
       // If the run ended before the build finished, nothing was built.
       if (after.pub.status !== "running") return ok(recorded(after, action));
       return ok(
@@ -261,6 +346,52 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         };
       }
       return ok(recorded(advance(withPub(run, changes), 1), action));
+    }
+
+    case "setMarketing": {
+      const { channel, level } = action;
+      if (!Number.isInteger(level) || level < 0 || level >= BUDGET_LEVELS_CENTS.length || (level === 0) !== (channel === null)) {
+        // Level 0 means "off" and goes with no channel; levels above 0 need a channel.
+        if (Number.isInteger(level) && level >= 1 && level < BUDGET_LEVELS_CENTS.length && channel === null) return fail("invalid-channel");
+        return fail("invalid-level");
+      }
+      if (channel !== null && (!Number.isInteger(channel) || channel < 0 || channel >= run.pub.channels.length)) {
+        return fail("invalid-channel");
+      }
+      return ok(recorded(withPub(run, { marketing: { channel, level } }), action));
+    }
+
+    case "hire": {
+      if (run.pub.hires >= MAX_HIRES) return fail("hire-limit");
+      const burn = run.pub.weeklyBurnCents + HIRE_WEEKLY_CENTS;
+      if (run.pub.cashCents < burn) return fail("insufficient-cash");
+      return ok(
+        recorded(
+          withPub(run, { hires: run.pub.hires + 1, weeklyBurnCents: burn, log: withLog(run.pub, "Hired a contractor.") }),
+          action,
+        ),
+      );
+    }
+
+    case "respondOffer": {
+      const offer = run.pub.offer;
+      if (!offer) return fail("no-offer");
+      if (!action.accept) {
+        return ok(recorded(withPub(run, { offer: null, log: withLog(run.pub, "Declined the cash offer.") }), action));
+      }
+      const cashCents = run.pub.cashCents + offer.amountCents;
+      return ok(
+        recorded(
+          withPub(run, {
+            offer: null,
+            cashCents,
+            pivotsRemaining: pivotsRemaining(cashCents, run.pub.pivotCostCents),
+            loan: { weeklyRepaymentCents: offer.weeklyRepaymentCents, weeksLeft: offer.weeks },
+            log: withLog(run.pub, "Took the cash offer. Repayments start this week."),
+          }),
+          action,
+        ),
+      );
     }
 
     case "pivot": {

@@ -4,7 +4,7 @@ import { PRICE_LADDER_CENTS, legalActions } from "./actions";
 import { step } from "./reducer";
 import { PIVOT_COST_CENTS, START_CASH_CENTS, WEEKLY_BURN_CENTS } from "./runway";
 import { initialRun, unsafeRunForTest, type InternalRun } from "./state";
-import type { Action, IllegalReason, PublicState, Segment } from "./types";
+import type { Action, IllegalReason, PublicState, Secret, Segment } from "./types";
 import { PROBLEMS } from "./world";
 
 const SEG: Segment = {
@@ -15,11 +15,15 @@ const SEG: Segment = {
   reachability: 50,
   size: 1000,
   incumbentSatisfactionPct: 0,
-  trueDemand: 1000,
+  trueDemand: 2000,
 };
 
-/** A hand-built world: two segments, no weather, focus 0, demand 1000 at 4900 per month. */
-function scenario(pub: Partial<PublicState>, weather = null as null | { startWeek: number; endWeek: number; demandMultiplierPct: number }): InternalRun {
+/** A hand-built world: two segments, no weather, no late payers, focus 0, demand pool 2000 at 4900 per month (half willing to pay, so a ceiling of 1000). */
+function scenario(
+  pub: Partial<PublicState>,
+  weather = null as null | { startWeek: number; endWeek: number; demandMultiplierPct: number },
+  secret: Partial<Secret> = {},
+): InternalRun {
   return unsafeRunForTest(
     0,
     {
@@ -31,7 +35,18 @@ function scenario(pub: Partial<PublicState>, weather = null as null | { startWee
       productProgressPct: 100,
       ...pub,
     },
-    { segments: [SEG, { ...SEG, name: "B" }], weather, startFocus: 0 },
+    {
+      segments: [SEG, { ...SEG, name: "B" }],
+      weather,
+      lateWindow: null,
+      channels: [
+        { name: "X", costPerLeadCents: 300, fit: [100, 100] },
+        { name: "Y", costPerLeadCents: 800, fit: [100, 100] },
+        { name: "Z", costPerLeadCents: 2500, fit: [100, 100] },
+      ],
+      startFocus: 0,
+      ...secret,
+    },
   );
 }
 
@@ -75,53 +90,62 @@ describe("initial state", () => {
 });
 
 describe("tick order (hand-computed scenarios)", () => {
-  it("ramps customers up toward the target and books revenue", () => {
-    const pub = wait(scenario({ productProgressPct: 100 }));
+  // Numbers are exact: the multiplications divide evenly, so randomized rounding never fires.
+  it("acquires customers through marketing, churns some, and books revenue", () => {
+    // 400 leads x 100 fit x 10000 need x 50 buy = 200 customers exactly; churn 3 (200 x 150 / 10000).
+    const pub = wait(scenario({ productProgressPct: 100, marketing: { channel: 0, level: 2 } }));
     expect(pub).toMatchObject({
       week: 1,
       status: "running",
-      payingCustomers: 100,
-      weeklyRevenueCents: 113_076,
-      cashCents: 963_076,
-      profitableStreakWeeks: 0,
+      payingCustomers: 197,
+      weeklyRevenueCents: 222_761,
+      cashCents: 952_761,
+      profitableStreakWeeks: 0, // revenue 222,761 is below burn 150,000 plus marketing 120,000
       pivotsRemaining: 1,
     });
   });
 
-  it("ramps customers down when the price is above willingness to pay", () => {
-    const pub = wait(scenario({ priceCents: 9900, payingCustomers: 500, week: 3 }));
+  it("acquires nobody without marketing", () => {
+    const pub = wait(scenario({ productProgressPct: 100 }));
+    expect(pub.payingCustomers).toBe(0);
+    expect(pub.cashCents).toBe(850_000);
+  });
+
+  it("churns customers by product completeness: 1.5, 3.5 and 5.5 percent a week", () => {
+    // 1000 customers x basis points / 10000 divides evenly at each of these.
+    const cases: Array<[number, number]> = [
+      [100, 985],
+      [50, 965],
+      [0, 945],
+    ];
+    for (const [progress, expected] of cases) {
+      const pub = wait(scenario({ payingCustomers: 1000, productProgressPct: progress }));
+      expect(pub.payingCustomers, `progress ${progress}`).toBe(expected);
+    }
+    const pub = wait(scenario({ payingCustomers: 1000, productProgressPct: 100 }));
     expect(pub).toMatchObject({
-      week: 4,
-      payingCustomers: 400,
-      weeklyRevenueCents: 913_846,
-      cashCents: 1_763_846,
+      payingCustomers: 985,
+      weeklyRevenueCents: 1_113_807,
+      cashCents: 1_963_807,
       profitableStreakWeeks: 1,
       pivotsRemaining: 2,
     });
   });
 
   it("lands after the eighth profitable week", () => {
-    const pub = wait(scenario({ payingCustomers: 500, week: 10, profitableStreakWeeks: 7 }));
+    const pub = wait(scenario({ payingCustomers: 1000, week: 10, profitableStreakWeeks: 7 }));
     expect(pub).toMatchObject({
       week: 11,
       status: "landed",
       endReason: "default-alive",
-      payingCustomers: 500,
-      weeklyRevenueCents: 565_384,
-      cashCents: 1_415_384,
+      cashCents: 1_963_807,
       profitableStreakWeeks: 8,
     });
   });
 
   it("crashes when cash goes below zero", () => {
     const pub = wait(scenario({ productProgressPct: 0, cashCents: 100_000, pivotsRemaining: 0 }));
-    expect(pub).toMatchObject({
-      status: "crashed",
-      endReason: "cash",
-      cashCents: -50_000,
-      pivotsRemaining: 0,
-      profitableStreakWeeks: 0,
-    });
+    expect(pub).toMatchObject({ status: "crashed", endReason: "cash", cashCents: -50_000, pivotsRemaining: 0, profitableStreakWeeks: 0 });
   });
 
   it("does not crash at exactly zero cash, only below zero", () => {
@@ -137,15 +161,14 @@ describe("tick order (hand-computed scenarios)", () => {
     expect(pub).toMatchObject({ week: 104, status: "crashed", endReason: "stalled", cashCents: 4_850_000 });
   });
 
-  it("applies the weather multiplier to demand", () => {
-    const pub = wait(scenario({ week: 5 }, { startWeek: 5, endWeek: 15, demandMultiplierPct: 70 }));
-    expect(pub).toMatchObject({ payingCustomers: 70, weeklyRevenueCents: 79_153, cashCents: 929_153 });
+  it("caps customers at the weather-adjusted market ceiling", () => {
+    // ceiling = floor(1000 x 70 / 100) = 700, applied after churn takes 15 from 1000
+    const pub = wait(scenario({ week: 5, payingCustomers: 1000 }, { startWeek: 5, endWeek: 15, demandMultiplierPct: 70 }));
+    expect(pub).toMatchObject({ payingCustomers: 700, weeklyRevenueCents: 791_538, cashCents: 1_641_538 });
   });
 
   it("checks a cash crash before a landing", () => {
-    const pub = wait(
-      scenario({ payingCustomers: 500, profitableStreakWeeks: 7, cashCents: -1_000_000, pivotsRemaining: 0 }),
-    );
+    const pub = wait(scenario({ payingCustomers: 1000, profitableStreakWeeks: 7, cashCents: -3_000_000, pivotsRemaining: 0 }));
     expect(pub).toMatchObject({ status: "crashed", endReason: "cash" });
   });
 });
@@ -199,7 +222,7 @@ describe("illegal actions", () => {
       ["unknown action", fresh(), { type: "bogus" }, "unknown-action"],
       ["missing type", fresh(), {}, "unknown-action"],
       ["not an object", fresh(), "wait", "unknown-action"],
-      ["not implemented", fresh(), { type: "hire" }, "not-implemented"],
+      ["not implemented", fresh(), { type: "doubleDown" }, "not-implemented"],
       ["price off the ladder", fresh(), { type: "setPrice", priceCents: 1234 }, "invalid-price"],
       ["price is the current price", fresh(), { type: "setPrice", priceCents: 4900 }, "invalid-price"],
       ["fractional price", fresh(), { type: "setPrice", priceCents: 9900.5 }, "invalid-price"],
@@ -222,7 +245,10 @@ describe("illegal actions", () => {
   });
 
   it("returns raise-limit on the third raise", () => {
-    let run = fresh();
+    // the second raise needs proof, so start from a run that has a verified hypothesis
+    let run = unsafeRunForTest(0, {
+      hypotheses: [{ segment: 0, state: "verified", interviews: 0, interested: 0, payments: 1, failedPaidTests: 0 }],
+    });
     for (let i = 0; i < 2; i++) {
       const r = step(run, { type: "raiseMoney" });
       expect(r.ok).toBe(true);
@@ -252,8 +278,8 @@ describe("terminal states and reserved actions", () => {
     expect(legalActions(ended.run)).toEqual([]);
   });
 
-  it("rejects the two reserved actions and never lists them", () => {
-    const reserved = ["hire", "doubleDown"] as const;
+  it("rejects the reserved action and never lists it", () => {
+    const reserved = ["doubleDown"] as const;
     const run = initialRun(3);
     for (const type of reserved) {
       const r = step(run, { type });
@@ -317,17 +343,17 @@ describe("pivot", () => {
     // old segment's customers carry over into the new segment.
     const run = scenario({
       productProgressPct: 100,
-      payingCustomers: 500,
+      payingCustomers: 1000,
       profitableStreakWeeks: 3,
-      weeklyRevenueCents: 565_384,
+      weeklyRevenueCents: 1_113_807,
     });
     const r = step(run, { type: "pivot", toSegment: 1 });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    // the week still runs on the old segment: 500 customers book 565,384 and cash moves accordingly
+    // the week still runs on the old segment: 985 customers book 1,113,807 and cash moves accordingly
     expect(r.run.pub).toMatchObject({
       week: 1,
-      cashCents: 1_415_384,
+      cashCents: 1_963_807,
       focusSegment: 1,
       productProgressPct: 50,
       payingCustomers: 0,

@@ -29,7 +29,14 @@ export function bestSegmentByEvidence(evidence: readonly Evidence[], segments: n
   return best;
 }
 
-export function playValidator(seed: number, maxWeeks = 110): { run: InternalRun; actions: Action[] } {
+export interface ValidatorOptions {
+  readonly price?: number;
+  readonly marketingLevel?: number;
+  readonly maxWeeks?: number;
+}
+
+export function playValidator(seed: number, options: ValidatorOptions = {}): { run: InternalRun; actions: Action[] } {
+  const maxWeeks = options.maxWeeks ?? 110;
   let run = initialRun(seed);
   const actions: Action[] = [];
   const act = (a: Action): boolean => {
@@ -41,6 +48,7 @@ export function playValidator(seed: number, maxWeeks = 110): { run: InternalRun;
     return true;
   };
 
+  if (options.price !== undefined) act({ type: "setPrice", priceCents: options.price });
   act({ type: "raiseMoney" });
   const n = run.pub.segmentNames.length;
   for (let s = 0; s < n; s++) {
@@ -61,6 +69,7 @@ export function playValidator(seed: number, maxWeeks = 110): { run: InternalRun;
     }
   }
   act({ type: "chargeTest", segment: best, channel: bestChannel });
+  act({ type: "setMarketing", channel: bestChannel, level: options.marketingLevel ?? 2 });
 
   while (run.pub.status === "running" && run.pub.productProgressPct < 100) {
     const kind = run.pub.productProgressPct <= 60 ? "prototype" : "concierge";

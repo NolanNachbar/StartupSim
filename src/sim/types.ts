@@ -27,6 +27,14 @@ export interface Weather {
   readonly demandMultiplierPct: number;
 }
 
+/** A stretch of weeks when some customers pay late. Hidden: the player only sees the receivables. */
+export interface LateWindow {
+  readonly startWeek: number;
+  readonly endWeek: number;
+  readonly pct: number;
+  readonly delayWeeks: number;
+}
+
 /** The hidden world. Generated from the seed, never shown to the player directly. */
 export interface Secret {
   readonly seed: number;
@@ -34,7 +42,32 @@ export interface Secret {
   readonly segments: readonly Segment[];
   readonly channels: readonly Channel[];
   readonly weather: Weather | null;
+  readonly lateWindow: LateWindow | null;
   readonly startFocus: number;
+}
+
+export interface Receivable {
+  /** The week the money arrives. */
+  readonly week: number;
+  readonly amountCents: Cents;
+}
+
+export interface LoanOffer {
+  readonly amountCents: Cents;
+  readonly weeklyRepaymentCents: Cents;
+  readonly weeks: number;
+  /** The offer disappears once the week reaches this. */
+  readonly expiresWeek: number;
+}
+
+export interface Loan {
+  readonly weeklyRepaymentCents: Cents;
+  readonly weeksLeft: number;
+}
+
+export interface Marketing {
+  readonly channel: number | null;
+  readonly level: number;
 }
 
 export type RunStatus = "running" | "crashed" | "landed";
@@ -67,6 +100,14 @@ export interface PublicState {
   readonly focusSegment: number;
   readonly log: readonly LogEntry[];
   readonly landingPageBuilt: boolean;
+  readonly marketing: Marketing;
+  readonly hires: number;
+  /** Revenue earned but not yet paid. */
+  readonly receivables: readonly Receivable[];
+  readonly offer: LoanOffer | null;
+  readonly loan: Loan | null;
+  /** How many loan offers have ever appeared (at most one per run). */
+  readonly offersShown: number;
   /** The public price list. How well each channel fits each segment stays hidden. */
   readonly channels: readonly ChannelInfo[];
   /** What the player has learned: interviews and tests. */
@@ -141,7 +182,7 @@ export interface Hypothesis {
   readonly failedPaidTests: number;
 }
 
-export type ReservedActionType = "hire" | "doubleDown";
+export type ReservedActionType = "doubleDown";
 
 export type Action =
   | { readonly type: "wait" }
@@ -152,6 +193,9 @@ export type Action =
   | { readonly type: "buildTest"; readonly kind: BuildKind }
   | { readonly type: "pickChannel"; readonly segment: number; readonly channel: number }
   | { readonly type: "chargeTest"; readonly segment: number; readonly channel: number }
+  | { readonly type: "setMarketing"; readonly channel: number | null; readonly level: number }
+  | { readonly type: "hire" }
+  | { readonly type: "respondOffer"; readonly accept: boolean }
   | { readonly type: ReservedActionType };
 
 export type IllegalReason =
@@ -165,6 +209,10 @@ export type IllegalReason =
   | "invalid-channel"
   | "already-built"
   | "nothing-to-sell"
+  | "invalid-level"
+  | "hire-limit"
+  | "no-offer"
+  | "investors-want-proof"
   | "insufficient-cash"
   | "no-pivots-left"
   | "raise-limit";

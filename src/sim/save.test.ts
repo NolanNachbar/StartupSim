@@ -148,7 +148,7 @@ describe("fromSave errors", () => {
       actions: [{ type: "wait" }, { type: "setPrice", priceCents: 12_345 }, { type: "wait" }],
     });
     expect(second).toEqual({ ok: false, reason: "replay-failed", atAction: 1 });
-    const first = fromSave({ simVersion: SIM_VERSION, seed: 7, actions: [{ type: "hire" }] });
+    const first = fromSave({ simVersion: SIM_VERSION, seed: 7, actions: [{ type: "doubleDown" }] });
     expect(first).toEqual({ ok: false, reason: "replay-failed", atAction: 0 });
   });
 

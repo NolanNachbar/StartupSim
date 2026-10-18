@@ -59,6 +59,14 @@ describe("generateWorld", () => {
           expect(f).toBeLessThanOrEqual(100);
         }
       }
+      if (w.lateWindow) {
+        expect(w.lateWindow.startWeek).toBeGreaterThanOrEqual(15);
+        expect(w.lateWindow.startWeek).toBeLessThanOrEqual(70);
+        expect(w.lateWindow.endWeek - w.lateWindow.startWeek).toBeGreaterThanOrEqual(8);
+        expect(w.lateWindow.endWeek - w.lateWindow.startWeek).toBeLessThanOrEqual(16);
+        expect(w.lateWindow.pct).toBe(40);
+        expect(w.lateWindow.delayWeeks).toBe(6);
+      }
       if (w.weather) {
         expect(w.weather.startWeek).toBeGreaterThanOrEqual(20);
         expect(w.weather.startWeek).toBeLessThanOrEqual(60);

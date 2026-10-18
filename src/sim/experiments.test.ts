@@ -195,8 +195,8 @@ describe("legal actions and reserved actions", () => {
     expect(types(page, "chargeTest")).toBe(n * 3);
   });
 
-  it("only hire and doubleDown remain reserved", () => {
-    for (const type of ["hire", "doubleDown"] as const) expect(reason(initialRun(1), { type })).toBe("not-implemented");
+  it("only doubleDown remains reserved", () => {
+    for (const type of ["doubleDown"] as const) expect(reason(initialRun(1), { type })).toBe("not-implemented");
     for (const type of ["buildTest", "pickChannel", "chargeTest"]) expect(reason(initialRun(1), { type })).not.toBe("not-implemented");
   });
 });

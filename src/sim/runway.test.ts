@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   PIVOT_COST_CENTS,
   conversionPct,
-  moveToward,
   pivotsRemaining,
   priceRatioPct,
   targetCustomers,
@@ -51,15 +50,6 @@ describe("runway constants and helpers", () => {
     expect(targetCustomers(1000, 100, 50, 70)).toBe(350);
     expect(targetCustomers(1000, 0, 50, 100)).toBe(0);
     expect(targetCustomers(4999, 100, 100, 100)).toBe(4999);
-  });
-
-  it("moves customers toward the target by up to 20 percent, at least 1", () => {
-    expect(moveToward(0, 500)).toBe(100);
-    expect(moveToward(450, 500)).toBe(500);
-    expect(moveToward(0, 3)).toBe(1);
-    expect(moveToward(500, 0)).toBe(400);
-    expect(moveToward(1, 0)).toBe(0);
-    expect(moveToward(7, 7)).toBe(7);
   });
 
   it("computes weekly revenue as customers x monthly price x 12 / 52, floored", () => {

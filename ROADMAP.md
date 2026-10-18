@@ -41,11 +41,12 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 - [x] Checks: payment evidence outranks compliment evidence in every state transition; chart data derives only from evidence, never from hidden truth
 
 ## M4. Money (depends on M1; can run after M3)
-- [ ] Acquisition and growth: customers should arrive through the channel that sold them, at a cost per customer, instead of the free market pull. M3 finding (2026-10-17): the scripted validator wins 301 of 400 seeds (75 percent) against a design target of 25 to 45 percent, so growth is too generous. Fix here, then tune in M7
-- [ ] Pricing curve with learnable optimum
-- [ ] Cash-flow events: late payer, predatory loan offer, payroll growth
-- [ ] Fundraising: weeks cost, dilution, investor expectation
-- [ ] Checks: lowest price reliably starves cash on the balance set; no money path produces negative runway without a crash state
+- [x] Acquisition and growth: customers should arrive through the channel that sold them, at a cost per customer, instead of the free market pull. M3 finding (2026-10-17): the scripted validator wins 301 of 400 seeds (75 percent) against a design target of 25 to 45 percent, so growth is too generous. Fix here, then tune in M7
+- [x] Pricing curve with learnable optimum
+- [x] Cash-flow events: late payer, predatory loan offer, payroll growth
+- [x] Fundraising: weeks cost, dilution, investor expectation
+- [x] Checks: lowest price reliably starves cash on the balance set; no money path produces negative runway without a crash state
+- Tuning levers left for M7 (validator wins 65 percent of 400 seeds against a 25 to 45 percent target): fixed burn, `ACQUISITION_DIVISOR`, churn, the landing threshold, run length, demand pool size.
 
 ## M5. Events and accident report (depends on M3, M4)
 - [ ] Event system tied to pattern IDs (V1 to V9, M1 to M7 where supported)

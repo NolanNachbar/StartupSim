@@ -6,7 +6,7 @@ import { step } from "./reducer";
 import { initialRun, type InternalRun } from "./state";
 import type { Action, LoadError, Save } from "./types";
 
-export const SIM_VERSION = 2;
+export const SIM_VERSION = 3;
 
 const MAX_SEED = 0xffffffff;
 
