@@ -20,6 +20,8 @@ Vite, Preact with signals, TypeScript (strict), plain CSS with tokens. No game e
 | `npm run e2e` | Browser tests, also writes screenshots to `.verify/screens/` |
 | `npm run build` | Typecheck plus production build |
 | `npm run size` | Bundle budget check |
+| `npm run balance` | 200-seed strategy-bot table, enforces the GAME-DESIGN balance targets |
+| `npm run lighthouse` | Lighthouse on the production build, accessibility and best-practices at least 95 |
 
 ## Architecture rules
 

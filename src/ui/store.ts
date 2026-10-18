@@ -10,6 +10,7 @@ import type { FormId } from "./forms";
 import { loadFlights, loadNotes, recordFlight, type Flight, type Note } from "./notes";
 import { clearRun, loadRun, saveRun } from "./persist";
 import { renderShareCard } from "./shareCard";
+import { sound } from "./sound";
 import { browserBackend, createSafeStorage } from "./storage";
 
 export type Screen =
@@ -27,9 +28,10 @@ export interface Settings {
   theme: "system" | "day" | "night";
   callouts: boolean;
   reduceMotion: boolean;
+  sound: boolean;
 }
 
-const DEFAULT_SETTINGS: Settings = { theme: "system", callouts: true, reduceMotion: false };
+const DEFAULT_SETTINGS: Settings = { theme: "system", callouts: true, reduceMotion: false, sound: true };
 
 export const storage = createSafeStorage(browserBackend());
 
@@ -77,6 +79,7 @@ export const setupSeeds = computed(() => [0, 1, 2].map((i) => (baseSeed.value + 
 export function init(search: string): void {
   const stored = storage.getJson("runway.settings");
   if (stored && typeof stored === "object") settings.value = { ...DEFAULT_SETTINGS, ...(stored as Partial<Settings>) };
+  sound.setEnabled(settings.value.sound);
   const shown = storage.getJson("runway.callouts");
   if (Array.isArray(shown)) shownCallouts.value = shown.filter((x): x is string => typeof x === "string");
   const seen = storage.getJson("runway.seen");
@@ -104,6 +107,7 @@ export function init(search: string): void {
 
 export function updateSettings(patch: Partial<Settings>): void {
   settings.value = { ...settings.value, ...patch };
+  sound.setEnabled(settings.value.sound);
   storage.setJson("runway.settings", settings.value);
   syncBlocked();
   announcement.value = "Setting changed.";
@@ -185,6 +189,7 @@ export function act(action: Action): boolean {
   const result = step(current, action);
   if (!result.ok) {
     formError.value = reasonText(result.reason);
+    sound.play("error");
     return false;
   }
   const before = view(current);
@@ -196,6 +201,9 @@ export function act(action: Action): boolean {
   last.value = { before, after, action, step: described };
   announce(after);
   formError.value = null;
+  if (after.status !== "running") sound.play("report");
+  else if (after.pivotsRemaining <= 1 && before.pivotsRemaining > 1) sound.play("warn");
+  else if (described.weeksPassed > 0) sound.play("tick");
   if (after.status !== "running") {
     const rep = reportFor(result.run);
     const key = rep?.probableCause?.id ?? rep?.outcome ?? "none";

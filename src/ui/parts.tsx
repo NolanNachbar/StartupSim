@@ -2,7 +2,7 @@
 import type { ComponentChildren } from "preact";
 import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { countStates, hypothesisLabel, money } from "./format";
-import { markCalloutShown, openMenu, selected, settings, shownCallouts, startPivots, state } from "./store";
+import { markCalloutShown, openMenu, selected, settings, shownCallouts, startPivots, state, updateSettings } from "./store";
 import type { Hypothesis, HypothesisState, PublicState } from "../sim";
 
 export function Instrument({ caption, value, large, area }: { caption: string; value: string; large?: boolean; area: string }) {
@@ -36,6 +36,9 @@ export function Strip({ fresh }: { fresh: PublicState }) {
       <Instrument area="week" caption="Week" value={String(s.week)} />
       <button type="button" class="button button--menu" onClick={openMenu}>
         Menu
+      </button>
+      <button type="button" class="button button--menu button--sound" aria-pressed={settings.value.sound} onClick={() => updateSettings({ sound: !settings.value.sound })}>
+        {settings.value.sound ? "Sound on" : "Sound off"}
       </button>
     </header>
   );

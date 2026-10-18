@@ -30,7 +30,7 @@ body {
   grid-area: strip;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "pivots gauge menu" "cash week week";
+  grid-template-areas: "pivots gauge menu" "cash week sound";
   align-items: end;
   gap: var(--s-2) var(--gutter);
   padding: var(--s-3) var(--gutter);
@@ -38,6 +38,7 @@ body {
 }
 .strip > .gauge { grid-area: gauge; }
 .strip > .button--menu { grid-area: menu; align-self: start; }
+.strip > .button--sound { grid-area: sound; align-self: end; }
 
 .instrument { display: flex; flex-direction: column; }
 .instrument[style*="week"] { align-items: flex-end; }
@@ -108,8 +109,8 @@ body {
     grid-template-rows: auto 1fr auto;
   }
   .strip {
-    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
-    grid-template-areas: "pivots gauge cash week menu";
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
+    grid-template-areas: "pivots gauge cash week sound menu";
   }
   .panel, .panel--board { display: block; border-left: 1px solid var(--line); }
   .actions { border-left: 1px solid var(--line); }

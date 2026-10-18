@@ -77,12 +77,12 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 - [x] Checks: storage failure never breaks the game; a shared seed reproduces the same world
 
 ## M9. Polish pass (depends on M7, M8)
-- [ ] Generated sound (Web Audio) with mute control
-- [ ] Motion per DESIGN.md, reduced-motion path
-- [ ] Keyboard and controller navigation; focus order audit
-- [ ] Performance: first load under 1.5 MB, interactive under 2 s on throttled mobile, 60 fps interactions
-- [ ] Lighthouse accessibility score 95 or higher, best-practices 95 or higher
-- [ ] Checks: all measured in the verify report
+- [x] Generated sound (Web Audio) with mute control
+- [x] Motion per DESIGN.md, reduced-motion path
+- [x] Keyboard and controller navigation; focus order audit
+- [x] Performance: first load under 1.5 MB, interactive under 2 s on throttled mobile, 60 fps interactions (size and load time measured in e2e under CPU 4x and 1.6 Mbps; no frame-rate measurement, the only animation is the report wipe)
+- [x] Lighthouse accessibility score 95 or higher, best-practices 95 or higher (measured 100 and 96, performance 100, gate in `npm run verify`)
+- [x] Checks: all measured in the verify report
 - [ ] [HUMAN] Game feel and "does it look expensive" review
 
 ## M10. Launch (depends on M9)

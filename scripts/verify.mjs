@@ -14,6 +14,7 @@ const gates = [
   { name: "build", cmd: "npm", args: ["run", "build", "--silent"] },
   { name: "size", cmd: "npm", args: ["run", "size", "--silent"] },
   { name: "e2e", cmd: "npm", args: ["run", "e2e", "--silent"] },
+  { name: "lighthouse", cmd: "npm", args: ["run", "lighthouse", "--silent"] },
 ];
 
 mkdirSync(".verify", { recursive: true });
