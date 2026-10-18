@@ -38,7 +38,6 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 - [ ] Build a test (landing page, concierge, prototype) with cost, time and signal
 - [ ] Charge for a test with payment-based verification
 - [ ] Channels: reach cost and conversion
-- [ ] Decide what happens to existing paying customers when the player pivots (M1 review, 2026-10-17: today `payingCustomers` carries over unchanged to the new segment and drifts toward the new target; reset on pivot is the lean-startup reading)
 - [ ] Checks: payment evidence outranks compliment evidence in every state transition; chart data derives only from evidence, never from hidden truth
 
 ## M4. Money (depends on M1; can run after M3)

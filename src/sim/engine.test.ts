@@ -311,6 +311,30 @@ describe("pivot", () => {
     expect(r.run.pub.log.at(-1)?.text).toBe("Pivoted to B.");
   });
 
+  it("starts the new segment with no customers, revenue or profit streak", () => {
+    // protects: a pivot is a fresh start with a new customer group, not free revenue; fails_when: the
+    // old segment's customers carry over into the new segment.
+    const run = scenario({
+      productProgressPct: 100,
+      payingCustomers: 500,
+      profitableStreakWeeks: 3,
+      weeklyRevenueCents: 565_384,
+    });
+    const r = step(run, { type: "pivot", toSegment: 1 });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    // the week still runs on the old segment: 500 customers book 565,384 and cash moves accordingly
+    expect(r.run.pub).toMatchObject({
+      week: 1,
+      cashCents: 1_415_384,
+      focusSegment: 1,
+      productProgressPct: 50,
+      payingCustomers: 0,
+      weeklyRevenueCents: 0,
+      profitableStreakWeeks: 0,
+    });
+  });
+
   it("is not applied if the run ends during the pivot week", () => {
     // No product, so no revenue: 100,000 cash minus one week of burn goes below zero. The legal-pivot
     // check reads pivotsRemaining as given, so this scenario sets it to 1 on purpose.

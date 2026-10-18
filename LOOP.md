@@ -47,7 +47,7 @@ notes: [ ... ]      # non-blocking observations
 
 ### Commit
 - Tick the roadmap item, commit with a message that names the item (for example "M2: interview signal model"), then continue or stop per the stop rules.
-- No push without Nolan's say-so until the GitHub remote exists and he has approved auto-push.
+- The remote is the public repo https://github.com/NolanNachbar/StartupSim. Push only when Nolan asks, never force-push, and never put a local path in a tracked file (the `no-local-paths` gate in `npm run verify` enforces this).
 
 ## Stop rules
 

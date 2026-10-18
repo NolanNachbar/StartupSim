@@ -170,6 +170,10 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
             pivotsUsed: after.pub.pivotsUsed + 1,
             focusSegment: to,
             productProgressPct: Math.floor(after.pub.productProgressPct / 2),
+            // A pivot is a fresh start with a new customer group: nothing carries over from the old one.
+            payingCustomers: 0,
+            weeklyRevenueCents: 0,
+            profitableStreakWeeks: 0,
             log: withLog(after.pub, `Pivoted to ${after.pub.segmentNames[to] ?? "a new segment"}.`),
           }),
           action,

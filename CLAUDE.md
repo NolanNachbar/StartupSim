@@ -50,12 +50,12 @@ Framework: Vitest with fast-check for the simulation (`src/**/*.test.ts`, `tests
 - Do not weaken a test, lint rule, size budget, or accessibility check to make something pass. Fix the cause.
 - Ask before adding dependencies, changing DESIGN.md or GAME-DESIGN.md, or spending money.
 - Game feel, fun, and "looks expensive" are Nolan's calls. Mark them `[HUMAN]` and stop.
-- Commit after each verified item. No push until the remote exists and Nolan approves.
+- Commit after each verified item. The remote is the public repo https://github.com/NolanNachbar/StartupSim: push only when Nolan asks, never force-push, and keep local paths out of tracked files.
 - No em dashes and no emojis in code, comments, docs or in-game copy.
 
 ## Deployment (decided at M10, defaults)
 
-Static site. Default host: Cloudflare Pages (free, fast, unlimited bandwidth). Alternatives: Netlify, Vercel, GitHub Pages. Analytics: Plausible or Umami (no cookies). The GitHub repo is created by Nolan or with his approval via `gh`.
+The GitHub repo exists (public). Static site. Default host: Cloudflare Pages (free, fast, unlimited bandwidth). Alternatives: Netlify, Vercel, GitHub Pages. Analytics: Plausible or Umami (no cookies). The GitHub repo is created by Nolan or with his approval via `gh`.
 
 ## Known environment notes
 
