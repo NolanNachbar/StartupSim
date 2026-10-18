@@ -9,11 +9,14 @@ import "./styles/screens.css";
 import { render } from "preact";
 import { App } from "./app";
 import { installGamepad, installKeyboard } from "./ui/input";
-import { init } from "./ui/store";
+import { installErrorReporting } from "./ui/errors";
+import { SIM_VERSION } from "./sim";
+import { init, screen } from "./ui/store";
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app root element");
 init(location.search);
+installErrorReporting(import.meta.env.VITE_ERROR_ENDPOINT as string | undefined, () => ({ simVersion: SIM_VERSION, screen: screen.value.name }));
 installKeyboard();
 installGamepad();
 render(<App />, root);

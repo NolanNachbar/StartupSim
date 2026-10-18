@@ -88,7 +88,8 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 ## M10. Launch (depends on M9)
 - [ ] [HUMAN] Choose a name and domain
 - [ ] Static deploy to the chosen host, privacy-friendly analytics, social preview image
-- [ ] Error reporting that sends no personal data
+  - Ready and verified: production build, `public/_headers` (CSP and caching), favicon, `public/og.png` and meta tags, optional Plausible snippet via `VITE_ANALYTICS_DOMAIN`, steps in `docs/DEPLOY.md`. Not done: the actual deploy, which needs Nolan's host account and the name and domain.
+- [x] Error reporting that sends no personal data (off until `VITE_ERROR_ENDPOINT` is set; sanitizer is unit-tested)
 - [ ] [HUMAN] Soft launch to a small group, collect their first-minute reactions
 
 ## Later
