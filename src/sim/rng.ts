@@ -16,7 +16,9 @@ function mix(h: number, v: number): number {
 
 /** Float in [0, 1) with 32-bit resolution. */
 export function rand(seed: number, ...keys: Key[]): number {
-  if (!Number.isInteger(seed)) throw new RangeError(`seed must be an integer, got ${String(seed)}`);
+  if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
+    throw new RangeError(`seed must be an integer in [0, 0xFFFFFFFF], got ${String(seed)}`);
+  }
   let h = mix(0x811c9dc5, seed >>> 0);
   for (const key of keys) {
     if (typeof key === "number") {

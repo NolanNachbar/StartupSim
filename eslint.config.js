@@ -42,6 +42,10 @@ export default tseslint.config(
         "error",
         { selector: "BinaryExpression[operator='**']", message: "`**` is not allowed in src/sim." },
         { selector: "AssignmentExpression[operator='**=']", message: "`**=` is not allowed in src/sim." },
+        {
+          selector: "MemberExpression[property.name='Math'][object.name=/^(globalThis|self|global)$/]",
+          message: "Reach Math directly so the Math rules apply; globalThis.Math is not allowed in src/sim.",
+        },
       ],
     },
   },

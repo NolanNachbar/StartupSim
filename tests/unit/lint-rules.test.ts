@@ -18,6 +18,8 @@ describe("sim purity lint rules", () => {
     ["new Date", "export const x = new Date();", "no-restricted-globals"],
     ["localStorage", "export const x = localStorage.getItem('a');", "no-restricted-globals"],
     ["the ** operator", "export const x = 2 ** 3;", "no-restricted-syntax"],
+    ["destructuring Math", "const { exp } = Math;\nexport const x = exp(1);", "no-restricted-properties"],
+    ["globalThis.Math", "export const x = globalThis.Math.exp(1);", "no-restricted-syntax"],
   ];
 
   for (const [label, code, rule] of forbidden) {

@@ -77,6 +77,11 @@ describe("rand", () => {
     expect(() => rand(1, Number.POSITIVE_INFINITY)).toThrow(RangeError);
     expect(() => rand(1.5, "x")).toThrow(RangeError);
     expect(() => rand(Number.NaN, "x")).toThrow(RangeError);
+    // protects: distinct seeds never collide silently; fails_when: seed range is not enforced (2^32 wraps to 0).
+    expect(() => rand(-1, "x")).toThrow(RangeError);
+    expect(() => rand(0x100000000, "x")).toThrow(RangeError);
+    expect(() => rand(0xffffffff, "x")).not.toThrow();
+    expect(() => rand(0, "x")).not.toThrow();
   });
 });
 

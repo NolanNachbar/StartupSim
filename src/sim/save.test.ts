@@ -118,6 +118,27 @@ describe("fromSave errors", () => {
     expect(first).toEqual({ ok: false, reason: "replay-failed", atAction: 0 });
   });
 
+  it("returns invalid instead of throwing for hostile objects (throwing getters, Proxy)", () => {
+    // protects: the "never throws" contract; fails_when: input is read outside a guard.
+    const getter = {
+      simVersion: SIM_VERSION,
+      seed: 1,
+      actions: [
+        {
+          get type(): string {
+            throw new Error("boom");
+          },
+        },
+      ],
+    };
+    expect(fromSave(getter)).toEqual({ ok: false, reason: "invalid" });
+    const boom = (): never => {
+      throw new Error("boom");
+    };
+    const proxy = new Proxy({}, { get: boom, has: boom, ownKeys: boom, getOwnPropertyDescriptor: boom });
+    expect(fromSave(proxy)).toEqual({ ok: false, reason: "invalid" });
+  });
+
   it("never throws, whatever it is given", () => {
     fc.assert(
       fc.property(fc.anything(), (x) => {
