@@ -5,9 +5,13 @@
 //                 └─ illegal: { ok: false, reason }, run unchanged
 //
 // A tick: demand target, customers ramp, revenue, cash, week, profit streak, then end checks.
-import { hasKnownType, isQuestionTriple, PRICE_LADDER_CENTS, RESERVED_ACTION_TYPES } from "./actions";
+import { hasKnownType, isBuildKind, isQuestionTriple, PRICE_LADDER_CENTS, RESERVED_ACTION_TYPES } from "./actions";
+import { runChannelTest, runPaidTest } from "./experiments";
+import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
 import {
+  BUILD_TABLE,
+  CHANNEL_TEST_BUDGET_CENTS,
   INTERVIEW_ROUND_CASH_CENTS,
   LANDING_STREAK_WEEKS,
   MAX_RAISES,
@@ -24,7 +28,7 @@ import {
 } from "./runway";
 import { randInt } from "./rng";
 import type { InternalRun } from "./state";
-import type { Action, EndReason, IllegalReason, LogEntry, PublicState, RunStatus } from "./types";
+import type { Action, EndReason, Evidence, IllegalReason, LogEntry, PublicState, RunStatus } from "./types";
 import { weatherPctAt } from "./world";
 
 export type InternalStepResult =
@@ -42,6 +46,14 @@ function withLog(pub: PublicState, text: string): readonly LogEntry[] {
   return [...pub.log, { week: pub.week, text }];
 }
 
+/** Append evidence and keep the hypotheses in step with it. */
+function withEvidence(pub: PublicState, entries: readonly Evidence[]): Partial<PublicState> {
+  const evidence = [...pub.evidence, ...entries];
+  return { evidence, hypotheses: hypothesesFrom(evidence, pub.segmentNames.length) };
+}
+
+const countOf = (run: InternalRun, type: Action["type"]): number => run.actions.filter((a) => a.type === type).length;
+
 /** A frozen copy holding only the fields the action defines, so callers cannot rewrite history. */
 function canonical(action: Action): Action {
   switch (action.type) {
@@ -57,6 +69,12 @@ function canonical(action: Action): Action {
         segment: action.segment,
         questions: Object.freeze([...action.questions]),
       });
+    case "buildTest":
+      return Object.freeze({ type: "buildTest", kind: action.kind });
+    case "pickChannel":
+      return Object.freeze({ type: "pickChannel", segment: action.segment, channel: action.channel });
+    case "chargeTest":
+      return Object.freeze({ type: "chargeTest", segment: action.segment, channel: action.channel });
     default:
       return Object.freeze({ type: "wait" });
   }
@@ -173,7 +191,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       const round = runInterviewRound({
         secret: run.secret,
         seed: run.seed,
-        index: run.actions.filter((a) => a.type === "interview").length,
+        index: countOf(run, "interview"),
         week: run.pub.week,
         segment,
         questions: action.questions,
@@ -182,11 +200,67 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       const answered = round.filter((e) => e.outcome === "completed").length;
       const paid = withPub(run, {
         cashCents: run.pub.cashCents - INTERVIEW_ROUND_CASH_CENTS,
-        evidence: [...run.pub.evidence, ...round],
+        ...withEvidence(run.pub, round),
         log: withLog(run.pub, `Interview round: ${answered} of ${round.length} answered.`),
       });
       // The conversations happened, so the evidence stays even if the week then ends the run.
       return ok(recorded(advance(paid, 1), action));
+    }
+
+    case "buildTest": {
+      if (!isBuildKind(action.kind)) return fail("invalid-build");
+      const spec = BUILD_TABLE[action.kind];
+      const alreadyThere = action.kind === "landing-page" ? run.pub.landingPageBuilt : run.pub.productProgressPct >= 100;
+      if (alreadyThere) return fail("already-built");
+      if (run.pub.cashCents < spec.cashCents) return fail("insufficient-cash");
+      const after = advance(withPub(run, { cashCents: run.pub.cashCents - spec.cashCents }), spec.weeks);
+      // If the run ended before the build finished, nothing was built.
+      if (after.pub.status !== "running") return ok(recorded(after, action));
+      return ok(
+        recorded(
+          withPub(after, {
+            productProgressPct: Math.min(100, after.pub.productProgressPct + spec.progressPct),
+            landingPageBuilt: after.pub.landingPageBuilt || action.kind === "landing-page",
+            log: withLog(after.pub, `Built a ${action.kind.replace("-", " ")}.`),
+          }),
+          action,
+        ),
+      );
+    }
+
+    case "pickChannel":
+    case "chargeTest": {
+      const { segment, channel } = action;
+      if (!Number.isInteger(segment) || segment < 0 || segment >= run.pub.segmentNames.length) return fail("invalid-segment");
+      if (!Number.isInteger(channel) || channel < 0 || channel >= run.pub.channels.length) return fail("invalid-channel");
+      const charging = action.type === "chargeTest";
+      if (charging && !run.pub.landingPageBuilt) return fail("nothing-to-sell");
+      if (run.pub.cashCents < CHANNEL_TEST_BUDGET_CENTS) return fail("insufficient-cash");
+      const base = { secret: run.secret, seed: run.seed, week: run.pub.week, segment, channel };
+      let changes: Partial<PublicState>;
+      if (charging) {
+        const test = runPaidTest({
+          ...base,
+          index: countOf(run, "chargeTest"),
+          priceCents: run.pub.priceCents,
+          productProgressPct: run.pub.productProgressPct,
+        });
+        changes = {
+          // Payments are real money; only payers in the focus segment become ongoing customers.
+          cashCents: run.pub.cashCents - CHANNEL_TEST_BUDGET_CENTS + test.payments * run.pub.priceCents,
+          payingCustomers: segment === run.pub.focusSegment ? run.pub.payingCustomers + test.payments : run.pub.payingCustomers,
+          ...withEvidence(run.pub, [test]),
+          log: withLog(run.pub, `Paid test: ${test.payments} of ${test.leads} paid.`),
+        };
+      } else {
+        const test = runChannelTest({ ...base, index: countOf(run, "pickChannel") });
+        changes = {
+          cashCents: run.pub.cashCents - CHANNEL_TEST_BUDGET_CENTS,
+          ...withEvidence(run.pub, [test]),
+          log: withLog(run.pub, `Channel test: ${test.interested} of ${test.leads} interested.`),
+        };
+      }
+      return ok(recorded(advance(withPub(run, changes), 1), action));
     }
 
     case "pivot": {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fixture from "./fixtures/golden-replay.json";
 import interviewFixture from "./fixtures/golden-replay-interview.json";
+import landingFixture from "./fixtures/golden-replay-landing.json";
 import { SIM_VERSION, fromSave } from "../../src/sim/save";
 import { view } from "../../src/sim/view";
 
@@ -27,5 +28,18 @@ describe("golden replay", () => {
     if (!loaded.ok) return;
     expect(view(loaded.run)).toEqual(interviewFixture.expected);
     expect(interviewFixture.expected.evidence.length).toBe(9);
+  });
+
+  it("replays a winning run to the committed final state", () => {
+    // protects: the game stays winnable and a won run stays identical; fails_when: any mechanic, constant or
+    // draw key in builds, tests, channels or revenue changes without a SIM_VERSION bump.
+    expect(landingFixture.simVersion).toBe(SIM_VERSION);
+    const loaded = fromSave({ simVersion: landingFixture.simVersion, seed: landingFixture.seed, actions: landingFixture.actions });
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    expect(view(loaded.run)).toEqual(landingFixture.expected);
+    expect(landingFixture.expected.status).toBe("landed");
+    expect(landingFixture.expected.endReason).toBe("default-alive");
+    expect(landingFixture.expected.hypotheses.some((h) => h.state === "verified")).toBe(true);
   });
 });

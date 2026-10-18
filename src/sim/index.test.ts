@@ -6,7 +6,7 @@ describe("public API (src/sim/index.ts)", () => {
     expect(Object.keys(sim).sort()).toEqual(
       ["SIM_VERSION", "fromSave", "legalActions", "newRun", "step", "toSave", "view"].sort(),
     );
-    expect(sim.SIM_VERSION).toBe(1);
+    expect(sim.SIM_VERSION).toBe(2);
   });
 
   it("newRun rejects seeds that are not integers in [0, 0xFFFFFFFF]", () => {
@@ -26,7 +26,7 @@ describe("public API (src/sim/index.ts)", () => {
     if (!r.ok) return;
     run = r.run;
     expect(sim.view(run).week).toBe(1);
-    expect(sim.toSave(run)).toEqual({ simVersion: 1, seed: 42, actions: [{ type: "wait" }] });
+    expect(sim.toSave(run)).toEqual({ simVersion: 2, seed: 42, actions: [{ type: "wait" }] });
   });
 
   it("returns the same result object semantics for illegal actions", () => {

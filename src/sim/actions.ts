@@ -1,6 +1,6 @@
-import { INTERVIEW_ROUND_CASH_CENTS, MAX_RAISES } from "./runway";
+import { BUILD_TABLE, CHANNEL_TEST_BUDGET_CENTS, INTERVIEW_ROUND_CASH_CENTS, MAX_RAISES } from "./runway";
 import type { InternalRun } from "./state";
-import type { Action, QuestionType, ReservedActionType } from "./types";
+import type { Action, BuildKind, QuestionType, ReservedActionType } from "./types";
 
 /** Monthly prices the player can choose, in cents. */
 export const PRICE_LADDER_CENTS: readonly number[] = [900, 1900, 4900, 9900, 19900, 49900, 99900];
@@ -12,13 +12,11 @@ export function isQuestionTriple(x: unknown): x is readonly QuestionType[] {
   return Array.isArray(x) && x.length === 3 && x.every((q) => (QUESTION_TYPES as readonly unknown[]).includes(q));
 }
 
-export const RESERVED_ACTION_TYPES: readonly ReservedActionType[] = [
-  "buildTest",
-  "chargeTest",
-  "pickChannel",
-  "hire",
-  "doubleDown",
-];
+export const BUILD_KINDS = Object.keys(BUILD_TABLE) as BuildKind[];
+
+export const isBuildKind = (x: unknown): x is BuildKind => typeof x === "string" && (BUILD_KINDS as string[]).includes(x);
+
+export const RESERVED_ACTION_TYPES: readonly ReservedActionType[] = ["hire", "doubleDown"];
 
 const KNOWN_TYPES: ReadonlySet<string> = new Set([
   "wait",
@@ -26,6 +24,9 @@ const KNOWN_TYPES: ReadonlySet<string> = new Set([
   "raiseMoney",
   "pivot",
   "interview",
+  "buildTest",
+  "pickChannel",
+  "chargeTest",
   ...RESERVED_ACTION_TYPES,
 ]);
 
@@ -44,6 +45,11 @@ export function isActionShape(x: unknown): x is Action {
   if (!hasKnownType(x)) return false;
   if (x.type === "setPrice") return Number.isInteger((x as { priceCents?: unknown }).priceCents);
   if (x.type === "pivot") return Number.isInteger((x as { toSegment?: unknown }).toSegment);
+  if (x.type === "buildTest") return isBuildKind((x as { kind?: unknown }).kind);
+  if (x.type === "pickChannel" || x.type === "chargeTest") {
+    const { segment, channel } = x as { segment?: unknown; channel?: unknown };
+    return Number.isInteger(segment) && Number.isInteger(channel);
+  }
   if (x.type === "interview") {
     const { segment, questions } = x as { segment?: unknown; questions?: unknown };
     return Number.isInteger(segment) && isQuestionTriple(questions);
@@ -68,6 +74,19 @@ export function legalActions(run: InternalRun): readonly Action[] {
   if (pub.cashCents >= INTERVIEW_ROUND_CASH_CENTS) {
     for (let segment = 0; segment < pub.segmentNames.length; segment++) {
       for (const q of QUESTION_TYPES) actions.push({ type: "interview", segment, questions: [q, q, q] });
+    }
+  }
+  for (const kind of BUILD_KINDS) {
+    const cost = BUILD_TABLE[kind].cashCents;
+    const alreadyThere = kind === "landing-page" ? pub.landingPageBuilt : pub.productProgressPct >= 100;
+    if (!alreadyThere && pub.cashCents >= cost) actions.push({ type: "buildTest", kind });
+  }
+  if (pub.cashCents >= CHANNEL_TEST_BUDGET_CENTS) {
+    for (let segment = 0; segment < pub.segmentNames.length; segment++) {
+      for (let channel = 0; channel < pub.channels.length; channel++) {
+        actions.push({ type: "pickChannel", segment, channel });
+        if (pub.landingPageBuilt) actions.push({ type: "chargeTest", segment, channel });
+      }
     }
   }
   return actions;

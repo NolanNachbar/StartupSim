@@ -35,6 +35,20 @@ describe("save round trip", () => {
     expect(toSave(loaded.run).actions).toEqual(actions);
   });
 
+  it("round trips runs that build, test channels and charge", () => {
+    const actions = [
+      { type: "buildTest", kind: "landing-page" },
+      { type: "pickChannel", segment: 0, channel: 1 },
+      { type: "chargeTest", segment: 0, channel: 1 },
+      { type: "buildTest", kind: "prototype" },
+    ];
+    const loaded = fromSave({ simVersion: SIM_VERSION, seed: 21, actions });
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    expect(view(loaded.run).evidence).toHaveLength(2);
+    expect(toSave(loaded.run).actions).toEqual(actions);
+  });
+
   it("survives a JSON round trip", () => {
     const { run } = playFuzz(11, 25);
     const loaded = fromSave(JSON.parse(JSON.stringify(toSave(run))));
@@ -105,6 +119,10 @@ describe("fromSave errors", () => {
       { ...VALID, actions: [{ type: "setPrice", priceCents: Number.NaN }] },
       { ...VALID, actions: [{ type: "pivot", toSegment: "1" }] },
       { ...VALID, actions: [null] },
+      { ...VALID, actions: [{ type: "buildTest", kind: "castle" }] },
+      { ...VALID, actions: [{ type: "buildTest" }] },
+      { ...VALID, actions: [{ type: "pickChannel", segment: 0 }] },
+      { ...VALID, actions: [{ type: "chargeTest", segment: 0, channel: 1.5 }] },
       { ...VALID, actions: [{ type: "interview", segment: 0, questions: ["pitch", "pitch"] }] },
       { ...VALID, actions: [{ type: "interview", segment: 0, questions: ["pitch", "pitch", "nope"] }] },
       { ...VALID, actions: [{ type: "interview", segment: 0.5, questions: ["pitch", "pitch", "pitch"] }] },
@@ -130,7 +148,7 @@ describe("fromSave errors", () => {
       actions: [{ type: "wait" }, { type: "setPrice", priceCents: 12_345 }, { type: "wait" }],
     });
     expect(second).toEqual({ ok: false, reason: "replay-failed", atAction: 1 });
-    const first = fromSave({ simVersion: SIM_VERSION, seed: 7, actions: [{ type: "buildTest" }] });
+    const first = fromSave({ simVersion: SIM_VERSION, seed: 7, actions: [{ type: "hire" }] });
     expect(first).toEqual({ ok: false, reason: "replay-failed", atAction: 0 });
   });
 

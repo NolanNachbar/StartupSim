@@ -66,8 +66,13 @@ export interface PublicState {
   readonly segmentNames: readonly string[];
   readonly focusSegment: number;
   readonly log: readonly LogEntry[];
-  /** What the player has learned from conversations (interviews now, tests in M3). */
-  readonly evidence: readonly InterviewEvidence[];
+  readonly landingPageBuilt: boolean;
+  /** The public price list. How well each channel fits each segment stays hidden. */
+  readonly channels: readonly ChannelInfo[];
+  /** What the player has learned: interviews and tests. */
+  readonly evidence: readonly Evidence[];
+  /** What the evidence supports for each segment, derived only from `evidence`. */
+  readonly hypotheses: readonly Hypothesis[];
 }
 
 export type QuestionType = "past-behavior" | "commitment" | "hypothetical" | "pitch";
@@ -91,12 +96,52 @@ export interface InterviewEvidence {
   readonly quote: string;
 }
 
-export type ReservedActionType =
-  | "buildTest"
-  | "chargeTest"
-  | "pickChannel"
-  | "hire"
-  | "doubleDown";
+export type BuildKind = "landing-page" | "concierge" | "prototype";
+
+export interface ChannelInfo {
+  readonly name: string;
+  readonly costPerLeadCents: Cents;
+}
+
+/** Trying a channel on a segment: how many leads $200 reached and how many were interested. */
+export interface ChannelTestEvidence {
+  readonly kind: "channel-test";
+  readonly week: number;
+  readonly segment: number;
+  readonly channel: number;
+  readonly leads: number;
+  readonly interested: number;
+}
+
+/** Asking real leads for money. Payments are the strongest evidence there is. */
+export interface PaidTestEvidence {
+  readonly kind: "paid-test";
+  readonly week: number;
+  readonly segment: number;
+  readonly channel: number;
+  readonly leads: number;
+  readonly payments: number;
+  readonly priceCents: Cents;
+}
+
+export type Evidence = InterviewEvidence | ChannelTestEvidence | PaidTestEvidence;
+
+export type HypothesisState = "untested" | "weak" | "verified";
+
+export interface Hypothesis {
+  readonly segment: number;
+  readonly state: HypothesisState;
+  /** Completed interviews. */
+  readonly interviews: number;
+  /** Total interested leads from channel tests. */
+  readonly interested: number;
+  /** Total payments from paid tests. */
+  readonly payments: number;
+  /** Paid tests with 10 or more leads and no payment. */
+  readonly failedPaidTests: number;
+}
+
+export type ReservedActionType = "hire" | "doubleDown";
 
 export type Action =
   | { readonly type: "wait" }
@@ -104,6 +149,9 @@ export type Action =
   | { readonly type: "raiseMoney" }
   | { readonly type: "pivot"; readonly toSegment: number }
   | { readonly type: "interview"; readonly segment: number; readonly questions: readonly QuestionType[] }
+  | { readonly type: "buildTest"; readonly kind: BuildKind }
+  | { readonly type: "pickChannel"; readonly segment: number; readonly channel: number }
+  | { readonly type: "chargeTest"; readonly segment: number; readonly channel: number }
   | { readonly type: ReservedActionType };
 
 export type IllegalReason =
@@ -113,6 +161,10 @@ export type IllegalReason =
   | "invalid-price"
   | "invalid-segment"
   | "invalid-questions"
+  | "invalid-build"
+  | "invalid-channel"
+  | "already-built"
+  | "nothing-to-sell"
   | "insufficient-cash"
   | "no-pivots-left"
   | "raise-limit";

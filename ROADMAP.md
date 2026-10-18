@@ -34,13 +34,14 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 - [x] Checks: across 500 seeds, for each archetype separately, mean signal quality for past-behavior questions exceeds hypothetical by at least 0.15 on a 0 to 1 scale, and hypothetical exceeds pitch; commitment questions cut sample size; results are deterministic per seed; a monotonicity property: for a fixed customer, more specific questions never lower signal quality
 
 ## M3. Tests and evidence (depends on M2)
-- [ ] Hypothesis model with untested, weak and verified states
-- [ ] Build a test (landing page, concierge, prototype) with cost, time and signal
-- [ ] Charge for a test with payment-based verification
-- [ ] Channels: reach cost and conversion
-- [ ] Checks: payment evidence outranks compliment evidence in every state transition; chart data derives only from evidence, never from hidden truth
+- [x] Hypothesis model with untested, weak and verified states
+- [x] Build a test (landing page, concierge, prototype) with cost, time and signal
+- [x] Charge for a test with payment-based verification
+- [x] Channels: reach cost and conversion
+- [x] Checks: payment evidence outranks compliment evidence in every state transition; chart data derives only from evidence, never from hidden truth
 
 ## M4. Money (depends on M1; can run after M3)
+- [ ] Acquisition and growth: customers should arrive through the channel that sold them, at a cost per customer, instead of the free market pull. M3 finding (2026-10-17): the scripted validator wins 301 of 400 seeds (75 percent) against a design target of 25 to 45 percent, so growth is too generous. Fix here, then tune in M7
 - [ ] Pricing curve with learnable optimum
 - [ ] Cash-flow events: late payer, predatory loan offer, payroll growth
 - [ ] Fundraising: weeks cost, dilution, investor expectation

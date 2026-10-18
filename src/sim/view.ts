@@ -8,6 +8,10 @@ function freezePublic(pub: PublicState): PublicState {
   for (const entry of pub.log) Object.freeze(entry);
   Object.freeze(pub.log);
   Object.freeze(pub.segmentNames);
+  for (const c of pub.channels) Object.freeze(c);
+  Object.freeze(pub.channels);
+  for (const h of pub.hypotheses) Object.freeze(h);
+  Object.freeze(pub.hypotheses);
   for (const entry of pub.evidence) Object.freeze(entry);
   Object.freeze(pub.evidence);
   return Object.freeze(pub);

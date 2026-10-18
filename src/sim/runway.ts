@@ -10,6 +10,16 @@ export const ROUND_WEEKS = 3;
 export const PIVOT_COST_CENTS =
   INTERVIEW_ROUND_CASH_CENTS + TEST_CASH_CENTS + ROUND_WEEKS * WEEKLY_BURN_CENTS;
 
+export const CHANNEL_TEST_BUDGET_CENTS = 20_000;
+/** Pre-selling a bare landing page is hard: payment odds scale with the product, but never below this. */
+export const CREDIBILITY_FLOOR_PCT = 40;
+
+export const BUILD_TABLE = {
+  "landing-page": { weeks: 1, cashCents: 30_000, progressPct: 5 },
+  concierge: { weeks: 2, cashCents: 80_000, progressPct: 20 },
+  prototype: { weeks: 3, cashCents: 250_000, progressPct: 40 },
+} as const;
+
 export const LANDING_STREAK_WEEKS = 8;
 export const MAX_WEEKS = 104;
 

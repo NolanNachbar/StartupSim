@@ -1,5 +1,6 @@
 // Internal run state. Nothing outside src/sim imports this: the public API wraps it as an opaque Run.
 import { PIVOT_COST_CENTS, START_CASH_CENTS, WEEKLY_BURN_CENTS, pivotsRemaining } from "./runway";
+import { hypothesesFrom } from "./hypotheses";
 import type { Action, PublicState, Secret } from "./types";
 import { generateWorld } from "./world";
 
@@ -34,8 +35,11 @@ export function initialRun(seed: number): InternalRun {
     problemName: secret.problemName,
     segmentNames: secret.segments.map((s) => s.name),
     focusSegment: secret.startFocus,
+    landingPageBuilt: false,
+    channels: secret.channels.map((c) => ({ name: c.name, costPerLeadCents: c.costPerLeadCents })),
     log: [],
     evidence: [],
+    hypotheses: hypothesesFrom([], secret.segments.length),
   };
   return { seed, actions: [], secret, pub };
 }
