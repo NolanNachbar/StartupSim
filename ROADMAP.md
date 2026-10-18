@@ -11,6 +11,12 @@ Quality gates for every item: `npm run verify` passes (typecheck, lint, unit, bu
 - [x] `npm run verify` writes `.verify/report.json`
 - [ ] [HUMAN] Create the GitHub repo and pick the host (see CLAUDE.md, Deployment)
 
+## M0b. Design sync (depends on M0; from the 2026-10-17 design review)
+- [ ] `tokens.css` and `base.css` match DESIGN.md: primary button is `--ink` fill with `--paper` text in both themes, 4 px spacing scale tokens, browser-surface theming (selection, caret, accent-color, scrollbar, theme-color per scheme), reading text at least 16 px
+- [ ] Two-column layout from 600 px with a filled side panel; no empty half screen at 800 x 1000 or 1280 x 800
+- [ ] Add an 800 x 1000 viewport to Playwright and extend the screenshot checks to DESIGN.md checklist items 8 to 11
+- [ ] Checks: `npm run verify` passes; screenshots in all three viewports and both themes pass the DESIGN.md checklist; axe has zero violations
+
 ## M1. Simulation core (depends on M0)
 - [ ] World generator: segments, trueDemand, competitors, channels, weather, all from a seed
 - [ ] State, action reducer, week advance, burn and revenue
@@ -45,7 +51,9 @@ Quality gates for every item: `npm run verify` passes (typecheck, lint, unit, bu
 - [ ] Flight board: instrument strip, chart, detail sheet, action tray, per DESIGN.md
 - [ ] Full run playable from start to crash and to landing on phone portrait and desktop
 - [ ] Interview card UI with post-call debrief
-- [ ] Accident report screen with the reveal sequence and "Fly again"
+- [ ] Accident report screen: full reveal once per new cause, compressed on repeats, always skippable, "Fly again" works during the reveal
+- [ ] Board as front door with "Start a run" or "Continue flight", run setup, interaction states from the DESIGN.md table, at most five first-run callouts with a Settings switch
+- [ ] Accessibility landmarks, live region, keyboard map and controller focus model from DESIGN.md
 - [ ] Checks: e2e plays a scripted full run on both viewports; axe has zero violations; screenshots of every screen at both viewports and both themes pass the DESIGN.md verify checklist; no console errors
 - [ ] [HUMAN] Playtest the slice. Write what feels wrong in plain words. The loop converts that into roadmap items.
 
