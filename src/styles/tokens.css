@@ -1,23 +1,25 @@
-/* Design tokens. Source of truth is DESIGN.md. Change both together. */
+/* Design tokens. Source of truth is DESIGN.md. Change both together.
+   Dusk (night chart) is the identity; the day chart is the same game in daylight. */
 
 :root {
-  --paper: #e8eee9;
-  --paper-raised: #f5f8f5;
-  --ink: #16243a;
-  --ink-soft: #4a5a70;
-  --line: #b5c2bc;
-  --airspace: #b5266b;
-  --on-airspace: #f5f8f5;
-  --blue: #2e6bb0;
-  --amber: #b87500;
-  --ok: #2f8f5b;
-  --blackbox: #f2551b;
-  /* Text on --blackbox and --ok fills stays dark in both themes (--ink turns light at night and fails AA there). */
-  --on-blackbox: #16243a;
-  --on-ok: #0e1a2a;
+  /* Day chart */
+  --paper: #dfe9e4;
+  --paper-raised: #f3f8f5;
+  --ink: #12232d;
+  --ink-soft: #43606b;
+  --line: #a9bdb8;
+  --airspace: #a85a00;
+  --on-airspace: #fff7ea;
+  --blue: #0b6f93;
+  --amber: #a86a00;
+  --ok: #1f7a4d;
+  --blackbox: #e8481a;
+  --on-blackbox: #1a0a02;
+  --world-a: #f3f8f5;
+  --world-b: #cfe0da;
 
-  --font-ui: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
-  --font-report: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-report: "Fraunces", Georgia, "Times New Roman", serif;
 
   --t-xs: 0.75rem;
   --t-sm: 0.875rem;
@@ -25,6 +27,7 @@
   --t-lg: 1.25rem;
   --t-xl: 1.75rem;
   --t-2xl: 2.75rem;
+  --t-3xl: 4rem;
 
   /* 4 px spacing scale (DESIGN.md, Spacing). Use only these. */
   --s-1: 4px;
@@ -35,8 +38,8 @@
   --s-6: 32px;
   --s-7: 48px;
 
-  --radius-panel: 4px;
-  --radius-control: 6px;
+  --radius-panel: 10px;
+  --radius-control: 10px;
   --gutter: var(--s-4);
   --tap: 44px;
   --panel-w: 280px;
@@ -48,35 +51,41 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="day"]) {
-    --paper: #0e1a2a;
-    --paper-raised: #16263b;
-    --ink: #e6edf2;
-    --ink-soft: #9fb0c2;
-    --line: #2c415a;
-    --airspace: #e0589a;
-    --on-airspace: #0e1a2a;
-    --blue: #6ba3e0;
-    --amber: #e8a317;
-    --ok: #4fc17f;
-    --blackbox: #ff6a33;
+    --paper: #06151c;
+    --paper-raised: #0c1f27;
+    --ink: #e9e2cf;
+    --ink-soft: #8fb0b9;
+    --line: #2b4a55;
+    --airspace: #ffb347;
+    --on-airspace: #2a1700;
+    --blue: #7ee7ff;
+    --amber: #ffcf5a;
+    --ok: #58d68d;
+    --blackbox: #ff5a2b;
+    --on-blackbox: #1a0a02;
+    --world-a: #123846;
+    --world-b: #06151c;
   }
 }
 
 :root[data-theme="night"] {
-  --paper: #0e1a2a;
-  --paper-raised: #16263b;
-  --ink: #e6edf2;
-  --ink-soft: #9fb0c2;
-  --line: #2c415a;
-  --airspace: #e0589a;
-  --on-airspace: #0e1a2a;
-  --blue: #6ba3e0;
-  --amber: #e8a317;
-  --ok: #4fc17f;
-  --blackbox: #ff6a33;
+  --paper: #06151c;
+  --paper-raised: #0c1f27;
+  --ink: #e9e2cf;
+  --ink-soft: #8fb0b9;
+  --line: #2b4a55;
+  --airspace: #ffb347;
+  --on-airspace: #2a1700;
+  --blue: #7ee7ff;
+  --amber: #ffcf5a;
+  --ok: #58d68d;
+  --blackbox: #ff5a2b;
+  --on-blackbox: #1a0a02;
+  --world-a: #123846;
+  --world-b: #06151c;
 }
 
-/* Browser surfaces (DESIGN.md, Browser surfaces): theme what the browser draws. */
+/* Browser surfaces: theme what the browser draws. */
 :root { color-scheme: light dark; }
 :root[data-theme="day"] { color-scheme: light; }
 :root[data-theme="night"] { color-scheme: dark; }
@@ -95,7 +104,7 @@ html {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--airspace) 25%, transparent);
+  background: color-mix(in srgb, var(--airspace) 30%, transparent);
   color: var(--ink);
 }
 

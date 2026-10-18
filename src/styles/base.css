@@ -6,53 +6,74 @@ fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
 legend { padding: 0; }
 input, select, button { margin: 0; font: inherit; color: inherit; }
 
+/* The game owns the screen: the HUD and dock stay put and only the middle region scrolls. */
+html, body { height: 100%; overflow: hidden; }
 body {
   margin: 0;
-  min-height: 100dvh;
   background: var(--paper);
   color: var(--ink);
   font-size: var(--t-md);
   line-height: 1.4;
 }
 
-/* Phone portrait is the primary canvas; the side panel appears from 600 px (DESIGN.md, Layout). */
 .shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "strip" "board" "panel" "actions";
-  grid-template-rows: auto 1fr auto auto;
-  min-height: 100dvh;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  height: 100dvh;
   max-width: 960px;
   margin: 0 auto;
 }
 
+/* Cockpit bar. */
 .strip {
   grid-area: strip;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas: "pivots gauge menu" "cash week sound";
   align-items: end;
-  gap: var(--s-2) var(--gutter);
-  padding: var(--s-3) var(--gutter);
-  background: var(--paper-raised);
-  border-bottom: 2px solid var(--ink);
+  gap: var(--s-2) var(--s-3);
+  padding: var(--s-2) var(--gutter) var(--s-1);
+  background: linear-gradient(var(--paper) 78%, transparent);
 }
-.strip > .gauge { grid-area: gauge; width: 96px; height: auto; align-self: center; justify-self: start; }
+.strip > .gauge { grid-area: gauge; width: 88px; height: auto; align-self: center; justify-self: start; }
 .strip > .button--menu { grid-area: menu; align-self: start; }
 .strip > .button--sound { grid-area: sound; align-self: end; }
+.strip > .instrument[style*="week"] { justify-self: start; align-items: flex-start; }
 
-.instrument { display: flex; flex-direction: column; }
-.instrument[style*="week"] { align-items: flex-end; }
-.instrument__caption { font-size: var(--t-xs); line-height: 16px; color: var(--ink-soft); }
-.instrument__value { font-size: var(--t-xl); line-height: 32px; font-weight: 600; text-align: right; }
-.instrument--large .instrument__value { font-size: var(--t-2xl); line-height: 44px; text-align: left; }
+.instrument {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--s-3) var(--s-1);
+  background: var(--paper-raised);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-panel);
+}
+.instrument__caption { font-size: var(--t-xs); line-height: 16px; color: var(--ink-soft); letter-spacing: 0.04em; }
+.instrument__value {
+  font-size: var(--t-xl);
+  line-height: 32px;
+  font-weight: 600;
+  text-align: right;
+  color: var(--blue);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--blue) 45%, transparent);
+}
+.instrument--large .instrument__value {
+  font-size: 3.25rem;
+  line-height: 48px;
+  font-weight: 700;
+  text-align: left;
+  color: var(--airspace);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--airspace) 50%, transparent);
+}
 
-.board { grid-area: board; padding: var(--gutter); }
+.board { grid-area: board; padding: var(--gutter); min-height: 0; }
 .board__title { margin: 0 0 var(--s-1); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
 .board__lede { margin: 0 0 var(--gutter); color: var(--ink-soft); max-width: 60ch; }
 
-.panel { grid-area: panel; display: none; background: var(--paper-raised); }
-.panel--open { display: block; max-height: 45dvh; overflow-y: auto; border-top: 1px solid var(--line); }
+.panel { grid-area: panel; display: none; background: var(--paper-raised); min-height: 0; }
+.panel--open { display: block; max-height: 45dvh; overflow-y: auto; border-top: 2px solid var(--line); }
 .panel__section { padding: var(--gutter); border-bottom: 1px solid var(--line); }
 .panel__title { margin: 0 0 var(--s-2); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
 .panel__text { margin: 0; color: var(--ink-soft); max-width: 60ch; }
@@ -61,40 +82,51 @@ body {
   grid-area: actions;
   display: grid;
   gap: var(--s-2);
-  padding: var(--gutter);
+  padding: var(--s-4) var(--gutter);
   padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
-  background: var(--paper-raised);
-  border-top: 2px solid var(--ink);
+  background: linear-gradient(transparent, var(--paper) 26%);
 }
 
 .button {
   min-height: var(--tap);
   padding: 0 var(--s-5);
   font: inherit;
+  font-size: 1.125rem;
   font-weight: 600;
-  background: transparent;
+  background: var(--paper-raised);
   color: var(--ink);
   width: 100%;
   border-radius: var(--radius-control);
-  border: 1px solid var(--ink);
+  border: 2px solid var(--line);
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease-out);
+  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
 }
-/* The one filled button per screen: --ink fill, --paper text, in both themes (DESIGN.md, Color). */
-.button--primary { background: var(--ink); color: var(--paper); }
-.button--primary:active { background: var(--ink-soft); border-color: var(--ink-soft); }
+.button:active { transform: translateY(2px); border-color: var(--ink-soft); }
+
+/* The one primary action per screen: lit amber with a pressed-in lip. */
+.button--primary {
+  min-height: 56px;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--airspace);
+  color: var(--on-airspace);
+  border: 0;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--airspace) 38%, transparent), inset 0 -4px 0 color-mix(in srgb, #000 24%, var(--airspace));
+}
+.button--primary:active { box-shadow: 0 0 14px color-mix(in srgb, var(--airspace) 30%, transparent), inset 0 -1px 0 color-mix(in srgb, #000 24%, var(--airspace)); }
 
 @media (min-width: 600px) {
   .shell {
     grid-template-columns: minmax(0, 1fr) var(--panel-w);
     grid-template-areas: "strip strip" "board panel" "board actions";
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
   }
   .strip {
     grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
     grid-template-areas: "pivots gauge cash week sound menu";
   }
-  .panel, .panel--board { display: block; max-height: none; border-left: 1px solid var(--line); }
+  .panel, .panel--board { display: block; max-height: none; overflow-y: auto; border-left: 2px solid var(--line); }
+  .actions { background: var(--paper-raised); border-left: 2px solid var(--line); }
   .button--phone { display: none; }
-  .actions { border-left: 1px solid var(--line); }
 }

@@ -60,7 +60,7 @@ export async function auditScreen(page: Page, name: string, info: TestInfo, sche
   });
   expect(smallText, `${label}: text under 16 px`).toEqual([]);
 
-  // Checklist 9: filled buttons are --ink with --paper text.
+  // Checklist 9: filled buttons are the lit primary: --airspace fill with --on-airspace text.
   const filled = await page.evaluate(() => {
     const probe = (v: string) => {
       const p = document.createElement("span");
@@ -70,13 +70,14 @@ export async function auditScreen(page: Page, name: string, info: TestInfo, sche
       p.remove();
       return c;
     };
-    const ink = probe("--ink");
-    const paper = probe("--paper");
+    const ink = probe("--airspace");
+    const paper = probe("--on-airspace");
     const raised = probe("--paper-raised");
+    const surface = probe("--paper");
     // A "filled" button is an action fill. Rows that sit on the raised paper surface are list items, not actions.
     const filledButtons = Array.from(document.querySelectorAll("button")).filter((b) => {
       const bg = getComputedStyle(b).backgroundColor;
-      return bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent" && bg !== raised;
+      return bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent" && bg !== raised && bg !== surface;
     });
     return {
       count: filledButtons.length,
@@ -104,19 +105,16 @@ export async function auditScreen(page: Page, name: string, info: TestInfo, sche
     expect(orange, `${label}: black-box orange outside the report`).toEqual([]);
   }
 
-  // Checklist 4: no ALL CAPS, shadows or gradients.
-  const style = await page.evaluate(() => {
+  // Checklist 4: no ALL CAPS. (Dusk uses glows and gradients on purpose; see DESIGN.md.)
+  const caps = await page.evaluate(() => {
     const out: string[] = [];
     for (const el of Array.from(document.querySelectorAll("body *"))) {
       if (el.closest("svg")) continue;
-      const cs = getComputedStyle(el);
-      if (cs.textTransform === "uppercase") out.push(`uppercase ${el.className}`);
-      if (cs.boxShadow !== "none") out.push(`shadow ${el.className}`);
-      if (cs.backgroundImage.includes("gradient")) out.push(`gradient ${el.className}`);
+      if (getComputedStyle(el).textTransform === "uppercase") out.push(`uppercase ${el.className}`);
     }
     return out;
   });
-  expect(style, `${label}: caps, shadow or gradient`).toEqual([]);
+  expect(caps, `${label}: all caps`).toEqual([]);
 
   // Checklist 10: spacing comes from the 4 px scale.
   const offScale = await page.evaluate((scale: number[]) => {
@@ -149,4 +147,11 @@ export async function auditScreen(page: Page, name: string, info: TestInfo, sche
   }
 
   await page.screenshot({ path: `.verify/screens/${name}-${info.project.name}-${scheme}.png`, fullPage: true });
+}
+
+/** The game defaults to the dusk chart whatever the device says, so pin the theme to cover both. */
+export async function pinTheme(page: Page, scheme: "light" | "dark"): Promise<void> {
+  await page.addInitScript((theme: string) => {
+    if (!localStorage.getItem("runway.settings")) localStorage.setItem("runway.settings", JSON.stringify({ theme }));
+  }, scheme === "light" ? "day" : "night");
 }

@@ -41,6 +41,16 @@ export function App() {
     window.scrollTo(0, 0);
   }, [key]);
   useEffect(() => {
+    // A region that scrolls must be reachable by keyboard (WCAG): make it focusable only while it overflows.
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>(".shell > .board, .shell > .panel"))) {
+      const scrolls = el.scrollHeight > el.clientHeight + 1;
+      if (scrolls) {
+        el.setAttribute("tabindex", "0");
+        if (!el.hasAttribute("aria-label") && el.tagName === "MAIN") el.setAttribute("aria-label", "Content");
+      } else el.removeAttribute("tabindex");
+    }
+  });
+  useEffect(() => {
     const root = document.documentElement;
     if (settings.value.theme === "system") root.removeAttribute("data-theme");
     else root.setAttribute("data-theme", settings.value.theme);

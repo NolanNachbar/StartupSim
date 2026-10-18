@@ -1,0 +1,54 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=390">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:390px;height:844px;overflow:hidden;background:#2b2d42;font-family:'Pixelify Sans',monospace;color:#fdf6e3;position:relative}
+canvas{position:absolute;inset:0;width:390px;height:844px;image-rendering:pixelated}
+.px{border:4px solid #1a1c2c;background:#3b3f63;box-shadow:inset 4px 4px 0 #5b6194,inset -4px -4px 0 #272a47;position:absolute}
+.hud{left:8px;right:8px;top:8px;height:100px;padding:10px 14px;display:grid;grid-template-columns:auto 1fr auto;column-gap:12px;align-items:center}
+.cap{font-size:14px;color:#b4bce8}
+.big{font-size:60px;line-height:.85;font-weight:700;color:#ffd166}
+.v{font-size:24px;font-weight:700;color:#7bf1a8}
+.hearts{display:flex;gap:6px}
+.hearts i{width:20px;height:20px;background:#ff5d73;box-shadow:inset -4px -4px 0 #b53a4f,inset 4px 4px 0 #ff9aa8;border:3px solid #1a1c2c;display:block}
+.hearts i.e{background:#2b2d42;box-shadow:none}
+.btn{font:700 17px 'Pixelify Sans';color:#fdf6e3;background:#3b3f63;border:4px solid #1a1c2c;box-shadow:inset 4px 4px 0 #5b6194,inset -4px -4px 0 #272a47;height:46px}
+.dock{left:8px;right:8px;bottom:8px;padding:10px;display:grid;gap:8px}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.chip{background:#272a47;border:3px solid #1a1c2c;padding:5px 6px;font-size:14px;line-height:1.1}
+.chip small{display:block;color:#b4bce8;font-size:13px;margin-top:3px}
+.chip.f{background:#5b3a8a;border-color:#ffd166}
+.go{height:56px;font-size:21px;background:#ffd166;color:#1a1c2c;border:4px solid #1a1c2c;box-shadow:inset 4px 4px 0 #fff1b8,inset -4px -4px 0 #d19a1f}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style>
+<canvas id="c" width="130" height="282"></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+const R=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};
+let s=7;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
+for(let j=0;j<282;j+=2)for(let i=0;i<130;i+=2){R(i,j,2,2,((i+j)/2)%2?'#4f9d57':'#58a85f')}
+for(let k=0;k<110;k++){const i=Math.floor(rnd()*60)*2,j=Math.floor(rnd()*140)*2;R(i,j,2,2,'#3f8a4c')}
+// fields
+R(10,150,34,24,'#c9a24f');for(let k=0;k<24;k+=4)R(10,150+k,34,2,'#b58f3c');
+R(84,200,36,24,'#d8b45d');for(let k=0;k<24;k+=4)R(84,200+k,36,2,'#c19f46');
+// pond
+R(78,100,34,18,'#4d8be0');R(82,96,26,26,'#4d8be0');R(86,102,10,2,'#8cc0ff');
+// river
+for(let j=0;j<282;j+=2){const i=18+Math.round(Math.sin(j/22)*6);R(i,j,6,2,'#4d8be0')}
+// trees
+[[100,60],[110,70],[24,90],[30,100],[96,150],[106,160],[20,210],[30,230],[100,240],[112,236],[60,170],[50,40]].forEach(([i,j])=>{R(i,j+6,2,4,'#6b4a2b');R(i-3,j,8,8,'#2f7a3e');R(i-1,j-3,4,3,'#2f7a3e');R(i-2,j+1,2,2,'#4fa55a')});
+// route dots
+const P=[[26,200],[40,170],[56,148],[78,128],[98,104],[108,86]];
+for(let k=0;k<P.length-1;k++){const[a,b]=P[k],[d,e]=P[k+1];for(let t=0;t<=1;t+=.18){R(Math.round(a+(d-a)*t),Math.round(b+(e-b)*t),2,2,'#fdf6e3')}}
+// airfields
+[[40,170],[78,128],[98,104]].forEach(([i,j])=>{R(i-5,j-5,10,10,'#1a1c2c');R(i-4,j-4,8,8,'#ffd166');R(i-1,j-4,2,8,'#1a1c2c')});
+// flag
+R(108,70,2,18,'#1a1c2c');R(110,70,8,6,'#ff5d73');
+// plane
+R(22,198,8,3,'#fdf6e3');R(25,194,2,11,'#fdf6e3');R(20,196,2,7,'#fdf6e3');R(22,198,8,3,'#fdf6e3');R(28,199,3,1,'#9aa3d4');
+</script>
+<div class="px hud"><div><div class="cap">Pivots remaining</div><div class="big">4</div></div>
+<div class="hearts" style="justify-self:center"><i></i><i></i><i></i><i></i></div>
+<div style="display:grid;gap:4px;justify-items:end"><button class="btn" style="height:34px;font-size:15px;padding:0 10px">Menu</button><div class="cap">Cash <span class="v">$30,000</span></div><div class="cap">Week <span class="v">0</span></div></div></div>
+<div class="px dock"><div class="chips"><div class="chip">Solo operators<small>Untested</small></div><div class="chip f">Small teams<small>Untested</small></div><div class="chip">Established shops<small>Untested</small></div></div>
+<button class="btn go">Choose an action</button><div class="row"><button class="btn">Wait a week</button><button class="btn">Log and details</button></div></div>

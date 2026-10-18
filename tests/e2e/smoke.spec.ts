@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { auditScreen, watchConsole } from "./audit";
+import { auditScreen, pinTheme, watchConsole } from "./audit";
 
 for (const colorScheme of ["light", "dark"] as const) {
   test.describe(`board, ${colorScheme}`, () => {
@@ -7,6 +7,7 @@ for (const colorScheme of ["light", "dark"] as const) {
 
     test("the front door loads clean, passes the design checklist and offers one primary action", async ({ page }, info) => {
       const errors = watchConsole(page);
+      await pinTheme(page, colorScheme);
       await page.goto("/");
       await expect(page.getByRole("heading", { name: "Runway" })).toBeVisible();
       await expect(page.getByText("Pivots remaining")).toBeVisible();

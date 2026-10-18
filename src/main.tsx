@@ -1,8 +1,9 @@
-import "@fontsource/barlow-semi-condensed/latin-400.css";
-import "@fontsource/barlow-semi-condensed/latin-500.css";
-import "@fontsource/barlow-semi-condensed/latin-600.css";
-import "@fontsource/source-serif-4/latin-400.css";
-import "@fontsource/source-serif-4/latin-600.css";
+import "@fontsource/saira-condensed/latin-500.css";
+import "@fontsource/saira-condensed/latin-600.css";
+import "@fontsource/saira-condensed/latin-700.css";
+import "@fontsource/fraunces/latin-400.css";
+import "@fontsource/fraunces/latin-400-italic.css";
+import "@fontsource/fraunces/latin-600.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/screens.css";

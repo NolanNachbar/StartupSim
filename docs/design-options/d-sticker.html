@@ -1,0 +1,38 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=390">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:390px;height:844px;overflow:hidden;background:#8fd3ff;font-family:Fredoka,sans-serif;color:#2b1d4a;position:relative}
+svg.map{position:absolute;inset:0}
+.pill{background:#fff;border:4px solid #2b1d4a;border-radius:22px;box-shadow:0 5px 0 #2b1d4a}
+.hud{position:absolute;top:12px;left:12px;right:12px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:stretch}
+.big{padding:6px 16px 8px;text-align:center}.cap{font-size:14px;font-weight:600;color:#6a5a96}
+.n{font-size:64px;line-height:.9;font-weight:700;color:#ff5a7a}
+.side{display:grid;gap:8px}.side .pill{padding:4px 12px;display:flex;align-items:baseline;gap:8px;justify-content:space-between}.v{font-size:23px;font-weight:700}
+.menu{align-self:start;background:#ffd23f;border:4px solid #2b1d4a;border-radius:18px;box-shadow:0 5px 0 #2b1d4a;font:700 15px Fredoka;color:#2b1d4a;padding:8px 12px}
+.dock{position:absolute;left:10px;right:10px;bottom:12px;padding:12px;display:grid;gap:10px;background:#fff;border:4px solid #2b1d4a;border-radius:28px;box-shadow:0 6px 0 #2b1d4a}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.chip{background:#eaf6ff;border:3px solid #2b1d4a;border-radius:16px;padding:7px 8px;font-weight:600;font-size:14px;line-height:1.1}
+.chip small{display:block;font-weight:500;color:#6a5a96;margin-top:2px;font-size:13px}.chip.f{background:#ffd23f}
+.go{height:62px;border-radius:22px;background:#35d07f;border:4px solid #2b1d4a;box-shadow:0 6px 0 #1a8a52;font:700 24px Fredoka;color:#fff;text-shadow:0 2px 0 #1a8a52}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ghost{height:48px;border-radius:18px;background:#fff;border:4px solid #2b1d4a;box-shadow:0 4px 0 #2b1d4a;font:700 16px Fredoka;color:#2b1d4a}
+.lbl{font:700 15px Fredoka;fill:#2b1d4a;stroke:#fff;stroke-width:5;paint-order:stroke}
+</style>
+<svg class="map" viewBox="0 0 390 844">
+<rect width="390" height="844" fill="#8fd3ff"/>
+<path d="M-10 250 C60 200 140 270 220 235 S350 200 400 250 V620 H-10Z" fill="#7be08a" stroke="#2b1d4a" stroke-width="4"/>
+<path d="M-10 330 C80 290 150 360 240 325 S350 300 400 340 V620 H-10Z" fill="#4fc36e" stroke="#2b1d4a" stroke-width="4"/>
+<ellipse cx="300" cy="330" rx="56" ry="28" fill="#5ab8ff" stroke="#2b1d4a" stroke-width="4"/>
+<g stroke="#2b1d4a" stroke-width="4"><circle cx="50" cy="420" r="22" fill="#2a9d5c"/><circle cx="90" cy="450" r="16" fill="#2a9d5c"/><circle cx="330" cy="470" r="20" fill="#2a9d5c"/></g>
+<path d="M70 520 C90 470 130 450 160 415 S240 360 330 270" fill="none" stroke="#fff" stroke-width="9" stroke-dasharray="2 16" stroke-linecap="round"/>
+<path d="M70 520 C90 470 130 450 160 415 S240 360 330 270" fill="none" stroke="#2b1d4a" stroke-width="3" stroke-dasharray="2 16" stroke-linecap="round" transform="translate(0 0)" opacity="0"/>
+<g stroke="#2b1d4a" stroke-width="4"><circle cx="130" cy="436" r="14" fill="#ffd23f"/><circle cx="215" cy="378" r="15" fill="#ff5a7a"/><circle cx="285" cy="322" r="14" fill="#ffd23f"/></g>
+<text class="lbl" x="150" y="456">Solo operators</text><text class="lbl" x="96" y="364">Small teams</text><text class="lbl" x="170" y="290">Established shops</text>
+<g stroke="#2b1d4a" stroke-width="4" stroke-linejoin="round"><path d="M330 270 v-40 l34 14 -34 14" fill="#ff5a7a"/></g>
+<g transform="translate(70 520) rotate(-55)" stroke="#2b1d4a" stroke-width="4" stroke-linejoin="round"><path d="M30 0 Q22 -10 -4 -10 L-20 -26 L-24 -26 L-16 -8 L-28 -8 L-30 -14 L-34 -14 L-30 0 L-34 14 L-30 14 L-28 8 L-16 8 L-24 26 L-20 26 L-4 10 Q22 10 30 0Z" fill="#fff"/><circle cx="14" cy="0" r="5" fill="#8fd3ff"/></g>
+</svg>
+<div class="hud"><div class="pill big"><div class="cap">Pivots remaining</div><div class="n">4</div></div>
+<div class="side"><div class="pill"><span class="cap">Cash</span><span class="v">$30,000</span></div><div class="pill"><span class="cap">Week</span><span class="v">0</span></div></div><button class="menu">Menu</button></div>
+<div class="dock"><div class="chips"><div class="chip">Solo operators<small>Untested</small></div><div class="chip f">Small teams<small>Untested</small></div><div class="chip">Established shops<small>Untested</small></div></div>
+<button class="go">Choose an action</button><div class="row"><button class="ghost">Wait a week</button><button class="ghost">Log and details</button></div></div>

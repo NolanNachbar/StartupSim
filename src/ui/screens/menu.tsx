@@ -12,7 +12,7 @@ export function Menu() {
         <h2 class="board__sub">Settings</h2>
         <fieldset class="field">
           <legend class="field__label">Theme</legend>
-          {([["system", "Follow my device"], ["day", "Day chart"], ["night", "Night chart"]] as const).map(([v, label]) => (
+          {([["night", "Dusk chart"], ["day", "Day chart"], ["system", "Follow my device"]] as const).map(([v, label]) => (
             <label key={v} class="choice">
               <input type="radio" name="theme" value={v} checked={st.theme === v} onChange={() => updateSettings({ theme: v })} />
               <span class="choice__text"><span class="choice__title">{label}</span></span>

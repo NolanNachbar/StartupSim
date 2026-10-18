@@ -4,6 +4,19 @@ Working title: Runway. Placeholder, change freely.
 
 This file is the visual source of truth. The verify step judges screenshots against it. If a screen conflicts with this file, the screen is wrong, unless Nolan changes the file. Reviewed 2026-10-17 with gstack /plan-design-review; decisions D2 to D5 below are Nolan's, the rest were applied as recommended and listed in the review changelog.
 
+## Current direction: Dusk (decision D7, supersedes conflicting rules below)
+
+Decision D7 (Nolan, 2026-10-18): the first two builds looked like a styled web page. The game now commits to Dusk, chosen from four mockups (docs/design-options/): a painted night chart with a glowing cockpit HUD. Where this section conflicts with the rest of this file, this section wins.
+
+- Default theme is the dusk (night) chart whatever the device says; the day chart and "follow my device" are settings.
+- Palette tokens: `--paper` void, `--paper-raised` bezel and plate, `--ink` warm cream text, `--ink-soft`, `--line`, `--airspace` lit amber (primary action, pivots number, selected), `--blue` cyan (data, verified route), `--blackbox` emergency orange (report and crashes only), `--ok` green, `--on-airspace`, `--on-blackbox` for text on those fills.
+- Type: Saira Condensed for the interface and instruments, Fraunces for the report and map labels (italic on the map).
+- Glows (text-shadow, box-shadow, blurred strokes) and gradients are now allowed, used for light sources only: lit numbers, the primary button, waypoints, the route, the plane. Still no ALL CAPS.
+- Radius is 10 px for panels and controls. The 4 px spacing scale, 44 px tap targets and 16 px reading text are unchanged.
+- The primary button is lit amber with a pressed lip, text `--on-airspace`; one per screen.
+- Layout is an app shell, not a page: the HUD and the dock are pinned and only the middle region scrolls (the report scrolls inside its card, and Fly again is always visible).
+- Route chips encode evidence in their border: dotted untested, dashed weak, solid cyan verified.
+
 ## Concept
 
 Every run is a flight. Cash is fuel, but the gauge counts pivots remaining, not months, because a startup's real runway is how many times it can change course before the money ends. Waypoints are hypotheses. Weather is the market. A failed run is an accident investigation: the player reads a report that names the probable cause and the contributing factors, then flies again.

@@ -1,0 +1,48 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=390">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Fraunces:ital,wght@1,500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:390px;height:844px;overflow:hidden;background:#06151c;font-family:'Saira Condensed',sans-serif;color:#e9e2cf;position:relative}
+svg.map{position:absolute;inset:0}
+.hud{position:absolute;top:0;left:0;right:0;padding:14px 14px 18px;background:linear-gradient(#0a1b22 70%,transparent);display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:end}
+.bezel{background:#0c1f27;border:2px solid #2b4a55;border-radius:10px;padding:8px 12px;position:relative}
+.bezel:before{content:"";position:absolute;inset:3px;border:1px solid #17323b;border-radius:7px;pointer-events:none}
+.cap{font-size:13px;letter-spacing:.06em;color:#7fa3ad;font-weight:500}
+.big{font-size:64px;line-height:.9;font-weight:700;color:#ffb347;text-shadow:0 0 14px #ff9a1f88}
+.val{font-size:26px;font-weight:600;color:#7ee7ff;text-shadow:0 0 10px #35d0ff66}
+.dial{width:92px;height:52px}
+.menu{align-self:start;font:600 15px 'Saira Condensed';color:#e9e2cf;border:2px solid #2b4a55;background:#0c1f27;border-radius:8px;padding:8px 14px}
+.dock{position:absolute;left:0;right:0;bottom:0;padding:14px;background:linear-gradient(transparent,#06151c 22%);display:grid;gap:10px}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.chip{background:#0c1f27cc;border:1.5px dashed #4a6a75;border-radius:8px;padding:8px 9px;font-size:16px;font-weight:600}
+.chip small{display:block;font-size:13px;color:#7fa3ad;font-weight:500}
+.chip.f{border-color:#ffb347;border-style:solid}
+.go{background:linear-gradient(#ffc470,#ff9a1f);color:#2a1700;border:0;border-radius:12px;height:58px;font:700 22px 'Saira Condensed';letter-spacing:.03em;box-shadow:0 0 22px #ff9a1f66,inset 0 -4px 0 #c46d00}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ghost{height:46px;border-radius:10px;background:#0c1f27;border:2px solid #2b4a55;color:#e9e2cf;font:600 17px 'Saira Condensed'}
+.lbl{font:italic 500 15px Fraunces;fill:#e9e2cf}
+</style>
+<svg class="map" viewBox="0 0 390 844">
+<defs><radialGradient id="g" cx=".5" cy=".42" r=".7"><stop offset="0" stop-color="#123846"/><stop offset="1" stop-color="#06151c"/></radialGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="4"/></filter></defs>
+<rect width="390" height="844" fill="url(#g)"/>
+<g fill="none" stroke="#1f4a5a" stroke-width="1.2" opacity=".8">
+<path d="M-20 300 C 60 240 120 330 200 280 S 340 250 420 300"/><path d="M-20 330 C 60 270 120 360 200 310 S 340 280 420 330"/><path d="M-20 360 C 60 300 120 390 200 340 S 340 310 420 360"/>
+<path d="M-20 520 C 80 470 150 560 240 500 S 360 470 420 530"/><path d="M-20 550 C 80 500 150 590 240 530 S 360 500 420 560"/><path d="M-20 580 C 80 530 150 620 240 560 S 360 530 420 590"/>
+<ellipse cx="300" cy="400" rx="70" ry="38"/><ellipse cx="300" cy="400" rx="48" ry="25"/><ellipse cx="300" cy="400" rx="26" ry="13"/></g>
+<path d="M90 480 C 130 440 140 400 170 370 S 280 330 318 250" fill="none" stroke="#35d0ff" stroke-width="10" opacity=".25" filter="url(#glow)"/>
+<path d="M60 560 C 70 520 110 470 145 430 C 175 395 160 360 215 330 S 300 300 320 230" fill="none" stroke="#7ee7ff" stroke-width="4" stroke-dasharray="1 11" stroke-linecap="round"/>
+<g><circle cx="145" cy="430" r="14" fill="#ffb347" opacity=".25" filter="url(#glow)"/><circle cx="145" cy="430" r="7" fill="#0c1f27" stroke="#ffb347" stroke-width="3"/><text class="lbl" x="160" y="446">Solo operators</text>
+<circle cx="215" cy="330" r="16" fill="#ffb347" opacity=".35" filter="url(#glow)"/><circle cx="215" cy="330" r="8" fill="#0c1f27" stroke="#ffb347" stroke-width="3"/><text class="lbl" x="104" y="318">Small teams</text>
+<circle cx="285" cy="296" r="14" fill="#ffb347" opacity=".25" filter="url(#glow)"/><circle cx="285" cy="296" r="7" fill="#0c1f27" stroke="#ffb347" stroke-width="3"/><text class="lbl" x="230" y="282">Established shops</text></g>
+<path d="M320 230 v-30 l22 9 -22 9" fill="#35d0ff" stroke="#7ee7ff" stroke-width="2"/>
+<g transform="translate(60 560) rotate(-60)"><path d="M18 0 L-12 -12 L-6 0 L-12 12Z" fill="#e9e2cf"/><circle r="26" fill="#ffb347" opacity=".18" filter="url(#glow)"/></g>
+</svg>
+<div class="hud">
+<div class="bezel"><div class="cap">Pivots remaining</div><div class="big">4</div></div>
+<svg class="dial" viewBox="0 0 100 56"><g fill="none" stroke-width="9"><path d="M10 50 A40 40 0 0 1 30 15" stroke="#ffb347"/><path d="M36 12 A40 40 0 0 1 64 12" stroke="#ffb347"/><path d="M70 15 A40 40 0 0 1 90 50" stroke="#ffb347"/></g><path d="M50 50 L78 28" stroke="#7ee7ff" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="50" r="5" fill="#e9e2cf"/></svg>
+<div class="menu">Menu</div>
+<div class="bezel"><div class="cap">Cash</div><div class="val">$30,000</div></div><div></div><div class="bezel" style="justify-self:end"><div class="cap">Week</div><div class="val">0</div></div>
+</div>
+<div class="dock"><div class="chips"><div class="chip">Solo operators<small>Untested</small></div><div class="chip f">Small teams<small>Untested</small></div><div class="chip">Established shops<small>Untested</small></div></div>
+<button class="go">Choose an action</button><div class="row"><button class="ghost">Wait a week</button><button class="ghost">Log and details</button></div></div>

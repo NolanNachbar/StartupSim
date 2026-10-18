@@ -1,0 +1,41 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=390">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Courier+Prime:wght@700&family=Archivo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+:root{--o:#ff4f1f;--b:#1b3fa8;--p:#f3ecdc}
+body{width:390px;height:844px;overflow:hidden;background:var(--p);font-family:Archivo,sans-serif;color:var(--b);position:relative}
+body:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.22;mix-blend-mode:multiply;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence baseFrequency='.8' numOctaves='2'/><feColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .2 0 0 0 .8 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+svg.map{position:absolute;inset:0}
+.hud{position:absolute;top:14px;left:14px;right:14px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:end}
+.big{font:400 118px/0.8 'Archivo Black';color:var(--o);text-shadow:4px 3px 0 var(--b);letter-spacing:-4px}
+.cap{font:800 15px Archivo;color:var(--b)}
+.stamp{border:3px solid var(--b);padding:4px 10px;font:700 21px 'Courier Prime';transform:rotate(-2deg);background:var(--p);display:inline-block}
+.menu{position:absolute;right:14px;top:12px;border:3px solid var(--b);background:var(--p);font:800 15px Archivo;padding:7px 12px;transform:rotate(2deg);color:var(--b)}
+.dock{position:absolute;left:0;right:0;bottom:0;background:var(--b);padding:14px 14px 16px;display:grid;gap:10px;clip-path:polygon(0 12px,100% 0,100% 100%,0 100%)}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:10px}
+.chip{background:var(--p);border:3px solid var(--p);color:var(--b);padding:7px 8px;font:800 14px/1.1 Archivo}
+.chip small{display:block;font:700 13px 'Courier Prime';margin-top:3px;color:var(--o)}
+.chip.f{background:var(--o);border-color:var(--o);color:var(--p)}.chip.f small{color:var(--p)}
+.go{height:58px;background:var(--o);color:var(--p);border:3px solid var(--p);font:400 24px 'Archivo Black';transform:rotate(-.6deg);box-shadow:5px 5px 0 #0c2272}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ghost{height:46px;background:transparent;border:3px solid var(--p);color:var(--p);font:800 16px Archivo}
+.lbl{font:800 15px Archivo;fill:var(--b)}
+</style>
+<svg class="map" viewBox="0 0 390 844">
+<rect width="390" height="844" fill="#f3ecdc"/>
+<path d="M0 230 C70 190 130 250 210 215 S340 190 390 230 V520 C320 560 250 520 170 560 S50 540 0 570Z" fill="#ffb59c"/>
+<path d="M0 300 C60 280 120 330 200 300 S330 280 390 320 V520 C320 550 250 520 170 550 S50 535 0 560Z" fill="#ff8a63"/>
+<path d="M0 380 C80 350 150 400 230 372 S340 360 390 395 V520 C320 540 250 515 170 540 S50 530 0 550Z" fill="#ff4f1f" opacity=".9"/>
+<ellipse cx="290" cy="300" rx="62" ry="34" fill="#7f9be0"/><ellipse cx="290" cy="300" rx="44" ry="22" fill="#4a6fd1"/>
+<g fill="#1b3fa8" opacity=".35"><circle cx="40" cy="460" r="3"/><circle cx="52" cy="470" r="3"/><circle cx="64" cy="460" r="3"/><circle cx="330" cy="470" r="3"/><circle cx="342" cy="480" r="3"/></g>
+<path d="M70 500 C90 450 130 440 160 405 S240 345 330 250" fill="none" stroke="#1b3fa8" stroke-width="5" stroke-dasharray="1 12" stroke-linecap="round"/>
+<g><circle cx="130" cy="432" r="12" fill="#f3ecdc" stroke="#1b3fa8" stroke-width="4"/><text class="lbl" x="146" y="450">Solo operators</text>
+<circle cx="215" cy="364" r="13" fill="#f3ecdc" stroke="#1b3fa8" stroke-width="4"/><text class="lbl" x="100" y="352">Small teams</text>
+<circle cx="285" cy="300" r="12" fill="#f3ecdc" stroke="#1b3fa8" stroke-width="4"/><text class="lbl" x="180" y="268">Established shops</text></g>
+<path d="M330 250 v-34 l30 12 -30 12" fill="#1b3fa8"/>
+<g transform="translate(70 500) rotate(-55)"><path d="M26 0 L-16 -18 L-8 0 L-16 18Z" fill="#1b3fa8"/></g>
+</svg>
+<div class="hud"><div><div class="cap">Pivots remaining</div><div class="big">4</div></div><div style="display:grid;gap:6px;justify-items:start;padding-bottom:6px;margin-left:58px"><div class="stamp">Cash $30,000</div><div class="stamp" style="transform:rotate(1.5deg)">Week 0</div></div></div>
+<div class="menu">Menu</div>
+<div class="dock"><div class="chips"><div class="chip">Solo operators<small>Untested</small></div><div class="chip f">Small teams<small>Untested</small></div><div class="chip">Established shops<small>Untested</small></div></div>
+<button class="go">Choose an action</button><div class="row"><button class="ghost">Wait a week</button><button class="ghost">Log and details</button></div></div>

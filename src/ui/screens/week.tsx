@@ -17,8 +17,10 @@ export function Week() {
         ) : null}
         <CalloutHost screen="week" />
         <div class="plate">
-          <h1 class="board__title" tabIndex={-1}>Your route</h1>
-          <p class="board__lede">{countStates(s.hypotheses)}</p>
+          <div class="plate__head">
+            <h1 class="board__title" tabIndex={-1}>Your route</h1>
+            <p class="board__lede">{countStates(s.hypotheses)}</p>
+          </div>
           <HypothesisList hypotheses={s.hypotheses} names={s.segmentNames} focus={s.focusSegment} />
         </div>
       </main>

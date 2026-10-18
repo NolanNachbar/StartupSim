@@ -38,12 +38,13 @@ Vite, Preact with signals, TypeScript (strict), plain CSS with tokens. No game e
 
 Framework: Vitest with fast-check for the simulation (`src/**/*.test.ts`, `tests/unit/**/*.test.ts`, run with `npm test`); Playwright with axe for the browser (`tests/e2e/`, run with `npm run e2e`). `npm run verify` runs every gate. Rules: write the test before the implementation; use property tests for sim invariants and golden fixtures for replay stability; never weaken an assertion, a lint rule, or a budget to make something pass. There are no LLM or prompt features, so no eval suites.
 
-## Design rules (short form; DESIGN.md is authoritative)
+## Design rules (short form; DESIGN.md is authoritative, see its Dusk section)
 
-- Aviation-paperwork vocabulary: pivots remaining is the largest number, dotted/dashed/solid lines mean untested/weak/verified.
-- The black-box orange is only for the accident report and crash warnings.
-- Sentence case, no ALL CAPS labels, no gradients, no shadows, radius 4 px panels and 6 px controls.
-- Tap targets at least 44 px. WCAG AA. Respect reduced motion and color scheme.
+- Dusk night chart is the default look: cockpit HUD, glowing amber primary, cyan data, painted world map behind the game. Saira Condensed for UI, Fraunces for the report.
+- Pivots remaining is the largest number; dotted, dashed and solid mean untested, weak, verified.
+- The emergency orange is only for the accident report and crash warnings.
+- App-shell layout: pinned HUD and dock, one scrolling middle region.
+- Sentence case (no ALL CAPS), 4 px spacing scale, tap targets at least 44 px, reading text at least 16 px. WCAG AA. Respect reduced motion.
 - Copy is plain, active, and never lectures. No hustle slogans.
 
 ## Working rules

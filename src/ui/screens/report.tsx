@@ -80,8 +80,10 @@ export function ReportScreen() {
       <Panel />
       <footer class="actions">
         <button type="button" class="button button--primary" onClick={flyAgain}>Fly again</button>
-        <button type="button" class="button" onClick={() => void copyChallengeLink()}>Copy challenge link</button>
-        <button type="button" class="button" onClick={() => void saveShareCard()}>Save share card</button>
+        <div class="actions__row actions__row--always">
+          <button type="button" class="button" onClick={() => void copyChallengeLink()}>Copy challenge link</button>
+          <button type="button" class="button" onClick={() => void saveShareCard()}>Save share card</button>
+        </div>
       </footer>
     </>
   );

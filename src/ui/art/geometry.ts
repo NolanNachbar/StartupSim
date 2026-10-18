@@ -25,7 +25,7 @@ export interface Box {
 
 /** The HUD covers the top bar and the bottom plate, so the route lives in the open band between them. */
 export function routeBox(w: number): Box {
-  return w < 600 ? { x0: 0.14, x1: 0.82, y0: 0.19, y1: 0.43 } : { x0: 0.1, x1: 0.5, y0: 0.22, y1: 0.58 };
+  return w < 600 ? { x0: 0.16, x1: 0.8, y0: 0.28, y1: 0.52 } : { x0: 0.1, x1: 0.5, y0: 0.22, y1: 0.58 };
 }
 
 /** Route waypoints: start (bottom left of the box), one per hypothesis, destination (top right). */

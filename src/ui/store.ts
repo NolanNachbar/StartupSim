@@ -31,7 +31,7 @@ export interface Settings {
   sound: boolean;
 }
 
-const DEFAULT_SETTINGS: Settings = { theme: "system", callouts: true, reduceMotion: false, sound: true };
+const DEFAULT_SETTINGS: Settings = { theme: "night", callouts: true, reduceMotion: false, sound: true };
 
 export const storage = createSafeStorage(browserBackend());
 

@@ -27,9 +27,9 @@ export function PivotGauge({ count, max }: { count: number; max: number }) {
     <svg class="gauge" viewBox="0 0 100 54" role="img" aria-label={`${count} of ${max} pivots remaining`}>
       {Array.from({ length: max }, (_, i) => {
         const from = i * (span / max + gap), to = from + span / max;
-        return <path key={i} d={arc(from, to)} fill="none" stroke={i < count ? "var(--ink)" : "var(--line)"} stroke-width="9" />;
+        return <path key={i} d={arc(from, to)} fill="none" stroke={i < count ? "var(--airspace)" : "var(--line)"} stroke-width="9" />;
       })}
-      <line x1={cx} y1={cy} x2={cx + 28 * Math.cos((Math.PI * (180 + 180 * (count / Math.max(max, 1)))) / 180)} y2={cy + 28 * Math.sin((Math.PI * (180 + 180 * (count / Math.max(max, 1)))) / 180)} stroke="var(--ink-soft)" stroke-width="2.5" stroke-linecap="round" style={{ transition: "all 200ms var(--ease-out)" }} />
+      <line x1={cx} y1={cy} x2={cx + 28 * Math.cos((Math.PI * (180 + 180 * (count / Math.max(max, 1)))) / 180)} y2={cy + 28 * Math.sin((Math.PI * (180 + 180 * (count / Math.max(max, 1)))) / 180)} stroke="var(--blue)" stroke-width="3" stroke-linecap="round" style={{ transition: "all 200ms var(--ease-out)" }} />
       <circle cx={cx} cy={cy} r="4" fill="var(--ink)" />
     </svg>
   );
@@ -56,8 +56,8 @@ export function Strip({ fresh }: { fresh: PublicState }) {
 }
 
 const DASH: Record<HypothesisState, { dash: string; stroke: string; width: number }> = {
-  untested: { dash: "1 7", stroke: "var(--ink-soft)", width: 2.5 },
-  weak: { dash: "9 6", stroke: "var(--ink-soft)", width: 2.5 },
+  untested: { dash: "1 7", stroke: "var(--ink)", width: 3 },
+  weak: { dash: "9 6", stroke: "var(--ink)", width: 3 },
   verified: { dash: "none", stroke: "var(--blue)", width: 3.5 },
 };
 
@@ -85,7 +85,7 @@ export function HypothesisList({ hypotheses, names, focus }: { hypotheses: reado
     <ul class="routes" onKeyDown={onKey}>
       {hypotheses.map((h, i) => (
         <li key={i}>
-          <button type="button" class="route-row" aria-pressed={selected.value === i} onClick={() => (selected.value = i)}>
+          <button type="button" class="route-row" data-state={h.state} data-focus={i === focus} aria-pressed={selected.value === i} onClick={() => (selected.value = i)}>
             <span class="route-row__name">{`${i + 1}. ${names[i] ?? "Group"}${i === focus ? " (your focus)" : ""}`}</span>
             <span class="route-row__state">
               <LineSample state={h.state} />
