@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import reportSource from "./report.ts?raw";
-import { playFuzz } from "../../tests/unit/helpers/fuzz";
+import { chooseAction, playFuzz } from "../../tests/unit/helpers/fuzz";
 import { playValidator } from "../../tests/unit/helpers/validator";
 import { buildHistory, buildReport, findPatterns, usd, type History } from "./report";
 import { step } from "./reducer";
@@ -111,19 +111,20 @@ describe("the ledger", () => {
     expect(checked).toBeGreaterThan(0);
   });
 
-  it("never decreases (random play, 200 seeds)", () => {
+  it("never decreases at any step of random play (200 seeds)", () => {
     for (let seed = 0; seed < 200; seed++) {
       let run = initialRun(seed);
-      let prev = run.pub.ledger;
-      let prevRaise = 0;
-      const { run: end } = playFuzz(seed, 200);
-      run = end;
-      for (const key of ["revenueCents", "marketingCents", "buildCents", "payrollCents"] as const) {
-        expect(run.pub.ledger[key]).toBeGreaterThanOrEqual(prev[key]);
+      let previous: Action | null = null;
+      for (let i = 0; i < 200 && run.pub.status === "running"; i++) {
+        const action = chooseAction(run, seed, i, previous);
+        const next = ok(run, action);
+        for (const key of ["revenueCents", "marketingCents", "buildCents", "payrollCents"] as const) {
+          expect(next.pub.ledger[key], `${key} seed ${seed} step ${i}`).toBeGreaterThanOrEqual(run.pub.ledger[key]);
+        }
+        expect(next.pub.raiseWeeks).toBeGreaterThanOrEqual(run.pub.raiseWeeks);
+        run = next;
+        previous = action;
       }
-      expect(run.pub.raiseWeeks).toBeGreaterThanOrEqual(prevRaise);
-      prev = run.pub.ledger;
-      prevRaise = run.pub.raiseWeeks;
     }
   });
 });
