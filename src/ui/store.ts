@@ -2,12 +2,14 @@
 // this file only calls `step` and `view` and remembers what to show.
 import { computed, signal } from "@preact/signals";
 import {
-  newRun, report as reportFor, step, view,
+  newRun, report as reportFor, step, toSave, view,
   type Action, type PublicState, type Report, type Run,
 } from "../sim";
 import { describeStep, reasonText, type StepDescription } from "./format";
 import type { FormId } from "./forms";
+import { loadFlights, loadNotes, recordFlight, type Flight, type Note } from "./notes";
 import { clearRun, loadRun, saveRun } from "./persist";
+import { renderShareCard } from "./shareCard";
 import { browserBackend, createSafeStorage } from "./storage";
 
 export type Screen =
@@ -18,6 +20,7 @@ export type Screen =
   | { name: "form"; id: FormId }
   | { name: "result" }
   | { name: "report" }
+  | { name: "notes"; from: Screen }
   | { name: "menu"; from: Screen };
 
 export interface Settings {
@@ -47,6 +50,11 @@ export const startPivots = signal(0);
 export const baseSeed = signal(1);
 export const chosenSeed = signal(1);
 export const storageBlocked = signal(false);
+export const challengeSeed = signal<number | null>(null);
+export const currentSeed = signal(0);
+export const shareNotice = signal<string | null>(null);
+export const notes = signal<Note[]>([]);
+export const flights = signal<Flight[]>([]);
 
 export const state = computed<PublicState | null>(() => (run.value ? view(run.value) : null));
 export const finalReport = computed<Report | null>(() => (run.value ? reportFor(run.value) : null));
@@ -78,8 +86,17 @@ export function init(search: string): void {
   const parsed = param === null ? NaN : Number.parseInt(param, 10);
   baseSeed.value = Number.isInteger(parsed) && parsed >= 0 && parsed <= 0xfffffffd ? parsed : randomSeed() % 0xfffffffd;
 
+  const play = new URLSearchParams(search).get("play");
+  const playSeed = play === null ? NaN : Number.parseInt(play, 10);
+  if (Number.isInteger(playSeed) && playSeed >= 0 && playSeed <= 0xffffffff) challengeSeed.value = playSeed;
+  notes.value = loadNotes(storage);
+  flights.value = loadFlights(storage);
+
   const loaded = loadRun(storage);
-  if (loaded.kind === "restored") savedRun.value = loaded.run;
+  if (loaded.kind === "restored") {
+    savedRun.value = loaded.run;
+    currentSeed.value = toSave(loaded.run).seed;
+  }
   if (loaded.kind === "corrupt") notice.value = "We could not restore your last flight. Start a new run.";
   syncBlocked();
   if (storageBlocked.value && !notice.value) notice.value = "Progress will not be saved in this browser. You can keep playing.";
@@ -101,8 +118,12 @@ export function markCalloutShown(id: string): void {
 export function resetProgress(): void {
   shownCallouts.value = [];
   seenCauses.value = [];
+  notes.value = [];
+  flights.value = [];
   storage.remove("runway.callouts");
   storage.remove("runway.seen");
+  storage.remove("runway.notes");
+  storage.remove("runway.flights");
   announcement.value = "Progress reset.";
 }
 
@@ -124,6 +145,8 @@ export function flyAgain(): void {
 export function takeOff(seed: number): void {
   const next = newRun(seed);
   run.value = next;
+  currentSeed.value = seed;
+  shareNotice.value = null;
   savedRun.value = null;
   selected.value = null;
   last.value = null;
@@ -182,6 +205,12 @@ export function act(action: Action): boolean {
       seenCauses.value = [...seenCauses.value, key];
       storage.setJson("runway.seen", seenCauses.value);
     }
+    if (rep) {
+      recordFlight(storage, currentSeed.value, rep, after.week);
+      notes.value = loadNotes(storage);
+      flights.value = loadFlights(storage);
+    }
+    shareNotice.value = null;
     screen.value = { name: "report" };
   } else if (described.newLog.length > 0 || described.evidence.length > 0) {
     screen.value = { name: "result" };
@@ -200,6 +229,7 @@ export function back(): void {
     case "setup": go({ name: "board" }); break;
     case "result": go({ name: "week" }); break;
     case "menu": go(s.from); break;
+    case "notes": go(s.from); break;
     default: break;
   }
 }
@@ -208,4 +238,45 @@ export function openMenu(): void {
   const s = screen.value;
   if (s.name === "menu") return;
   go({ name: "menu", from: s });
+}
+
+export function openNotes(): void {
+  const s = screen.value;
+  go({ name: "notes", from: s });
+}
+
+/** A link that starts anyone in the same world. */
+export function challengeLink(seed: number): string {
+  return `${location.origin}${location.pathname}?play=${seed}`;
+}
+
+export async function copyChallengeLink(): Promise<void> {
+  const link = challengeLink(currentSeed.value);
+  try {
+    await navigator.clipboard.writeText(link);
+    shareNotice.value = `Link copied: ${link}`;
+  } catch {
+    shareNotice.value = `Copy this link: ${link}`;
+  }
+  announcement.value = "Challenge link ready.";
+}
+
+export async function saveShareCard(): Promise<void> {
+  const rep = finalReport.value;
+  if (!rep) return;
+  try {
+    const blob = await renderShareCard(rep, currentSeed.value);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `runway-flight-${currentSeed.value}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    shareNotice.value = "Share card saved.";
+  } catch {
+    shareNotice.value = "We could not make the share card in this browser.";
+  }
+  announcement.value = shareNotice.value ?? "";
 }

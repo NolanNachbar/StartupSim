@@ -5,6 +5,7 @@ import { Actions } from "./ui/screens/actions";
 import { Board } from "./ui/screens/board";
 import { FormScreen } from "./ui/screens/form";
 import { Menu } from "./ui/screens/menu";
+import { Notes } from "./ui/screens/notes";
 import { ReportScreen } from "./ui/screens/report";
 import { Result } from "./ui/screens/result";
 import { Setup } from "./ui/screens/setup";
@@ -24,6 +25,7 @@ function Current() {
     case "result": return <Result />;
     case "report": return <ReportScreen />;
     case "menu": return <Menu />;
+    case "notes": return <Notes />;
   }
 }
 

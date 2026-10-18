@@ -20,5 +20,8 @@ export default defineConfig({
     { name: "phone", use: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 } } },
     { name: "tablet", use: { viewport: { width: 800, height: 1000 } } },
     { name: "desktop", use: { viewport: { width: 1280, height: 800 } } },
+    // WebKit only runs the meta checks, including the replay check (the sim must agree across engines).
+    // Firefox is not listed: Playwright's Firefox build fails to launch on the dev machine (see ROADMAP M8).
+    { name: "webkit", testMatch: /meta\.spec\.ts/, use: { ...devices["Desktop Safari"] } },
   ],
 });

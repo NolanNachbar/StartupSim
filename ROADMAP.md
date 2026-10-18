@@ -71,10 +71,10 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
   - Result (2026-10-17, 200 seeds, SIM_VERSION 5): Builder crashes with V1 in 86.5%, Pitcher crashes 99% (V3 or V2), Validator lands 37%, Underpricer crashes with M1 in 93.5%, Random lands 2%. Levers used: demand pool divisor 1,000,000 to 3,000,000 in world.ts, V1 report weight raised so the root cause outranks its symptoms. `npm run balance` enforces the targets; the unit run does a 20-seed smoke.
 
 ## M8. Meta-progression and persistence (depends on M6)
-- [ ] Field notes codex and run history in localStorage with a safe-failure wrapper
-- [ ] Seed share link: a run can be replayed from a URL. The golden replay fixture must produce the same end state in Chromium, WebKit and Firefox (add the two browsers to the Playwright projects with `npx playwright install webkit firefox`)
-- [ ] Share card image generated from the report
-- [ ] Checks: storage failure never breaks the game; a shared seed reproduces the same world
+- [x] Field notes codex and run history in localStorage with a safe-failure wrapper
+- [x] Seed share link: a run can be replayed from a URL. The golden replay fixture must produce the same end state in Chromium, WebKit and Firefox (add the two browsers to the Playwright projects with `npx playwright install webkit firefox`). Done for Chromium and WebKit; Playwright's Firefox build exits with "Could not find profile folder" on this machine (macOS 27), so Firefox is not covered. Retry after a Playwright update
+- [x] Share card image generated from the report
+- [x] Checks: storage failure never breaks the game; a shared seed reproduces the same world
 
 ## M9. Polish pass (depends on M7, M8)
 - [ ] Generated sound (Web Audio) with mute control

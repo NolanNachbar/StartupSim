@@ -2,6 +2,10 @@
 // @types/node dependency (M1 spec: no new dependencies). Remove this file if @types/node is ever added.
 declare module "node:fs" {
   export function writeFileSync(path: URL | string, data: string): void;
+  export function readFileSync(path: string): {
+    subarray(start: number, end: number): Iterable<number>;
+    readUInt32BE(offset: number): number;
+  };
   export function mkdirSync(path: string, options?: { recursive?: boolean }): void;
 }
 

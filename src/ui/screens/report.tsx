@@ -1,7 +1,7 @@
 import { useEffect } from "preact/hooks";
 import { CalloutHost } from "../parts";
 import { Panel } from "../panel";
-import { finalReport, flyAgain, revealDone, revealMode, settings } from "../store";
+import { copyChallengeLink, finalReport, flyAgain, revealDone, revealMode, saveShareCard, settings, shareNotice } from "../store";
 
 const FULL_MS = 2400;
 const COMPRESSED_MS = 800;
@@ -67,11 +67,14 @@ export function ReportScreen() {
             </section>
           ) : null}
         </article>
+        {shareNotice.value ? <p class="notice" role="status">{shareNotice.value}</p> : null}
         <CalloutHost screen="report" />
       </main>
       <Panel />
       <footer class="actions">
         <button type="button" class="button button--primary" onClick={flyAgain}>Fly again</button>
+        <button type="button" class="button" onClick={() => void copyChallengeLink()}>Copy challenge link</button>
+        <button type="button" class="button" onClick={() => void saveShareCard()}>Save share card</button>
       </footer>
     </>
   );
