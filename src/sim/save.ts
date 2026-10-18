@@ -4,6 +4,7 @@
 import { isActionShape } from "./actions";
 import { step } from "./reducer";
 import { initialRun, type InternalRun } from "./state";
+import { INDUSTRIES } from "./world";
 import type { Action, LoadError, Save } from "./types";
 
 export const SIM_VERSION = 5;
@@ -14,7 +15,8 @@ const MAX_SEED = 0xffffffff;
 export const MAX_SAVE_ACTIONS = 5000;
 
 export function toSave(run: InternalRun): Save {
-  return { simVersion: SIM_VERSION, seed: run.seed, actions: run.actions.map((a) => ({ ...a })) };
+  const base = { simVersion: SIM_VERSION, seed: run.seed, actions: run.actions.map((a) => ({ ...a })) };
+  return run.industry === null ? base : { ...base, industry: run.industry };
 }
 
 export type LoadResult =
@@ -22,14 +24,14 @@ export type LoadResult =
   | { readonly ok: false; readonly reason: LoadError; readonly atAction?: number };
 
 type Checked =
-  | { readonly ok: true; readonly seed: number; readonly actions: readonly Action[] }
+  | { readonly ok: true; readonly seed: number; readonly industry: number | null; readonly actions: readonly Action[] }
   | { readonly ok: false; readonly reason: LoadError };
 
 /** Read and validate the untrusted input. Hostile objects (throwing getters, Proxy) count as invalid. */
 function check(input: unknown): Checked {
   try {
     if (typeof input !== "object" || input === null) return { ok: false, reason: "invalid" };
-    const { simVersion, seed, actions } = input as { simVersion?: unknown; seed?: unknown; actions?: unknown };
+    const { simVersion, seed, actions, industry } = input as { simVersion?: unknown; seed?: unknown; actions?: unknown; industry?: unknown };
     if (!Number.isSafeInteger(simVersion)) return { ok: false, reason: "invalid" };
     if (typeof seed !== "number" || !Number.isInteger(seed) || seed < 0 || seed > MAX_SEED) {
       return { ok: false, reason: "invalid" };
@@ -37,9 +39,12 @@ function check(input: unknown): Checked {
     if (!Array.isArray(actions) || actions.length > MAX_SAVE_ACTIONS || !actions.every(isActionShape)) {
       return { ok: false, reason: "invalid" };
     }
+    if (industry !== undefined && (typeof industry !== "number" || !Number.isInteger(industry) || industry < 0 || industry >= INDUSTRIES.length)) {
+      return { ok: false, reason: "invalid" };
+    }
     if (simVersion !== SIM_VERSION) return { ok: false, reason: "version-mismatch" };
     // Copy so later changes to the caller's objects cannot affect the replay.
-    return { ok: true, seed, actions: actions.map((a: Action) => ({ ...a })) };
+    return { ok: true, seed, industry: typeof industry === "number" ? industry : null, actions: actions.map((a: Action) => ({ ...a })) };
   } catch {
     return { ok: false, reason: "invalid" };
   }
@@ -50,7 +55,7 @@ export function fromSave(input: unknown): LoadResult {
   const checked = check(input);
   if (!checked.ok) return checked;
 
-  let run = initialRun(checked.seed);
+  let run = initialRun(checked.seed, checked.industry);
   let index = 0;
   for (const action of checked.actions) {
     const result = step(run, action);

@@ -6,6 +6,8 @@ import { generateWorld } from "./world";
 
 export interface InternalRun {
   readonly seed: number;
+  /** The market, or null for the original generic world. */
+  readonly industry: number | null;
   /** Accepted actions, in order. Together with the seed they reproduce the run. */
   readonly actions: readonly Action[];
   readonly secret: Secret;
@@ -14,8 +16,8 @@ export interface InternalRun {
 
 export const START_PRICE_CENTS = 4_900;
 
-export function initialRun(seed: number): InternalRun {
-  const secret = generateWorld(seed);
+export function initialRun(seed: number, industry: number | null = null): InternalRun {
+  const secret = generateWorld(seed, industry);
   const pub: PublicState = {
     week: 0,
     status: "running",
@@ -50,7 +52,7 @@ export function initialRun(seed: number): InternalRun {
     evidence: [],
     hypotheses: hypothesesFrom([], secret.segments.length),
   };
-  return { seed, actions: [], secret, pub };
+  return { seed, industry, actions: [], secret, pub };
 }
 
 /**

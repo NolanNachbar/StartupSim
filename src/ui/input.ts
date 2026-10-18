@@ -1,5 +1,5 @@
 // Keyboard and controller input. Both map to the same actions as touch (DESIGN.md, Accessibility).
-import { back, openMenu, screen } from "./store";
+import { back, openHelp, openMenu, screen } from "./store";
 
 function interactive(): HTMLElement[] {
   return Array.from(document.querySelectorAll<HTMLElement>("button:not([disabled]), input, select, [tabindex='0']")).filter(
@@ -24,13 +24,17 @@ export function installKeyboard(): void {
     }
     const target = e.target as HTMLElement | null;
     if (target && /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return;
+    if (e.key === "h" || e.key === "?") {
+      openHelp();
+      return;
+    }
     if (screen.value.name === "actions" && /^[1-4]$/.test(e.key)) {
       document.querySelector<HTMLElement>(`[data-action-index="${Number(e.key) - 1}"]`)?.click();
     }
   });
 }
 
-/** D-pad moves focus, A (0) clicks, B (1) goes back, Start (9) opens the menu. */
+/** D-pad moves focus, A (0) clicks, B (1) goes back, Start (9) opens the menu, Y (3) opens help. */
 export function installGamepad(): void {
   let held = new Set<number>();
   let raf = 0;
@@ -45,6 +49,7 @@ export function installGamepad(): void {
       if (fresh(0)) (document.activeElement as HTMLElement | null)?.click();
       if (fresh(1)) back();
       if (fresh(9)) openMenu();
+      if (fresh(3)) openHelp();
       held = down;
     }
     raf = requestAnimationFrame(poll);

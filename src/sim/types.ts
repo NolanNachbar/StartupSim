@@ -235,6 +235,8 @@ export type LoadError = "invalid" | "version-mismatch" | "replay-failed";
 export interface Save {
   simVersion: number;
   seed: number;
+  /** The market (an index into CATALOG.industries). Absent for the original generic world. */
+  industry?: number;
   actions: Action[];
 }
 

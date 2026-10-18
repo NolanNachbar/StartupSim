@@ -1,4 +1,4 @@
-// Saving and restoring the run in progress. A finished run is never offered as "Continue flight".
+// Saving and restoring the run in progress. A finished run is never offered as "Continue run".
 import { fromSave, toSave, view, type Run, type Save } from "../sim";
 import type { SafeStorage } from "./storage";
 

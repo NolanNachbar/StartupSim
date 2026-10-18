@@ -20,6 +20,7 @@ export interface Flight {
   readonly week: number;
   /** The probable cause id for a crash or stall, otherwise null. */
   readonly cause: string | null;
+  readonly company?: string;
 }
 
 const isNote = (x: unknown): x is Note => {
@@ -43,7 +44,7 @@ export function loadFlights(storage: SafeStorage): Flight[] {
 }
 
 /** Add a finished run: one flight entry, and a note count for every cause the report named. */
-export function recordFlight(storage: SafeStorage, seed: number, report: Report, week: number): void {
+export function recordFlight(storage: SafeStorage, seed: number, report: Report, week: number, company?: string): void {
   const notes = loadNotes(storage);
   for (const c of [report.probableCause, ...report.contributing]) {
     if (!c) continue;
@@ -54,6 +55,7 @@ export function recordFlight(storage: SafeStorage, seed: number, report: Report,
     else notes.push(next);
   }
   storage.setJson(NOTES_KEY, notes);
-  const flights = [{ seed, outcome: report.outcome, week, cause: report.outcome === "landed" ? null : (report.probableCause?.id ?? null) }, ...loadFlights(storage)].slice(0, MAX_FLIGHTS);
+  const entry: Flight = { seed, outcome: report.outcome, week, cause: report.outcome === "landed" ? null : (report.probableCause?.id ?? null), ...(company ? { company } : {}) };
+  const flights = [entry, ...loadFlights(storage)].slice(0, MAX_FLIGHTS);
   storage.setJson(FLIGHTS_KEY, flights);
 }

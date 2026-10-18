@@ -1,12 +1,14 @@
 import { useEffect } from "preact/hooks";
-import { CATALOG, newRun, view } from "./sim";
-import { PixelWorld } from "./ui/art/PixelWorld";
+import { newRun, view } from "./sim";
+import { IsoWorld } from "./ui/art/IsoWorld";
 import { BOARD_HYPOTHESES, BOARD_NAMES, Strip } from "./ui/parts";
 import { Actions } from "./ui/screens/actions";
 import { Board } from "./ui/screens/board";
 import { FormScreen } from "./ui/screens/form";
 import { Menu } from "./ui/screens/menu";
+import { Help } from "./ui/screens/help";
 import { Notes } from "./ui/screens/notes";
+import { pathProgress } from "./ui/guide";
 import { ReportScreen } from "./ui/screens/report";
 import { Result } from "./ui/screens/result";
 import { Setup } from "./ui/screens/setup";
@@ -27,6 +29,7 @@ function Current() {
     case "report": return <ReportScreen />;
     case "menu": return <Menu />;
     case "notes": return <Notes />;
+    case "help": return <Help />;
   }
 }
 
@@ -59,12 +62,12 @@ export function App() {
   const vp = viewport.value;
   return (
     <>
-      <PixelWorld
+      <IsoWorld
         hypotheses={inRun ? st.hypotheses : BOARD_HYPOTHESES}
         names={inRun ? st.segmentNames : BOARD_NAMES}
         focus={inRun ? st.focusSegment : -1}
         seed={inRun ? currentSeed.value : baseSeed.value}
-        progress={inRun ? st.week / CATALOG.maxWeeks : 0}
+        progress={inRun ? pathProgress(st).fraction : 0}
         selected={inRun ? selected.value : null}
         w={vp.w}
         h={vp.h}

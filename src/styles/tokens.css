@@ -1,36 +1,34 @@
 /* Design tokens. Source of truth is DESIGN.md. Change both together.
-   One light theme: a daytime pixel overworld. Every hue is sampled from the Kenney art. */
+   One light theme: a sunny isometric tech campus. Colors come from the rendered city. */
 
 :root {
-  --ink: #3f2631;
-  --ink-soft: #6b4455;
-  --surface: #e9d6a8;
-  --surface-raised: #f7efd6;
-  --line: #b89868;
-  --grass: #84c669;
-  --dirt: #eaa56c;
-  --stone: #c0cbdc;
-  --sky: #1ea7e1;
-  --primary: #ffcc00;
-  --on-primary: #3f2631;
-  --verified: #1ea7e1;
-  --verified-ink: #12607f;
-  --accent: #e86a17;
-  --on-accent: #3f2631;
-  --flame: #fc683b;
-  --ok: #73cd4b;
-  --ok-ink: #2f6f1e;
-  --warning-ink: #7a4f00;
-  --error: #c34b35;
-  --error-ink: #9a2f1c;
+  --ink: #262a44;
+  --ink-soft: #565c7a;
+  --surface: #ffffff;
+  --surface-raised: #f4f6fc;
+  --line: #d7dcec;
+  --primary: #3556e6;
+  --primary-pressed: #2440b8;
+  --on-primary: #ffffff;
+  --glass: #80b0ff;
+  --grass: #86c05f;
+  --road: #8888a0;
+  --verified: #1b7a45;
+  --verified-line: #3ddc84;
+  --accent: #c93d14;
+  --on-accent: #ffffff;
+  --flame: #ff8a3d;
+  --warning-ink: #8a5a00;
+  --error-ink: #b3261e;
 
-  --font-ui: "Pixelify Sans", "Trebuchet MS", sans-serif;
+  --font-ui: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
 
   --t-sm: 0.875rem;
   --t-md: 1.0625rem;
   --t-lg: 1.25rem;
   --t-xl: 1.5rem;
-  --t-2xl: 2.5rem;
+  --t-2xl: 2.25rem;
+  --t-3xl: 3.5rem;
 
   /* 4 px spacing scale. Use only these. */
   --s-1: 4px;
@@ -41,12 +39,15 @@
   --s-6: 32px;
   --s-7: 48px;
 
-  /* One art pixel is --px screen pixels. Whole numbers only, so pixels stay crisp. */
-  --px: 3px;
-  --frame: 16px;
+  --radius-panel: 12px;
+  --radius-control: 12px;
+  --radius-chip: 8px;
+  --shadow-panel: 0 8px 24px rgba(38, 42, 68, 0.18), 0 1px 0 rgba(38, 42, 68, 0.06);
+  --lip: 0 4px 0 var(--primary-pressed);
+
   --gutter: var(--s-2);
   --tap: 44px;
-  --panel-w: 296px;
+  --panel-w: 320px;
 
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --dur-fast: 100ms;
@@ -54,16 +55,11 @@
 }
 
 @media (min-width: 600px) {
-  :root {
-    --gutter: var(--s-3);
-  }
+  :root { --gutter: var(--s-3); }
 }
 
 @media (min-width: 900px) {
-  :root {
-    --px: 4px;
-    --panel-w: 336px;
-  }
+  :root { --panel-w: 352px; }
 }
 
 :root { color-scheme: light; }
@@ -73,15 +69,15 @@ html {
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: 16px;
-  caret-color: var(--ink);
-  accent-color: var(--ink);
+  caret-color: var(--primary);
+  accent-color: var(--primary);
   scrollbar-color: var(--line) transparent;
   scrollbar-width: thin;
   -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
-  background: var(--primary);
+  background: color-mix(in srgb, var(--primary) 25%, transparent);
   color: var(--ink);
 }
 

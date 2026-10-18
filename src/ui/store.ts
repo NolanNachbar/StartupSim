@@ -2,11 +2,12 @@
 // this file only calls `step` and `view` and remembers what to show.
 import { computed, signal } from "@preact/signals";
 import {
-  newRun, report as reportFor, step, toSave, view,
+  INDUSTRY_LIST, newRun, report as reportFor, step, toSave, view,
   type Action, type PublicState, type Report, type Run,
 } from "../sim";
 import { describeStep, reasonText, type StepDescription } from "./format";
 import type { FormId } from "./forms";
+import { cleanName, suggestName } from "./names";
 import { loadFlights, loadNotes, recordFlight, type Flight, type Note } from "./notes";
 import { clearRun, loadRun, saveRun } from "./persist";
 import { renderShareCard } from "./shareCard";
@@ -22,6 +23,7 @@ export type Screen =
   | { name: "result" }
   | { name: "report" }
   | { name: "notes"; from: Screen }
+  | { name: "help"; from: Screen }
   | { name: "menu"; from: Screen };
 
 export interface Settings {
@@ -53,6 +55,11 @@ export const chosenSeed = signal(1);
 export const storageBlocked = signal(false);
 export const challengeSeed = signal<number | null>(null);
 export const currentSeed = signal(0);
+export const challengeIndustry = signal<number | null>(null);
+/** The company being run: its name and market. */
+export const company = signal({ name: "", industry: 0 });
+/** The setup form. */
+export const draft = signal({ name: "", industry: 0 });
 export const shareNotice = signal<string | null>(null);
 export const notes = signal<Note[]>([]);
 export const flights = signal<Flight[]>([]);
@@ -72,8 +79,6 @@ function randomSeed(): number {
   }
 }
 
-/** Three problem spaces, the three seeds that start at the base seed. */
-export const setupSeeds = computed(() => [0, 1, 2].map((i) => (baseSeed.value + i) % 0x100000000));
 
 export function init(search: string): void {
   const stored = storage.getJson("runway.settings");
@@ -91,15 +96,22 @@ export function init(search: string): void {
   const play = new URLSearchParams(search).get("play");
   const playSeed = play === null ? NaN : Number.parseInt(play, 10);
   if (Number.isInteger(playSeed) && playSeed >= 0 && playSeed <= 0xffffffff) challengeSeed.value = playSeed;
+  const ind = new URLSearchParams(search).get("industry");
+  const indNum = ind === null ? NaN : Number.parseInt(ind, 10);
+  if (Number.isInteger(indNum) && indNum >= 0 && indNum < INDUSTRY_LIST.length) challengeIndustry.value = indNum;
   notes.value = loadNotes(storage);
   flights.value = loadFlights(storage);
 
   const loaded = loadRun(storage);
   if (loaded.kind === "restored") {
     savedRun.value = loaded.run;
+    const meta = storage.getJson("runway.company");
+    const saveIndustry = toSave(loaded.run).industry ?? 0;
+    const savedName = meta && typeof meta === "object" && typeof (meta as { name?: unknown }).name === "string" ? cleanName((meta as { name: string }).name) : null;
+    company.value = { name: savedName ?? suggestName(toSave(loaded.run).seed), industry: saveIndustry };
     currentSeed.value = toSave(loaded.run).seed;
   }
-  if (loaded.kind === "corrupt") notice.value = "We could not restore your last flight. Start a new run.";
+  if (loaded.kind === "corrupt") notice.value = "We could not restore your last run. Start a new run.";
   syncBlocked();
   if (storageBlocked.value && !notice.value) notice.value = "Progress will not be saved in this browser. You can keep playing.";
 }
@@ -136,19 +148,35 @@ export function go(next: Screen): void {
 }
 
 export function openSetup(): void {
-  chosenSeed.value = setupSeeds.value[0] ?? 1;
+  const seed = challengeSeed.value ?? baseSeed.value;
+  draft.value = { name: suggestName(seed), industry: challengeIndustry.value ?? draft.value.industry };
   go({ name: "setup" });
 }
 
 export function flyAgain(): void {
   baseSeed.value = randomSeed() % 0xfffffffd;
+  challengeSeed.value = null;
+  challengeIndustry.value = null;
   openSetup();
 }
 
-export function takeOff(seed: number): void {
-  const next = newRun(seed);
+export function suggestAnotherName(): void {
+  draft.value = { ...draft.value, name: suggestName(randomSeed()) };
+}
+
+/** Found the company from the setup form. */
+export function startCompany(): void {
+  const seed = challengeSeed.value ?? baseSeed.value;
+  const name = cleanName(draft.value.name) ?? suggestName(seed);
+  takeOff(seed, draft.value.industry, name);
+}
+
+export function takeOff(seed: number, industry: number, name: string): void {
+  const next = newRun(seed, industry);
   run.value = next;
   currentSeed.value = seed;
+  company.value = { name, industry };
+  storage.setJson("runway.company", { name });
   shareNotice.value = null;
   savedRun.value = null;
   selected.value = null;
@@ -158,7 +186,7 @@ export function takeOff(seed: number): void {
   syncBlocked();
   if (storageBlocked.value) notice.value = "Progress will not be saved in this browser. You can keep playing.";
   else notice.value = null;
-  announcement.value = `Week 1. Cash and pivots ready.`;
+  announcement.value = `${name} is open for business. Week 1.`;
   go({ name: "week" });
 }
 
@@ -175,6 +203,7 @@ export function continueFlight(): void {
 export function discardSaved(): void {
   savedRun.value = null;
   clearRun(storage);
+  storage.remove("runway.company");
 }
 
 function announce(s: PublicState): void {
@@ -213,7 +242,7 @@ export function act(action: Action): boolean {
       storage.setJson("runway.seen", seenCauses.value);
     }
     if (rep) {
-      recordFlight(storage, currentSeed.value, rep, after.week);
+      recordFlight(storage, currentSeed.value, rep, after.week, company.value.name);
       notes.value = loadNotes(storage);
       flights.value = loadFlights(storage);
     }
@@ -237,6 +266,7 @@ export function back(): void {
     case "result": go({ name: "week" }); break;
     case "menu": go(s.from); break;
     case "notes": go(s.from); break;
+    case "help": go(s.from); break;
     default: break;
   }
 }
@@ -253,12 +283,12 @@ export function openNotes(): void {
 }
 
 /** A link that starts anyone in the same world. */
-export function challengeLink(seed: number): string {
-  return `${location.origin}${location.pathname}?play=${seed}`;
+export function challengeLink(seed: number, industry: number): string {
+  return `${location.origin}${location.pathname}?play=${seed}&industry=${industry}`;
 }
 
 export async function copyChallengeLink(): Promise<void> {
-  const link = challengeLink(currentSeed.value);
+  const link = challengeLink(currentSeed.value, company.value.industry);
   try {
     await navigator.clipboard.writeText(link);
     shareNotice.value = `Link copied: ${link}`;
@@ -272,11 +302,11 @@ export async function saveShareCard(): Promise<void> {
   const rep = finalReport.value;
   if (!rep) return;
   try {
-    const blob = await renderShareCard(rep, currentSeed.value);
+    const blob = await renderShareCard(rep, currentSeed.value, company.value.name);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `runway-flight-${currentSeed.value}.png`;
+    a.download = `runway-run-${currentSeed.value}.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -301,3 +331,9 @@ export function trackViewport(): void {
 
 /** Phone only: whether the log and details sheet is open. From 600 px the panel is always shown. */
 export const sheetOpen = signal(false);
+
+export function openHelp(): void {
+  const s = screen.value;
+  if (s.name === "help") return;
+  go({ name: "help", from: s });
+}

@@ -36,7 +36,7 @@ export const tagExplain = (t: DebriefTag): string =>
 
 const REASONS: Record<IllegalReason, string> = {
   "unknown-action": "That action is not available.",
-  "run-finished": "This flight is over.",
+  "run-finished": "This run is over.",
   "not-implemented": "That action is not available yet.",
   "invalid-price": "That price is not on the list.",
   "invalid-segment": "Pick a customer group first.",

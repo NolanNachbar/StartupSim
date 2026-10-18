@@ -39,8 +39,8 @@ export function usd(cents: number): string {
 }
 
 /** Replay a run and keep the public state before and after every action. */
-export function buildHistory(seed: number, actions: readonly Action[]): History {
-  let run = initialRun(seed);
+export function buildHistory(seed: number, actions: readonly Action[], industry: number | null = null): History {
+  let run = initialRun(seed, industry);
   const steps: HistoryStep[] = [];
   for (const action of actions) {
     const result = step(run, action);

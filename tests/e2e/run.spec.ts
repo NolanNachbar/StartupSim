@@ -6,8 +6,8 @@ const SEED = "3";
 async function startRun(page: Page): Promise<void> {
   await page.goto(`/?seed=${SEED}`);
   await page.getByRole("button", { name: "Start a run" }).click();
-  await expect(page.getByRole("heading", { name: "Choose a problem space" })).toBeVisible();
-  await page.getByRole("button", { name: "Take off" }).click();
+  await expect(page.getByRole("heading", { name: "Found your company" })).toBeVisible();
+  await page.getByRole("button", { name: "Start the company" }).click();
   await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
 }
 
@@ -21,21 +21,22 @@ for (const colorScheme of ["light"] as const) {
   test.describe(`a full flight, ${colorScheme}`, () => {
     test.use({ colorScheme, reducedMotion: "reduce" });
 
-    test("play from the board to the accident report, then fly again", async ({ page }, info) => {
+    test("play from the board to the accident report, then run again", async ({ page }, info) => {
       test.setTimeout(120_000);
       const errors = watchConsole(page);
       await page.goto(`/?seed=${SEED}`);
 
       await page.getByRole("button", { name: "Start a run" }).click();
-      await expect(page.getByRole("heading", { name: "Choose a problem space" })).toBeVisible();
-      await expect(page.getByRole("radio")).toHaveCount(3);
+      await expect(page.getByRole("heading", { name: "Found your company" })).toBeVisible();
+      await expect(page.getByRole("radio")).toHaveCount(6);
+      await expect(page.getByLabel("Company name")).not.toHaveValue("");
       await auditScreen(page, "setup", info, colorScheme, { panelOnWide: false });
-      await page.getByRole("button", { name: "Take off" }).click();
+      await page.getByRole("button", { name: "Start the company" }).click();
 
       // Week screen, with the first callout (the dotted line).
       await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
       await expect(page.getByRole("note")).toContainText("dotted line");
-      await expect(page.getByText(/\d+ untested/).first()).toBeVisible();
+      await expect(page.getByText("Untested").first()).toBeVisible();
       await auditScreen(page, "week", info, colorScheme);
       await page.getByRole("button", { name: "Got it" }).click();
       await expect(page.getByRole("note")).toHaveCount(0);
@@ -95,24 +96,24 @@ for (const colorScheme of ["light"] as const) {
       await expect(report).toContainText(/Probable cause|No single dominant cause|default alive/i);
       await auditScreen(page, "report", info, colorScheme, { allowBlackbox: true, panelOnWide: false });
 
-      // Fly again returns to a fresh setup.
-      await page.getByRole("button", { name: "Fly again" }).click();
-      await expect(page.getByRole("heading", { name: "Choose a problem space" })).toBeVisible();
+      // Run again returns to a fresh setup.
+      await page.getByRole("button", { name: "Run again" }).click();
+      await expect(page.getByRole("heading", { name: "Found your company" })).toBeVisible();
       expect(errors).toEqual([]);
     });
   });
 }
 
 test.describe("saving, keyboard and the reveal", () => {
-  test("a refresh in the middle of a run offers Continue flight", async ({ page }) => {
+  test("a refresh in the middle of a run offers Continue run", async ({ page }) => {
     await startRun(page);
     await openAction(page, "Interview a customer");
     await page.getByRole("button", { name: "Hold the interviews" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
     const weekBefore = await page.locator(".strip").innerText();
     await page.reload();
-    await expect(page.getByRole("button", { name: "Continue flight" })).toBeVisible();
-    await page.getByRole("button", { name: "Continue flight" }).click();
+    await expect(page.getByRole("button", { name: "Continue run" })).toBeVisible();
+    await page.getByRole("button", { name: "Continue run" }).click();
     await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
     expect(await page.locator(".strip").innerText()).toBe(weekBefore);
   });
@@ -120,7 +121,7 @@ test.describe("saving, keyboard and the reveal", () => {
   test("a corrupt save says so and still lets you start", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("runway.run", "{broken"));
     await page.goto("/");
-    await expect(page.getByText("We could not restore your last flight. Start a new run.")).toBeVisible();
+    await expect(page.getByText("We could not restore your last run. Start a new run.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Start a run" })).toBeVisible();
   });
 
@@ -131,7 +132,7 @@ test.describe("saving, keyboard and the reveal", () => {
     await page.goto("/");
     await expect(page.getByText("Progress will not be saved in this browser. You can keep playing.")).toBeVisible();
     await page.getByRole("button", { name: "Start a run" }).click();
-    await page.getByRole("button", { name: "Take off" }).click();
+    await page.getByRole("button", { name: "Start the company" }).click();
     await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
   });
 
@@ -159,7 +160,7 @@ test.describe("saving, keyboard and the reveal", () => {
     await expect(page.getByRole("region", { name: "Selected" })).toContainText("Interviews");
   });
 
-  test("the report reveal can be skipped and Fly again works during it", async ({ page }) => {
+  test("the report reveal can be skipped and Run again works during it", async ({ page }) => {
     test.setTimeout(120_000);
     await startRun(page);
     for (let i = 0; i < 160 && (await page.getByRole("article").count()) === 0; i++) {
@@ -171,7 +172,7 @@ test.describe("saving, keyboard and the reveal", () => {
     await expect(page.getByRole("article")).toHaveAttribute("data-reveal", /full|compressed/);
     await page.getByRole("article").click();
     await expect(page.getByRole("article")).toHaveAttribute("data-reveal", "done");
-    await page.getByRole("button", { name: "Fly again" }).click();
-    await expect(page.getByRole("heading", { name: "Choose a problem space" })).toBeVisible();
+    await page.getByRole("button", { name: "Run again" }).click();
+    await expect(page.getByRole("heading", { name: "Found your company" })).toBeVisible();
   });
 });

@@ -94,3 +94,11 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 
 ## Later
 Selling skill (offers, objections, Hormozi-style), mindset layer (sunk cost, ego, persistence), hiring and co-founder events, broader problem spaces, a 3D hub, and the stages beyond default-alive toward the billionaire arc. Each needs its own shaping pass first.
+
+## Post-v1 UI and design pass (2026-10-18)
+- [x] Visual direction replaced twice at Nolan's request; now an isometric low-poly tech campus (Kenney CC0 3D kits rendered to sprites with Blender, `scripts/blender/render_city.py`), designed through /design-consultation. DESIGN.md is the source of truth.
+- [x] A designed city, not scatter: street grid, a route that follows the streets in three runs to an HQ roundabout, per-group landmarks with signs, a clear corridor around the road, hazier distance.
+- [x] Help screen and a milestone path bar. The game explains and shows progress; it never says what move to make.
+- [x] Name your company and choose an industry (six markets with real economic differences in the sim; optional parameter, original worlds unchanged).
+- [x] Copy changed from flight to run; route vehicle is a delivery van; crashes show debris, smoke and flames.
+- [ ] [HUMAN] Playtest and a "looks expensive" review of the new look.

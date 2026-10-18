@@ -1,6 +1,6 @@
-import "@fontsource/pixelify-sans/latin-400.css";
-import "@fontsource/pixelify-sans/latin-600.css";
-import "@fontsource/pixelify-sans/latin-700.css";
+import "@fontsource/bricolage-grotesque/latin-500.css";
+import "@fontsource/bricolage-grotesque/latin-700.css";
+import "@fontsource/bricolage-grotesque/latin-800.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/screens.css";

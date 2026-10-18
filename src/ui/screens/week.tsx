@@ -1,7 +1,8 @@
-import { CalloutHost, HypothesisList } from "../parts";
-import { countStates, money } from "../format";
+import { CalloutHost, HypothesisList, PathBar } from "../parts";
+import { money } from "../format";
 import { Panel } from "../panel";
-import { act, go, sheetOpen, state } from "../store";
+import { INDUSTRY_LIST } from "../../sim";
+import { act, company, go, sheetOpen, state } from "../store";
 
 export function Week() {
   const s = state.value;
@@ -19,8 +20,9 @@ export function Week() {
         <div class="plate">
           <div class="plate__head">
             <h1 class="board__title" tabIndex={-1}>Your route</h1>
-            <p class="board__lede">{countStates(s.hypotheses)}</p>
+            <p class="board__lede plate__company">{`${company.value.name}, ${INDUSTRY_LIST[company.value.industry]?.name ?? ""}`}</p>
           </div>
+          <PathBar s={s} />
           <HypothesisList hypotheses={s.hypotheses} names={s.segmentNames} focus={s.focusSegment} />
         </div>
       </main>

@@ -33,11 +33,12 @@ export interface ValidatorOptions {
   readonly price?: number;
   readonly marketingLevel?: number;
   readonly maxWeeks?: number;
+  readonly industry?: number | null;
 }
 
 export function playValidator(seed: number, options: ValidatorOptions = {}): { run: InternalRun; actions: Action[] } {
   const maxWeeks = options.maxWeeks ?? 110;
-  let run = initialRun(seed);
+  let run = initialRun(seed, options.industry ?? null);
   const actions: Action[] = [];
   const act = (a: Action): boolean => {
     if (run.pub.status !== "running") return false;

@@ -1,8 +1,9 @@
 import { useEffect } from "preact/hooks";
+import { INDUSTRY_LIST } from "../../sim";
 import { CrashScene } from "../art/CrashScene";
 import { CalloutHost } from "../parts";
 import { Panel } from "../panel";
-import { copyChallengeLink, currentSeed, finalReport, state, viewport, flyAgain, revealDone, revealMode, saveShareCard, settings, shareNotice } from "../store";
+import { company, copyChallengeLink, currentSeed, finalReport, state, flyAgain, revealDone, revealMode, saveShareCard, settings, shareNotice } from "../store";
 
 const FULL_MS = 2400;
 const COMPRESSED_MS = 800;
@@ -26,11 +27,13 @@ export function ReportScreen() {
     <>
       <main class="board">
         <article class="report" data-reveal={phase} data-outcome={r.outcome} onClick={() => (revealDone.value = true)}>
-          <CrashScene w={viewport.value.w} landed={landed} seed={currentSeed.value} />
+          <CrashScene landed={landed} seed={currentSeed.value} />
           <p class="report__form">Accident investigation report</p>
           <dl class="report__fields">
-            <dt>Flight</dt><dd>{String(currentSeed.value)}</dd>
-            <dt>Weeks flown</dt><dd>{String(state.value?.week ?? 0)}</dd>
+            <dt>Company</dt><dd>{company.value.name}</dd>
+            <dt>Market</dt><dd>{INDUSTRY_LIST[company.value.industry]?.name ?? ""}</dd>
+            <dt>Run</dt><dd>{String(currentSeed.value)}</dd>
+            <dt>Weeks run</dt><dd>{String(state.value?.week ?? 0)}</dd>
             <dt>Outcome</dt><dd>{landed ? "Landed" : r.outcome === "stalled" ? "Stalled" : "Crashed"}</dd>
           </dl>
           <header class={landed ? "report__head report__head--landed" : "report__head"}>
@@ -80,7 +83,7 @@ export function ReportScreen() {
       </main>
       <Panel />
       <footer class="actions">
-        <button type="button" class="button button--primary" onClick={flyAgain}>Fly again</button>
+        <button type="button" class="button button--primary" onClick={flyAgain}>Run again</button>
         <div class="actions__row actions__row--always">
           <button type="button" class="button" onClick={() => void copyChallengeLink()}>Copy challenge link</button>
           <button type="button" class="button" onClick={() => void saveShareCard()}>Save share card</button>

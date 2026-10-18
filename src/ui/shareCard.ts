@@ -22,26 +22,26 @@ export interface CardText {
   readonly footer: string;
 }
 
-export function cardText(report: Report, seed: number): CardText {
+export function cardText(report: Report, seed: number, company = ""): CardText {
   const cause =
     report.outcome === "landed"
       ? "Default alive"
       : report.probableCause
         ? `Probable cause: ${report.probableCause.id}. ${report.probableCause.title}`
         : "No single dominant cause";
-  return { headline: report.headline, cause, footer: `Runway, flight ${seed}. Run a startup. Learn why most fail.` };
+  return { headline: report.headline, cause, footer: `${company ? `${company} on ` : ""}Runway, run ${seed}. Run a startup. Learn why most fail.` };
 }
 
 const W = 1200;
 const H = 630;
 
-export function renderShareCard(report: Report, seed: number): Promise<Blob> {
+export function renderShareCard(report: Report, seed: number, company = ""): Promise<Blob> {
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
   if (!ctx) return Promise.reject(new Error("no canvas"));
-  const t = cardText(report, seed);
+  const t = cardText(report, seed, company);
   const landed = report.outcome === "landed";
   ctx.fillStyle = "#e8eee9";
   ctx.fillRect(0, 0, W, H);

@@ -11,7 +11,7 @@ for (const colorScheme of ["light"] as const) {
       await expect(page.getByRole("heading", { name: "Runway" })).toBeVisible();
       await expect(page.getByText("Pivots remaining")).toBeVisible();
       await expect(page.getByRole("button", { name: "Start a run" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Continue flight" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Continue run" })).toHaveCount(0);
 
       // The chart's empty state (DESIGN.md, Interaction states).
       await expect(page.getByText("No tests yet. Interview a customer to start your route.").first()).toBeAttached();

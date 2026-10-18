@@ -13,7 +13,7 @@ export const CALLOUTS: readonly Callout[] = [
   { id: "pivots", text: "Pivots remaining is how many times you can change course before the money ends. It counts changes of direction, not months." },
   { id: "interview", text: "Different questions get different answers. Asking about what a customer did last time is worth more than asking what they might do." },
   { id: "verified", text: "A solid blue line means real people paid or did something costly. Compliments and promises never turn a line solid." },
-  { id: "crash", text: "The report names the probable cause of this crash. Read it, then fly again: every run teaches a different failure." },
+  { id: "crash", text: "The report names the probable cause of this crash. Read it, then run again: every run teaches a different failure." },
 ];
 
 export type CalloutScreen = "board" | "setup" | "week" | "interview" | "result" | "report" | "other";

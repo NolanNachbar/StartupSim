@@ -1,4 +1,4 @@
-import { back, openNotes, resetProgress, settings, storageBlocked, updateSettings } from "../store";
+import { back, openHelp, openNotes, resetProgress, settings, storageBlocked, updateSettings } from "../store";
 
 export function Menu() {
   const st = settings.value;
@@ -7,6 +7,7 @@ export function Menu() {
       <main class="board">
         <h1 class="board__title" tabIndex={-1}>Menu</h1>
         <div class="field">
+          <button type="button" class="button button--row" onClick={openHelp}><span>How to play</span></button>
           <button type="button" class="button button--row" onClick={openNotes}><span>Field notes</span></button>
         </div>
         <h2 class="board__sub">Settings</h2>

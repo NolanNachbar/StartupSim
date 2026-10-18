@@ -20,13 +20,13 @@ export function Notes() {
             ))}
           </ul>
         )}
-        <h2 class="board__sub">Past flights</h2>
+        <h2 class="board__sub">Past runs</h2>
         {past.length === 0 ? (
-          <p class="panel__text">No flights yet.</p>
+          <p class="panel__text">No runs yet.</p>
         ) : (
           <ul class="log">
             {past.map((f, i) => (
-              <li key={i}>{`Flight ${f.seed}: ${f.outcome === "landed" ? "landed" : f.outcome === "stalled" ? "stalled" : "crashed"} in week ${f.week}${f.cause ? `, ${f.cause}` : ""}`}</li>
+              <li key={i}>{`Run ${f.seed}: ${f.company ? `${f.company} ` : ""}${f.outcome === "landed" ? "landed" : f.outcome === "stalled" ? "stalled" : "crashed"} in week ${f.week}${f.cause ? `, ${f.cause}` : ""}`}</li>
             ))}
           </ul>
         )}

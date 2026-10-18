@@ -2,8 +2,7 @@
 
 All art in this folder is by Kenney (www.kenney.nl), released under Creative Commons Zero (CC0 1.0). Credit is optional and appreciated.
 
-- tilemap_packed.png: Kenney, Tiny Town 1.1 (CC0)
-- tiles_packed.png, ships_packed.png: Kenney, Pixel Shmup 1.1 (CC0)
-- ui/*.png: Kenney, Pixel UI Pack (CC0)
+- city/*.webp: isometric renders (Blender, scripts/blender/render_city.py) of Kenney's City Kit (Commercial 2.1, Industrial, Roads), Car Kit and Nature Kit (CC0 3D models)
+- fx/*.webp: Kenney Particle Pack (CC0)
 
-The interface font, Pixelify Sans (SIL Open Font License 1.1), ships through the Fontsource package.
+The interface font, Bricolage Grotesque (SIL Open Font License 1.1), ships through the Fontsource package.

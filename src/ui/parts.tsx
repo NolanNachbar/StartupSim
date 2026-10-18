@@ -2,38 +2,33 @@
 import type { ComponentChildren } from "preact";
 import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { hypothesisLabel, money } from "./format";
-import { digitTile, SHIP, Sprite, TOWN } from "./art/sprites";
-import { markCalloutShown, openMenu, selected, settings, shownCallouts, startPivots, state } from "./store";
+import { spriteUrl } from "./art/city";
+import { pathProgress } from "./guide";
+import { markCalloutShown, openHelp, openMenu, selected, settings, shownCallouts, startPivots, state } from "./store";
 import type { Hypothesis, PublicState } from "../sim";
 
-export function Instrument({ caption, value, icon }: { caption: string; value: string; icon?: ComponentChildren }) {
+export function Instrument({ caption, value }: { caption: string; value: string }) {
   return (
     <div class="instrument">
       <span class="instrument__caption">{caption}</span>
       <span class="instrument__row">
-        {icon}
         <span key={value} class="instrument__value tick">{value}</span>
       </span>
     </div>
   );
 }
 
-/** Pivots remaining: the largest number, as Pixel Shmup digit sprites, with one little plane per pivot. */
+/** Pivots remaining: the largest number, with one little delivery van per pivot. */
 export function Pivots({ count, max }: { count: number; max: number }) {
-  const digits = String(Math.max(0, count)).split("").map(Number);
   const shown = Math.min(Math.max(max, count), 6);
   return (
     <div class="pivots">
       <span class="instrument__caption">Pivots remaining</span>
       <div class="pivots__row">
-        <span class="pivots__digits" role="img" aria-label={`${count} of ${Math.max(max, count)}`}>
-          {digits.map((d, i) => (
-            <Sprite key={i} sheet="shmup" idx={digitTile(d)} scale={4} />
-          ))}
-        </span>
-        <span class="pivots__planes" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(shown / 2))}, 36px)` }}>
+        <span class="pivots__number" role="img" aria-label={`${count} of ${Math.max(max, count)}`}>{Math.max(0, count)}</span>
+        <span class="pivots__vans" aria-hidden="true">
           {Array.from({ length: shown }, (_, i) => (
-            <Sprite key={i} sheet="ships" idx={SHIP.player} scale={2} crop={{ x: 7, y: 7, w: 18, h: 18 }} class={i < count ? "plane-icon" : "plane-icon plane-icon--spent"} />
+            <img key={i} class={i < count ? "van-icon" : "van-icon van-icon--spent"} src={spriteUrl("car-van-0")} alt="" />
           ))}
         </span>
       </div>
@@ -49,10 +44,15 @@ export function Strip({ fresh }: { fresh: PublicState }) {
     <header class="strip">
       <Pivots count={s.pivotsRemaining} max={max} />
       <div class="strip__side">
-        <button type="button" class="button button--menu" onClick={openMenu}>
-          Menu
-        </button>
-        <Instrument caption="Cash" value={money(s.cashCents)} icon={<Sprite sheet="town" idx={TOWN.coin} scale={2} />} />
+        <div class="strip__buttons">
+          <button type="button" class="button button--menu" onClick={openMenu}>
+            Menu
+          </button>
+          <button type="button" class="button button--help" aria-label="How to play" onClick={openHelp}>
+            ?
+          </button>
+        </div>
+        <Instrument caption="Cash" value={money(s.cashCents)} />
         <Instrument caption="Week" value={String(s.week)} />
       </div>
     </header>
@@ -75,8 +75,8 @@ export function HypothesisList({ hypotheses, names, focus }: { hypotheses: reado
     <ul class="routes" onKeyDown={onKey}>
       {hypotheses.map((h, i) => (
         <li key={i}>
-          <button type="button" class="route-row" data-state={h.state} data-focus={i === focus} aria-pressed={selected.value === i} onClick={() => (selected.value = i)}>
-            <span class="route-row__name">{`${i + 1}. ${names[i] ?? "Group"}${i === focus ? " (your focus)" : ""}`}</span>
+          <button type="button" class="route-row" data-state={h.state} data-focus={i === focus} aria-pressed={selected.value === i} aria-label={`${i + 1}. ${names[i] ?? "Group"}${i === focus ? " (your focus)" : ""}. ${hypothesisLabel(h.state)}`} onClick={() => (selected.value = i)}>
+            <span class="route-row__name">{`${i + 1}. ${names[i] ?? "Group"}`}</span>
             <span class="route-row__state">{hypothesisLabel(h.state)}</span>
           </button>
         </li>
@@ -125,3 +125,20 @@ export const BOARD_HYPOTHESES: readonly Hypothesis[] = BOARD_NAMES.map((_, segme
   segment, state: "untested", interviews: 0, interested: 0, payments: 0, failedPaidTests: 0,
 }));
 
+
+/** Five milestones toward default alive. It shows what has been achieved, never what to do next. */
+export function PathBar({ s }: { s: PublicState }) {
+  const p = pathProgress(s);
+  const current = p.steps.find((x) => x.current);
+  const doneCount = p.steps.filter((x) => x.done).length;
+  return (
+    <div class="path">
+      <ol class="path__bar" aria-label="Your path to default alive">
+        {p.steps.map((x) => (
+          <li key={x.id} class={x.done ? "path__step path__step--done" : x.current ? "path__step path__step--current" : "path__step"} aria-label={`${x.label}${x.done ? ", done" : x.current ? ", in progress" : ""}`} />
+        ))}
+      </ol>
+      <p class="path__label">{current ? `${doneCount} of 5: ${current.label}` : "Default alive"}</p>
+    </div>
+  );
+}

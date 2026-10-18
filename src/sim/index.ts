@@ -22,6 +22,7 @@ import {
 import type { Action, IllegalReason, LoadError, PublicState, Report, Save } from "./types";
 import { buildHistory, buildReport } from "./report";
 import { view as viewInternal } from "./view";
+import { INDUSTRIES } from "./world";
 
 declare const runBrand: unique symbol;
 export type Run = { readonly [runBrand]: true };
@@ -75,12 +76,21 @@ export const CATALOG = {
 const inside = (run: Run): InternalRun => run as unknown as InternalRun;
 const outside = (run: InternalRun): Run => run as unknown as Run;
 
-/** Start a run. The seed must be an integer in [0, 0xFFFFFFFF], otherwise RangeError. */
-export function newRun(seed: number): Run {
+/** The markets a company can start in: public descriptions only. The numbers behind them stay hidden. */
+export const INDUSTRY_LIST: readonly { readonly name: string; readonly blurb: string }[] = INDUSTRIES.map((i) => ({ name: i.name, blurb: i.blurb }));
+
+/**
+ * Start a run. The seed must be an integer in [0, 0xFFFFFFFF], otherwise RangeError. `industry` is an index into
+ * INDUSTRY_LIST; leave it out for the original generic world.
+ */
+export function newRun(seed: number, industry?: number): Run {
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
     throw new RangeError(`seed must be an integer in [0, 0xFFFFFFFF], got ${String(seed)}`);
   }
-  return outside(initialRun(seed));
+  if (industry !== undefined && (!Number.isInteger(industry) || industry < 0 || industry >= INDUSTRIES.length)) {
+    throw new RangeError(`industry must be an integer in [0, ${INDUSTRIES.length - 1}], got ${String(industry)}`);
+  }
+  return outside(initialRun(seed, industry ?? null));
 }
 
 export function legalActions(run: Run): readonly Action[] {
@@ -114,5 +124,5 @@ export function fromSave(input: unknown): LoadResult {
 export function report(run: Run): Report | null {
   const internal = inside(run);
   if (internal.pub.status === "running") return null;
-  return buildReport(buildHistory(internal.seed, internal.actions));
+  return buildReport(buildHistory(internal.seed, internal.actions, internal.industry));
 }

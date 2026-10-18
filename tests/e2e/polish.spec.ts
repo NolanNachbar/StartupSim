@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { auditScreen } from "./audit";
 
 test("sound is a setting in the menu that persists and toggles without errors", async ({ page }) => {
   const errors: string[] = [];
@@ -18,8 +19,8 @@ test("sound is a setting in the menu that persists and toggles without errors", 
 test("focus follows the screen and is never lost after leaving the menu", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
-  await expect(page.getByRole("heading", { name: "Choose a problem space" })).toBeFocused();
-  await page.getByRole("button", { name: "Take off" }).click();
+  await expect(page.getByRole("heading", { name: "Found your company" })).toBeFocused();
+  await page.getByRole("button", { name: "Start the company" }).click();
   await expect(page.getByRole("heading", { name: "Your route" })).toBeFocused();
   await page.getByRole("button", { name: "Menu" }).click();
   await expect(page.getByRole("heading", { name: "Menu" })).toBeFocused();
@@ -30,7 +31,7 @@ test("focus follows the screen and is never lost after leaving the menu", async 
 test("tab order follows the reading order: banner controls, then content, then actions", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
-  await page.getByRole("button", { name: "Take off" }).click();
+  await page.getByRole("button", { name: "Start the company" }).click();
   // Nothing uses a positive tabindex, so tab order is DOM order.
   expect(await page.locator("[tabindex]:not([tabindex='-1'])").count()).toBe(0);
   const order = await page.evaluate(() =>
@@ -51,7 +52,7 @@ test.describe("reduced motion", () => {
     test.setTimeout(120_000);
     await page.goto("/?seed=3");
     await page.getByRole("button", { name: "Start a run" }).click();
-    await page.getByRole("button", { name: "Take off" }).click();
+    await page.getByRole("button", { name: "Start the company" }).click();
     for (let i = 0; i < 160 && (await page.getByRole("article").count()) === 0; i++) {
       const wait = page.getByRole("button", { name: "Wait a week" });
       if (await wait.count()) await wait.click();
@@ -86,4 +87,32 @@ test.describe("performance budget", () => {
     expect(bytes).toBeLessThan(1_500_000);
     expect(interactiveMs).toBeLessThan(2000);
   });
+});
+
+test("help explains the game without telling the player what to do", async ({ page }, info) => {
+  await page.goto("/?seed=3");
+  await page.getByRole("button", { name: "How to play" }).click();
+  await expect(page.getByRole("heading", { name: "How to play" })).toBeFocused();
+  for (const h of ["The goal", "What you are steering", "The map", "What you can do", "Reading what you learn", "Questions worth asking yourself"]) {
+    await expect(page.getByRole("heading", { name: h })).toBeVisible();
+  }
+  // It teaches the rules and asks questions; it never prescribes an order of play.
+  const text = (await page.locator("main").innerText()).toLowerCase();
+  for (const banned of ["you should", "start by", "begin by", "step 1", "best strategy", "the answer is", "you must"]) expect(text).not.toContain(banned);
+  await auditScreen(page, "help", info, "light", { filledButtons: 0, panelOnWide: false });
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Start a run" })).toBeVisible();
+  // The keyboard shortcut opens it too, and the menu lists it.
+  await page.keyboard.press("h");
+  await expect(page.getByRole("heading", { name: "How to play" })).toBeVisible();
+});
+
+test("the week screen shows the path to default alive as milestones", async ({ page }) => {
+  await page.goto("/?seed=3");
+  await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Start the company" }).click();
+  const bar = page.getByRole("list", { name: "Your path to default alive" });
+  await expect(bar).toBeVisible();
+  await expect(bar.getByRole("listitem")).toHaveCount(5);
+  await expect(page.getByText("0 of 5: Talk to customers")).toBeVisible();
 });

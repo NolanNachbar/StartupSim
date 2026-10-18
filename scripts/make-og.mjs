@@ -1,28 +1,50 @@
-// Generates public/og.png (1200 x 630) from code, in the DESIGN.md look. Run: node scripts/make-og.mjs
+// Builds the social preview (public/og.png, 1200 x 630) and the icons (public/favicon.png, public/apple-touch-icon.png)
+// from the real campus renders: a screenshot of the running game and the delivery van sprite. Run with the dev or
+// preview server up:  node scripts/make-og.mjs [baseUrl]
 import { chromium } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
+const base = process.argv[2] ?? "http://localhost:4173";
 const font = (f) => `data:font/woff2;base64,${readFileSync(f).toString("base64")}`;
-const barlow = font("node_modules/@fontsource/barlow-semi-condensed/files/barlow-semi-condensed-latin-600-normal.woff2");
-const serif = font("node_modules/@fontsource/source-serif-4/files/source-serif-4-latin-600-normal.woff2");
-
-const html = `<!doctype html><meta charset="utf-8"><style>
-@font-face{font-family:B;src:url(${barlow});font-weight:600}
-@font-face{font-family:S;src:url(${serif});font-weight:600}
-body{margin:0;width:1200px;height:630px;background:#e8eee9;color:#16243a;position:relative;overflow:hidden}
-h1{font:600 120px/1 B;margin:0;position:absolute;left:72px;top:72px}
-p{font:600 52px/1.2 S;margin:0;position:absolute;left:72px;top:230px;width:640px}
-svg{position:absolute;right:0;top:0}
-</style><h1>Runway</h1><p>Run a startup. Learn why most fail. Fly again.</p>
-<svg width="460" height="630" viewBox="0 0 460 630"><defs><pattern id="g" width="46" height="46" patternUnits="userSpaceOnUse"><path d="M46 0H0V46" fill="none" stroke="#b5c2bc" stroke-width="2"/></pattern></defs>
-<rect width="460" height="630" fill="#f5f8f5"/><rect width="460" height="630" fill="url(#g)"/>
-<path d="M70 540 Q170 470 230 380 T380 90" fill="none" stroke="#4a5a70" stroke-width="7" stroke-dasharray="2 18" stroke-linecap="round"/>
-<circle cx="70" cy="540" r="14" fill="#f5f8f5" stroke="#16243a" stroke-width="5"/><circle cx="230" cy="380" r="14" fill="#f5f8f5" stroke="#16243a" stroke-width="5"/><circle cx="380" cy="90" r="14" fill="#f5f8f5" stroke="#b5266b" stroke-width="5"/></svg>`;
+const heavy = font("node_modules/@fontsource/bricolage-grotesque/files/bricolage-grotesque-latin-800-normal.woff2");
+const mid = font("node_modules/@fontsource/bricolage-grotesque/files/bricolage-grotesque-latin-500-normal.woff2");
+const van = `data:image/webp;base64,${readFileSync("public/art/city/car-van-270.webp").toString("base64")}`;
 
 const browser = await chromium.launch();
+
+// 1. a clean screenshot of the world (the interface hidden)
+const shot = await browser.newPage({ viewport: { width: 1200, height: 900 }, deviceScaleFactor: 1 });
+await shot.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
+await shot.goto(`${base}/?seed=7`);
+await shot.waitForTimeout(2500);
+await shot.addStyleTag({ content: ".shell, .veil, .world__layer { display: none !important; }" });
+await shot.waitForTimeout(300);
+const world = (await shot.screenshot({ type: "jpeg", quality: 88 })).toString("base64");
+await shot.close();
+
+// 2. the card
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
-await page.setContent(html);
+await page.setContent(`<!doctype html><meta charset="utf-8"><style>
+@font-face{font-family:B;src:url(${heavy});font-weight:800}
+@font-face{font-family:B;src:url(${mid});font-weight:500}
+body{margin:0;width:1200px;height:630px;position:relative;overflow:hidden;font-family:B}
+.bg{position:absolute;inset:0;background:url(data:image/jpeg;base64,${world}) center 30%/cover}
+.panel{position:absolute;left:56px;top:56px;width:560px;padding:40px 44px;background:#fff;border-radius:20px;box-shadow:0 16px 48px rgba(38,42,68,.3)}
+h1{margin:0;font-weight:800;font-size:112px;line-height:1;letter-spacing:-.03em;color:#262a44}
+p{margin:18px 0 0;font-weight:500;font-size:34px;line-height:1.25;color:#565c7a}
+img{position:absolute;right:48px;bottom:36px;width:300px}
+</style><div class="bg"></div><div class="panel"><h1>Runway</h1><p>Run a startup. Learn why most fail. Run again.</p></div><img src="${van}">`);
 await page.evaluate(() => document.fonts.ready);
 await page.screenshot({ path: "public/og.png" });
+await page.close();
+
+// 3. icons from the van sprite
+const icon = await browser.newPage({ viewport: { width: 180, height: 180 } });
+for (const [size, path] of [[64, "public/favicon.png"], [180, "public/apple-touch-icon.png"]]) {
+  await icon.setViewportSize({ width: size, height: size });
+  await icon.setContent(`<body style="margin:0;background:#3556e6;width:${size}px;height:${size}px;display:grid;place-items:center"><img src="${van}" style="width:${Math.round(size * 0.95)}px"></body>`);
+  await icon.waitForTimeout(200);
+  await icon.screenshot({ path });
+}
 await browser.close();
-console.log("wrote public/og.png");
+console.log("wrote public/og.png, public/favicon.png, public/apple-touch-icon.png");

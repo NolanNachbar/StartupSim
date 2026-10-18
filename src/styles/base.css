@@ -13,16 +13,8 @@ body {
   background: var(--grass);
   color: var(--ink);
   font-size: var(--t-md);
-  line-height: 1.35;
-}
-
-.sprite { display: inline-block; flex: none; background-repeat: no-repeat; image-rendering: pixelated; }
-
-/* Pixel frames: Kenney Pixel UI 9-slice art, scaled by whole numbers. */
-.frame {
-  border: var(--frame) solid transparent;
-  border-image: url("/art/ui/tan.png") 8 fill / var(--frame);
-  image-rendering: pixelated;
+  font-weight: 500;
+  line-height: 1.38;
 }
 
 .shell {
@@ -39,71 +31,80 @@ body {
 }
 .shell > * { pointer-events: auto; }
 
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
 /* HUD. */
 .strip {
   grid-area: strip;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--s-2);
-  margin: var(--s-1) var(--s-1) 0;
-  padding: 0 var(--s-1);
-  border: var(--frame) solid transparent;
-  border-image: url("/art/ui/tan.png") 8 fill / var(--frame);
-  image-rendering: pixelated;
+  gap: var(--s-3);
+  margin: var(--s-2) var(--gutter) 0;
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
 }
 .instrument { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); width: 100%; }
-.instrument__caption { font-size: var(--t-sm); line-height: 16px; color: var(--ink-soft); }
+.instrument__caption { font-size: var(--t-sm); line-height: 18px; color: var(--ink-soft); }
 .instrument__row { display: flex; align-items: center; gap: var(--s-1); }
-.instrument__value { display: inline-block; font-size: var(--t-xl); line-height: 28px; font-weight: 600; }
+.instrument__value { display: inline-block; font-size: var(--t-xl); line-height: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .pivots { display: grid; gap: 0; }
-.pivots__row { display: flex; align-items: center; gap: var(--s-2); }
-.pivots__digits { display: flex; }
-.pivots__planes { display: grid; }
-.plane-icon--spent { filter: grayscale(1) opacity(0.45); }
-.strip__side { display: grid; gap: 0; justify-items: stretch; min-width: 140px; }
+.pivots__row { display: flex; align-items: center; gap: var(--s-3); }
+.pivots__number { font-size: var(--t-3xl); line-height: 56px; font-weight: 800; color: var(--primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pivots__vans { display: flex; flex-wrap: nowrap; }
+.van-icon { width: 32px; height: auto; }
+.van-icon--spent { filter: grayscale(1) opacity(0.4); }
+.strip__side { display: grid; gap: var(--s-1); justify-items: stretch; min-width: 148px; }
 
 .board { grid-area: board; padding: var(--gutter); min-height: 0; }
-.board__title { margin: 0 0 var(--s-1); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
+.board__title { margin: 0 0 var(--s-1); font-size: var(--t-lg); line-height: 26px; font-weight: 700; }
 .board__lede { margin: 0 0 var(--s-3); color: var(--ink-soft); max-width: 60ch; }
 
 .panel { grid-area: panel; display: none; min-height: 0; background: var(--surface); }
-.panel--open { display: block; max-height: 45dvh; overflow-y: auto; border-top: 3px solid var(--ink); }
-.panel__section { padding: var(--s-3) var(--s-4); border-bottom: 3px solid var(--line); }
-.panel__title { margin: 0 0 var(--s-2); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
+.panel--open { display: block; max-height: 45dvh; overflow-y: auto; margin: 0 var(--gutter); border-radius: var(--radius-panel); box-shadow: var(--shadow-panel); }
+.panel__section { padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--line); }
+.panel__title { margin: 0 0 var(--s-2); font-size: var(--t-lg); line-height: 26px; font-weight: 700; }
 .panel__text { margin: 0; color: var(--ink-soft); max-width: 60ch; }
 
 .actions {
   grid-area: actions;
   display: grid;
-  gap: var(--s-1);
-  padding: var(--s-1) var(--s-1);
-  padding-bottom: max(var(--s-1), env(safe-area-inset-bottom));
+  gap: var(--s-2);
+  padding: var(--s-2) var(--gutter);
+  padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
 }
 
-/* Buttons: Kenney 9-slice. Primary is the yellow one; there is one per screen. */
+/* Buttons. The primary is solid blue with a lip; there is one per screen. */
 .button {
   width: 100%;
-  min-height: 56px;
-  padding: 0 var(--s-1);
-  font-size: 1.125rem;
-  font-weight: 600;
+  min-height: 52px;
+  padding: 0 var(--s-4);
+  font-size: 1.0625rem;
+  font-weight: 700;
   line-height: 24px;
   color: var(--ink);
-  background: transparent;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-control);
   cursor: pointer;
-  border: var(--frame) solid transparent;
-  border-image: url("/art/ui/white.png") 8 fill / var(--frame);
-  image-rendering: pixelated;
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
-.button:active { border-image-source: url("/art/ui/white_pressed.png"); }
+.button:active { transform: translateY(2px); }
 .button--primary {
-  font-size: 1.375rem;
-  font-weight: 700;
+  min-height: 56px;
+  font-size: 1.25rem;
   color: var(--on-primary);
-  border-image-source: url("/art/ui/yellow.png");
+  background: var(--primary);
+  border-color: var(--primary);
+  box-shadow: var(--lip);
 }
-.button--primary:active { border-image-source: url("/art/ui/yellow_pressed.png"); }
+.button--primary:active { transform: translateY(4px); box-shadow: 0 0 0 var(--primary-pressed); }
 
 @media (min-width: 600px) {
   .shell {
@@ -111,7 +112,7 @@ body {
     grid-template-areas: "strip strip" "board panel" "board actions";
     grid-template-rows: auto minmax(0, 1fr) auto;
   }
-  .panel, .panel--board { display: block; max-height: none; overflow-y: auto; border-top: 0; border-left: 3px solid var(--ink); }
-  .actions { background: var(--surface); border-left: 3px solid var(--ink); padding: var(--s-2); }
+  .panel, .panel--board { display: block; max-height: none; overflow-y: auto; margin: var(--gutter) var(--gutter) 0 0; border-radius: var(--radius-panel) var(--radius-panel) 0 0; box-shadow: var(--shadow-panel); }
+  .actions { background: var(--surface); margin: 0 var(--gutter) var(--gutter) 0; border-radius: 0 0 var(--radius-panel) var(--radius-panel); box-shadow: var(--shadow-panel); padding: var(--s-3); }
   .button--phone { display: none; }
 }
