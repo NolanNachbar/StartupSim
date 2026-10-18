@@ -1,9 +1,6 @@
-import "@fontsource/saira-condensed/latin-500.css";
-import "@fontsource/saira-condensed/latin-600.css";
-import "@fontsource/saira-condensed/latin-700.css";
-import "@fontsource/fraunces/latin-400.css";
-import "@fontsource/fraunces/latin-400-italic.css";
-import "@fontsource/fraunces/latin-600.css";
+import "@fontsource/pixelify-sans/latin-400.css";
+import "@fontsource/pixelify-sans/latin-600.css";
+import "@fontsource/pixelify-sans/latin-700.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/screens.css";

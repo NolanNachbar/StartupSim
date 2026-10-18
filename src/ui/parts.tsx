@@ -1,76 +1,66 @@
-// Pieces shared by several screens: the instrument strip, the route chart, the hypothesis list, the callout.
+// Pieces shared by several screens: the HUD, the route chips, the callout.
 import type { ComponentChildren } from "preact";
 import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { hypothesisLabel, money } from "./format";
-import { markCalloutShown, openMenu, selected, settings, shownCallouts, startPivots, state, updateSettings } from "./store";
-import type { Hypothesis, HypothesisState, PublicState } from "../sim";
+import { digitTile, SHIP, Sprite, TOWN } from "./art/sprites";
+import { markCalloutShown, openMenu, selected, settings, shownCallouts, startPivots, state } from "./store";
+import type { Hypothesis, PublicState } from "../sim";
 
-export function Instrument({ caption, value, large, area }: { caption: string; value: string; large?: boolean; area: string }) {
+export function Instrument({ caption, value, icon }: { caption: string; value: string; icon?: ComponentChildren }) {
   return (
-    <div class={large ? "instrument instrument--large" : "instrument"} style={{ gridArea: area }}>
+    <div class="instrument">
       <span class="instrument__caption">{caption}</span>
-      <span key={value} class="instrument__value tick">{value}</span>
+      <span class="instrument__row">
+        {icon}
+        <span key={value} class="instrument__value tick">{value}</span>
+      </span>
     </div>
   );
 }
 
-/** Pivots as a cockpit dial: one arc segment per pivot, filled while it remains. */
-export function PivotGauge({ count, max }: { count: number; max: number }) {
-  const cx = 50, cy = 48, rad = 40, gap = 5;
-  const span = 180 - gap * (max - 1);
-  const arc = (from: number, to: number) => {
-    const pt = (deg: number): [number, number] => [cx + rad * Math.cos((Math.PI * (180 + deg)) / 180), cy + rad * Math.sin((Math.PI * (180 + deg)) / 180)];
-    const [x1, y1] = pt(from), [x2, y2] = pt(to);
-    return `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${rad} ${rad} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`;
-  };
+/** Pivots remaining: the largest number, as Pixel Shmup digit sprites, with one little plane per pivot. */
+export function Pivots({ count, max }: { count: number; max: number }) {
+  const digits = String(Math.max(0, count)).split("").map(Number);
+  const shown = Math.min(Math.max(max, count), 6);
   return (
-    <svg class="gauge" viewBox="0 0 100 54" role="img" aria-label={`${count} of ${max} pivots remaining`}>
-      {Array.from({ length: max }, (_, i) => {
-        const from = i * (span / max + gap), to = from + span / max;
-        return <path key={i} d={arc(from, to)} fill="none" stroke={i < count ? "var(--airspace)" : "var(--line)"} stroke-width="9" />;
-      })}
-      <line x1={cx} y1={cy} x2={cx + 28 * Math.cos((Math.PI * (180 + 180 * (count / Math.max(max, 1)))) / 180)} y2={cy + 28 * Math.sin((Math.PI * (180 + 180 * (count / Math.max(max, 1)))) / 180)} stroke="var(--blue)" stroke-width="3" stroke-linecap="round" style={{ transition: "all 200ms var(--ease-out)" }} />
-      <circle cx={cx} cy={cy} r="4" fill="var(--ink)" />
-    </svg>
+    <div class="pivots">
+      <span class="instrument__caption">Pivots remaining</span>
+      <div class="pivots__row">
+        <span class="pivots__digits" role="img" aria-label={`${count} of ${Math.max(max, count)}`}>
+          {digits.map((d, i) => (
+            <Sprite key={i} sheet="shmup" idx={digitTile(d)} scale={4} />
+          ))}
+        </span>
+        <span class="pivots__planes" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${Math.max(2, Math.ceil(shown / 2))}, 36px)` }}>
+          {Array.from({ length: shown }, (_, i) => (
+            <Sprite key={i} sheet="ships" idx={SHIP.player} scale={2} crop={{ x: 7, y: 7, w: 18, h: 18 }} class={i < count ? "plane-icon" : "plane-icon plane-icon--spent"} />
+          ))}
+        </span>
+      </div>
+    </div>
   );
 }
 
-/** The banner: pivots first, then cash and week, then the menu. `fresh` is the starting state shown on the board. */
+/** The HUD: pivots first, then cash and week, then the menu. `fresh` is the starting state shown on the board. */
 export function Strip({ fresh }: { fresh: PublicState }) {
   const s = state.value ?? fresh;
   const max = Math.max(startPivots.value || fresh.pivotsRemaining, s.pivotsRemaining, 1);
   return (
     <header class="strip">
-      <Instrument area="pivots" caption="Pivots remaining" value={String(s.pivotsRemaining)} large />
-      <PivotGauge count={s.pivotsRemaining} max={max} />
-      <Instrument area="cash" caption="Cash" value={money(s.cashCents)} />
-      <Instrument area="week" caption="Week" value={String(s.week)} />
-      <button type="button" class="button button--menu" onClick={openMenu}>
-        Menu
-      </button>
-      <button type="button" class="button button--menu button--sound" aria-pressed={settings.value.sound} onClick={() => updateSettings({ sound: !settings.value.sound })}>
-        {settings.value.sound ? "Sound on" : "Sound off"}
-      </button>
+      <Pivots count={s.pivotsRemaining} max={max} />
+      <div class="strip__side">
+        <button type="button" class="button button--menu" onClick={openMenu}>
+          Menu
+        </button>
+        <Instrument caption="Cash" value={money(s.cashCents)} icon={<Sprite sheet="town" idx={TOWN.coin} scale={2} />} />
+        <Instrument caption="Week" value={String(s.week)} />
+      </div>
     </header>
   );
 }
 
-const DASH: Record<HypothesisState, { dash: string; stroke: string; width: number }> = {
-  untested: { dash: "1 7", stroke: "var(--ink)", width: 3 },
-  weak: { dash: "9 6", stroke: "var(--ink)", width: 3 },
-  verified: { dash: "none", stroke: "var(--blue)", width: 3.5 },
-};
-
-export function LineSample({ state: st }: { state: HypothesisState }) {
-  const d = DASH[st];
-  return (
-    <svg class="swatch" viewBox="0 0 40 8" aria-hidden="true">
-      <line x1="2" y1="4" x2="38" y2="4" stroke={d.stroke} stroke-width={d.width} stroke-dasharray={d.dash === "none" ? undefined : d.dash} stroke-linecap="round" />
-    </svg>
-  );
-}
-
-/** One row per hypothesis. Arrow keys move between rows; Enter or a tap selects. */
+/** One chip per hypothesis. Arrow keys move between chips; Enter or a tap selects. The border carries the
+ * evidence language: dotted untested, dashed weak, solid verified. */
 export function HypothesisList({ hypotheses, names, focus }: { hypotheses: readonly Hypothesis[]; names: readonly string[]; focus: number }) {
   const onKey = (e: KeyboardEvent) => {
     if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
@@ -87,10 +77,7 @@ export function HypothesisList({ hypotheses, names, focus }: { hypotheses: reado
         <li key={i}>
           <button type="button" class="route-row" data-state={h.state} data-focus={i === focus} aria-pressed={selected.value === i} onClick={() => (selected.value = i)}>
             <span class="route-row__name">{`${i + 1}. ${names[i] ?? "Group"}${i === focus ? " (your focus)" : ""}`}</span>
-            <span class="route-row__state">
-              <LineSample state={h.state} />
-              {hypothesisLabel(h.state)}
-            </span>
+            <span class="route-row__state">{hypothesisLabel(h.state)}</span>
           </button>
         </li>
       ))}
@@ -137,3 +124,4 @@ export const BOARD_NAMES = ["Your idea", "Your customers", "Your first sale"];
 export const BOARD_HYPOTHESES: readonly Hypothesis[] = BOARD_NAMES.map((_, segment) => ({
   segment, state: "untested", interviews: 0, interested: 0, payments: 0, failedPaidTests: 0,
 }));
+

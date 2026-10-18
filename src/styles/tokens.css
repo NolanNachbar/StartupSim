@@ -1,35 +1,38 @@
 /* Design tokens. Source of truth is DESIGN.md. Change both together.
-   Dusk (night chart) is the identity; the day chart is the same game in daylight. */
+   One light theme: a daytime pixel overworld. Every hue is sampled from the Kenney art. */
 
 :root {
-  /* Day chart */
-  --paper: #dfe9e4;
-  --paper-raised: #f3f8f5;
-  --ink: #12232d;
-  --ink-soft: #43606b;
-  --line: #a9bdb8;
-  --airspace: #a85a00;
-  --on-airspace: #fff7ea;
-  --blue: #0b6f93;
-  --amber: #a86a00;
-  --ok: #1f7a4d;
-  --blackbox: #e8481a;
-  --on-blackbox: #1a0a02;
-  --world-a: #f3f8f5;
-  --world-b: #cfe0da;
+  --ink: #3f2631;
+  --ink-soft: #6b4455;
+  --surface: #e9d6a8;
+  --surface-raised: #f7efd6;
+  --line: #b89868;
+  --grass: #84c669;
+  --dirt: #eaa56c;
+  --stone: #c0cbdc;
+  --sky: #1ea7e1;
+  --primary: #ffcc00;
+  --on-primary: #3f2631;
+  --verified: #1ea7e1;
+  --verified-ink: #12607f;
+  --accent: #e86a17;
+  --on-accent: #3f2631;
+  --flame: #fc683b;
+  --ok: #73cd4b;
+  --ok-ink: #2f6f1e;
+  --warning-ink: #7a4f00;
+  --error: #c34b35;
+  --error-ink: #9a2f1c;
 
-  --font-ui: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
-  --font-report: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-ui: "Pixelify Sans", "Trebuchet MS", sans-serif;
 
-  --t-xs: 0.75rem;
   --t-sm: 0.875rem;
-  --t-md: 1rem;
+  --t-md: 1.0625rem;
   --t-lg: 1.25rem;
-  --t-xl: 1.75rem;
-  --t-2xl: 2.75rem;
-  --t-3xl: 4rem;
+  --t-xl: 1.5rem;
+  --t-2xl: 2.5rem;
 
-  /* 4 px spacing scale (DESIGN.md, Spacing). Use only these. */
+  /* 4 px spacing scale. Use only these. */
   --s-1: 4px;
   --s-2: 8px;
   --s-3: 12px;
@@ -38,96 +41,59 @@
   --s-6: 32px;
   --s-7: 48px;
 
-  --radius-panel: 10px;
-  --radius-control: 10px;
-  --gutter: var(--s-4);
+  /* One art pixel is --px screen pixels. Whole numbers only, so pixels stay crisp. */
+  --px: 3px;
+  --frame: 16px;
+  --gutter: var(--s-2);
   --tap: 44px;
-  --panel-w: 280px;
+  --panel-w: 296px;
 
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --dur-fast: 120ms;
+  --dur-fast: 100ms;
   --dur-base: 200ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="day"]) {
-    --paper: #06151c;
-    --paper-raised: #0c1f27;
-    --ink: #e9e2cf;
-    --ink-soft: #8fb0b9;
-    --line: #2b4a55;
-    --airspace: #ffb347;
-    --on-airspace: #2a1700;
-    --blue: #7ee7ff;
-    --amber: #ffcf5a;
-    --ok: #58d68d;
-    --blackbox: #ff5a2b;
-    --on-blackbox: #1a0a02;
-    --world-a: #123846;
-    --world-b: #06151c;
+@media (min-width: 600px) {
+  :root {
+    --gutter: var(--s-3);
   }
 }
 
-:root[data-theme="night"] {
-  --paper: #06151c;
-  --paper-raised: #0c1f27;
-  --ink: #e9e2cf;
-  --ink-soft: #8fb0b9;
-  --line: #2b4a55;
-  --airspace: #ffb347;
-  --on-airspace: #2a1700;
-  --blue: #7ee7ff;
-  --amber: #ffcf5a;
-  --ok: #58d68d;
-  --blackbox: #ff5a2b;
-  --on-blackbox: #1a0a02;
-  --world-a: #123846;
-  --world-b: #06151c;
+@media (min-width: 900px) {
+  :root {
+    --px: 4px;
+    --panel-w: 336px;
+  }
 }
 
-/* Browser surfaces: theme what the browser draws. */
-:root { color-scheme: light dark; }
-:root[data-theme="day"] { color-scheme: light; }
-:root[data-theme="night"] { color-scheme: dark; }
+:root { color-scheme: light; }
 
 html {
-  background: var(--paper);
+  background: var(--grass);
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: 16px;
-  font-variant-numeric: tabular-nums;
-  caret-color: var(--airspace);
-  accent-color: var(--airspace);
+  caret-color: var(--ink);
+  accent-color: var(--ink);
   scrollbar-color: var(--line) transparent;
   scrollbar-width: thin;
   -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--airspace) 30%, transparent);
+  background: var(--primary);
   color: var(--ink);
 }
 
-@media (min-width: 600px) {
-  :root {
-    --gutter: var(--s-5);
-    --panel-w: 280px;
-  }
-}
-
-@media (min-width: 900px) {
-  html { font-size: 17px; }
-  :root { --panel-w: 320px; }
-}
-
 :focus-visible {
-  outline: 2px solid var(--airspace);
+  outline: 3px solid var(--ink);
   outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

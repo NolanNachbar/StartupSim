@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { auditScreen, pinTheme, watchConsole } from "./audit";
+import { auditScreen, watchConsole } from "./audit";
 
 const SEED = "3";
 
@@ -17,14 +17,13 @@ async function openAction(page: Page, name: string): Promise<void> {
   await page.getByRole("button", { name: name }).click();
 }
 
-for (const colorScheme of ["light", "dark"] as const) {
+for (const colorScheme of ["light"] as const) {
   test.describe(`a full flight, ${colorScheme}`, () => {
     test.use({ colorScheme, reducedMotion: "reduce" });
 
     test("play from the board to the accident report, then fly again", async ({ page }, info) => {
       test.setTimeout(120_000);
       const errors = watchConsole(page);
-      await pinTheme(page, colorScheme);
       await page.goto(`/?seed=${SEED}`);
 
       await page.getByRole("button", { name: "Start a run" }).click();

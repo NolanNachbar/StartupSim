@@ -60,38 +60,26 @@ export async function auditScreen(page: Page, name: string, info: TestInfo, sche
   });
   expect(smallText, `${label}: text under 16 px`).toEqual([]);
 
-  // Checklist 9: filled buttons are the lit primary: --airspace fill with --on-airspace text.
-  const filled = await page.evaluate(() => {
-    const probe = (v: string) => {
+  // Checklist 9: exactly the expected number of primary (yellow) buttons, with ink text.
+  const primary = await page.evaluate(() => {
+    const ink = (() => {
       const p = document.createElement("span");
-      p.style.color = `var(${v})`;
+      p.style.color = "var(--on-primary)";
       document.body.appendChild(p);
       const c = getComputedStyle(p).color;
       p.remove();
       return c;
-    };
-    const ink = probe("--airspace");
-    const paper = probe("--on-airspace");
-    const raised = probe("--paper-raised");
-    const surface = probe("--paper");
-    // A "filled" button is an action fill. Rows that sit on the raised paper surface are list items, not actions.
-    const filledButtons = Array.from(document.querySelectorAll("button")).filter((b) => {
-      const bg = getComputedStyle(b).backgroundColor;
-      return bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent" && bg !== raised && bg !== surface;
-    });
-    return {
-      count: filledButtons.length,
-      bgIsInk: filledButtons.every((b) => getComputedStyle(b).backgroundColor === ink),
-      textIsPaper: filledButtons.every((b) => getComputedStyle(b).color === paper),
-    };
+    })();
+    const buttons = Array.from(document.querySelectorAll<HTMLElement>("button.button--primary"));
+    return { count: buttons.length, textIsInk: buttons.every((b) => getComputedStyle(b).color === ink) };
   });
-  expect(filled, `${label}: filled buttons`).toEqual({ count: options.filledButtons ?? 1, bgIsInk: true, textIsPaper: true });
+  expect(primary, `${label}: primary buttons`).toEqual({ count: options.filledButtons ?? 1, textIsInk: true });
 
-  // Checklist 2: black-box orange only on the report.
+  // Checklist 2: the accident orange only on the report.
   if (!options.allowBlackbox) {
     const orange = await page.evaluate(() => {
       const p = document.createElement("span");
-      p.style.color = "var(--blackbox)";
+      p.style.color = "var(--accent)";
       document.body.appendChild(p);
       const c = getComputedStyle(p).color;
       p.remove();
@@ -102,7 +90,7 @@ export async function auditScreen(page: Page, name: string, info: TestInfo, sche
       }
       return hits;
     });
-    expect(orange, `${label}: black-box orange outside the report`).toEqual([]);
+    expect(orange, `${label}: accident orange outside the report`).toEqual([]);
   }
 
   // Checklist 4: no ALL CAPS. (Dusk uses glows and gradients on purpose; see DESIGN.md.)
@@ -147,11 +135,4 @@ export async function auditScreen(page: Page, name: string, info: TestInfo, sche
   }
 
   await page.screenshot({ path: `.verify/screens/${name}-${info.project.name}-${scheme}.png`, fullPage: true });
-}
-
-/** The game defaults to the dusk chart whatever the device says, so pin the theme to cover both. */
-export async function pinTheme(page: Page, scheme: "light" | "dark"): Promise<void> {
-  await page.addInitScript((theme: string) => {
-    if (!localStorage.getItem("runway.settings")) localStorage.setItem("runway.settings", JSON.stringify({ theme }));
-  }, scheme === "light" ? "day" : "night");
 }

@@ -10,13 +10,24 @@ input, select, button { margin: 0; font: inherit; color: inherit; }
 html, body { height: 100%; overflow: hidden; }
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--grass);
   color: var(--ink);
   font-size: var(--t-md);
-  line-height: 1.4;
+  line-height: 1.35;
+}
+
+.sprite { display: inline-block; flex: none; background-repeat: no-repeat; image-rendering: pixelated; }
+
+/* Pixel frames: Kenney Pixel UI 9-slice art, scaled by whole numbers. */
+.frame {
+  border: var(--frame) solid transparent;
+  border-image: url("/art/ui/tan.png") 8 fill / var(--frame);
+  image-rendering: pixelated;
 }
 
 .shell {
+  position: relative;
+  z-index: 3;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "strip" "board" "panel" "actions";
@@ -24,97 +35,75 @@ body {
   height: 100dvh;
   max-width: 960px;
   margin: 0 auto;
+  pointer-events: none;
 }
+.shell > * { pointer-events: auto; }
 
-/* Cockpit bar. */
+/* HUD. */
 .strip {
   grid-area: strip;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "pivots gauge menu" "cash week sound";
-  align-items: end;
-  gap: var(--s-2) var(--s-3);
-  padding: var(--s-2) var(--gutter) var(--s-1);
-  background: linear-gradient(var(--paper) 78%, transparent);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-1) var(--s-1) 0;
+  padding: 0 var(--s-1);
+  border: var(--frame) solid transparent;
+  border-image: url("/art/ui/tan.png") 8 fill / var(--frame);
+  image-rendering: pixelated;
 }
-.strip > .gauge { grid-area: gauge; width: 88px; height: auto; align-self: center; justify-self: start; }
-.strip > .button--menu { grid-area: menu; align-self: start; }
-.strip > .button--sound { grid-area: sound; align-self: end; }
-.strip > .instrument[style*="week"] { justify-self: start; align-items: flex-start; }
-
-.instrument {
-  display: flex;
-  flex-direction: column;
-  padding: 0 var(--s-3) var(--s-1);
-  background: var(--paper-raised);
-  border: 2px solid var(--line);
-  border-radius: var(--radius-panel);
-}
-.instrument__caption { font-size: var(--t-xs); line-height: 16px; color: var(--ink-soft); letter-spacing: 0.04em; }
-.instrument__value {
-  font-size: var(--t-xl);
-  line-height: 32px;
-  font-weight: 600;
-  text-align: right;
-  color: var(--blue);
-  text-shadow: 0 0 12px color-mix(in srgb, var(--blue) 45%, transparent);
-}
-.instrument--large .instrument__value {
-  font-size: 3.25rem;
-  line-height: 48px;
-  font-weight: 700;
-  text-align: left;
-  color: var(--airspace);
-  text-shadow: 0 0 16px color-mix(in srgb, var(--airspace) 50%, transparent);
-}
+.instrument { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); width: 100%; }
+.instrument__caption { font-size: var(--t-sm); line-height: 16px; color: var(--ink-soft); }
+.instrument__row { display: flex; align-items: center; gap: var(--s-1); }
+.instrument__value { display: inline-block; font-size: var(--t-xl); line-height: 28px; font-weight: 600; }
+.pivots { display: grid; gap: 0; }
+.pivots__row { display: flex; align-items: center; gap: var(--s-2); }
+.pivots__digits { display: flex; }
+.pivots__planes { display: grid; }
+.plane-icon--spent { filter: grayscale(1) opacity(0.45); }
+.strip__side { display: grid; gap: 0; justify-items: stretch; min-width: 140px; }
 
 .board { grid-area: board; padding: var(--gutter); min-height: 0; }
 .board__title { margin: 0 0 var(--s-1); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
-.board__lede { margin: 0 0 var(--gutter); color: var(--ink-soft); max-width: 60ch; }
+.board__lede { margin: 0 0 var(--s-3); color: var(--ink-soft); max-width: 60ch; }
 
-.panel { grid-area: panel; display: none; background: var(--paper-raised); min-height: 0; }
-.panel--open { display: block; max-height: 45dvh; overflow-y: auto; border-top: 2px solid var(--line); }
-.panel__section { padding: var(--gutter); border-bottom: 1px solid var(--line); }
+.panel { grid-area: panel; display: none; min-height: 0; background: var(--surface); }
+.panel--open { display: block; max-height: 45dvh; overflow-y: auto; border-top: 3px solid var(--ink); }
+.panel__section { padding: var(--s-3) var(--s-4); border-bottom: 3px solid var(--line); }
 .panel__title { margin: 0 0 var(--s-2); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
 .panel__text { margin: 0; color: var(--ink-soft); max-width: 60ch; }
 
 .actions {
   grid-area: actions;
   display: grid;
-  gap: var(--s-2);
-  padding: var(--s-4) var(--gutter);
-  padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
-  background: linear-gradient(transparent, var(--paper) 26%);
+  gap: var(--s-1);
+  padding: var(--s-1) var(--s-1);
+  padding-bottom: max(var(--s-1), env(safe-area-inset-bottom));
 }
 
+/* Buttons: Kenney 9-slice. Primary is the yellow one; there is one per screen. */
 .button {
-  min-height: var(--tap);
-  padding: 0 var(--s-5);
-  font: inherit;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 var(--s-1);
   font-size: 1.125rem;
   font-weight: 600;
-  background: var(--paper-raised);
+  line-height: 24px;
   color: var(--ink);
-  width: 100%;
-  border-radius: var(--radius-control);
-  border: 2px solid var(--line);
+  background: transparent;
   cursor: pointer;
-  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+  border: var(--frame) solid transparent;
+  border-image: url("/art/ui/white.png") 8 fill / var(--frame);
+  image-rendering: pixelated;
 }
-.button:active { transform: translateY(2px); border-color: var(--ink-soft); }
-
-/* The one primary action per screen: lit amber with a pressed-in lip. */
+.button:active { border-image-source: url("/art/ui/white_pressed.png"); }
 .button--primary {
-  min-height: 56px;
   font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  background: var(--airspace);
-  color: var(--on-airspace);
-  border: 0;
-  box-shadow: 0 0 22px color-mix(in srgb, var(--airspace) 38%, transparent), inset 0 -4px 0 color-mix(in srgb, #000 24%, var(--airspace));
+  color: var(--on-primary);
+  border-image-source: url("/art/ui/yellow.png");
 }
-.button--primary:active { box-shadow: 0 0 14px color-mix(in srgb, var(--airspace) 30%, transparent), inset 0 -1px 0 color-mix(in srgb, #000 24%, var(--airspace)); }
+.button--primary:active { border-image-source: url("/art/ui/yellow_pressed.png"); }
 
 @media (min-width: 600px) {
   .shell {
@@ -122,11 +111,7 @@ body {
     grid-template-areas: "strip strip" "board panel" "board actions";
     grid-template-rows: auto minmax(0, 1fr) auto;
   }
-  .strip {
-    grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
-    grid-template-areas: "pivots gauge cash week sound menu";
-  }
-  .panel, .panel--board { display: block; max-height: none; overflow-y: auto; border-left: 2px solid var(--line); }
-  .actions { background: var(--paper-raised); border-left: 2px solid var(--line); }
+  .panel, .panel--board { display: block; max-height: none; overflow-y: auto; border-top: 0; border-left: 3px solid var(--ink); }
+  .actions { background: var(--surface); border-left: 3px solid var(--ink); padding: var(--s-2); }
   .button--phone { display: none; }
 }

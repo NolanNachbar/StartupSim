@@ -1,7 +1,8 @@
 import { useEffect } from "preact/hooks";
+import { CrashScene } from "../art/CrashScene";
 import { CalloutHost } from "../parts";
 import { Panel } from "../panel";
-import { copyChallengeLink, currentSeed, finalReport, state, flyAgain, revealDone, revealMode, saveShareCard, settings, shareNotice } from "../store";
+import { copyChallengeLink, currentSeed, finalReport, state, viewport, flyAgain, revealDone, revealMode, saveShareCard, settings, shareNotice } from "../store";
 
 const FULL_MS = 2400;
 const COMPRESSED_MS = 800;
@@ -25,6 +26,7 @@ export function ReportScreen() {
     <>
       <main class="board">
         <article class="report" data-reveal={phase} data-outcome={r.outcome} onClick={() => (revealDone.value = true)}>
+          <CrashScene w={viewport.value.w} landed={landed} seed={currentSeed.value} />
           <p class="report__form">Accident investigation report</p>
           <dl class="report__fields">
             <dt>Flight</dt><dd>{String(currentSeed.value)}</dd>
@@ -72,7 +74,6 @@ export function ReportScreen() {
               <p>{r.numbers.join(", ")}</p>
             </section>
           ) : null}
-          <div class="stamp" aria-hidden="true">{landed ? "Default alive" : r.probableCause ? "Cause found" : "Inconclusive"}</div>
         </article>
         {shareNotice.value ? <p class="notice" role="status">{shareNotice.value}</p> : null}
         <CalloutHost screen="report" />

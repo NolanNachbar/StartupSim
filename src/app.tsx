@@ -1,6 +1,6 @@
 import { useEffect } from "preact/hooks";
 import { CATALOG, newRun, view } from "./sim";
-import { SectionalMap } from "./ui/art/SectionalMap";
+import { PixelWorld } from "./ui/art/PixelWorld";
 import { BOARD_HYPOTHESES, BOARD_NAMES, Strip } from "./ui/parts";
 import { Actions } from "./ui/screens/actions";
 import { Board } from "./ui/screens/board";
@@ -51,10 +51,7 @@ export function App() {
     }
   });
   useEffect(() => {
-    const root = document.documentElement;
-    if (settings.value.theme === "system") root.removeAttribute("data-theme");
-    else root.setAttribute("data-theme", settings.value.theme);
-    root.toggleAttribute("data-reduce-motion", settings.value.reduceMotion);
+    document.documentElement.toggleAttribute("data-reduce-motion", settings.value.reduceMotion);
   }, [settings.value]);
   const st = state.value;
   const open = screen.value.name === "week" || screen.value.name === "board";
@@ -62,7 +59,7 @@ export function App() {
   const vp = viewport.value;
   return (
     <>
-      <SectionalMap
+      <PixelWorld
         hypotheses={inRun ? st.hypotheses : BOARD_HYPOTHESES}
         names={inRun ? st.segmentNames : BOARD_NAMES}
         focus={inRun ? st.focusSegment : -1}
@@ -71,6 +68,7 @@ export function App() {
         selected={inRun ? selected.value : null}
         w={vp.w}
         h={vp.h}
+        labels={open}
         onSelect={(i) => (selected.value = i)}
       />
       <div class={open ? "veil" : "veil veil--on"} aria-hidden="true" />

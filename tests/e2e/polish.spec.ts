@@ -1,16 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-test("the sound control is visible, labelled and toggles without errors", async ({ page }) => {
+test("sound is a setting in the menu that persists and toggles without errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
   await page.goto("/");
-  const toggle = page.getByRole("button", { name: /Sound (on|off)/ });
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
-  await toggle.click();
-  await expect(page.getByRole("button", { name: "Sound off" })).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: "Menu" }).click();
+  const sound = page.getByRole("checkbox", { name: /Sound/ });
+  await expect(sound).toBeChecked();
+  await sound.uncheck();
   await page.reload();
-  await expect(page.getByRole("button", { name: "Sound off" })).toBeVisible();
+  await page.getByRole("button", { name: "Menu" }).click();
+  await expect(page.getByRole("checkbox", { name: /Sound/ })).not.toBeChecked();
   expect(errors).toEqual([]);
 });
 

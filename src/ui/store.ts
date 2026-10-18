@@ -25,13 +25,12 @@ export type Screen =
   | { name: "menu"; from: Screen };
 
 export interface Settings {
-  theme: "system" | "day" | "night";
   callouts: boolean;
   reduceMotion: boolean;
   sound: boolean;
 }
 
-const DEFAULT_SETTINGS: Settings = { theme: "night", callouts: true, reduceMotion: false, sound: true };
+const DEFAULT_SETTINGS: Settings = { callouts: true, reduceMotion: false, sound: true };
 
 export const storage = createSafeStorage(browserBackend());
 

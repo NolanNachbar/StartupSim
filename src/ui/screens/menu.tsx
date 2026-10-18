@@ -10,16 +10,11 @@ export function Menu() {
           <button type="button" class="button button--row" onClick={openNotes}><span>Field notes</span></button>
         </div>
         <h2 class="board__sub">Settings</h2>
-        <fieldset class="field">
-          <legend class="field__label">Theme</legend>
-          {([["night", "Dusk chart"], ["day", "Day chart"], ["system", "Follow my device"]] as const).map(([v, label]) => (
-            <label key={v} class="choice">
-              <input type="radio" name="theme" value={v} checked={st.theme === v} onChange={() => updateSettings({ theme: v })} />
-              <span class="choice__text"><span class="choice__title">{label}</span></span>
-            </label>
-          ))}
-        </fieldset>
         <div class="field">
+          <label class="choice">
+            <input type="checkbox" checked={st.sound} onChange={(e) => updateSettings({ sound: (e.currentTarget as HTMLInputElement).checked })} />
+            <span class="choice__text"><span class="choice__title">Sound</span><span class="choice__hint">Soft ticks, a warning tone and the crash</span></span>
+          </label>
           <label class="choice">
             <input type="checkbox" checked={st.callouts} onChange={(e) => updateSettings({ callouts: (e.currentTarget as HTMLInputElement).checked })} />
             <span class="choice__text"><span class="choice__title">Callouts</span><span class="choice__hint">Short notes the first time something matters</span></span>

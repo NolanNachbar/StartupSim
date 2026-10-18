@@ -105,6 +105,6 @@ test("the same seed and actions give the same numbers in every browser engine", 
 
   const strip = page.locator(".strip");
   await expect(strip).toContainText(money(expected.cashCents));
-  await expect(strip.locator(".instrument").nth(2)).toContainText(String(expected.week));
+  await expect(strip.locator(".instrument").nth(1)).toContainText(String(expected.week));
   await expect(page.locator(".route-row").first()).toBeVisible();
 });
