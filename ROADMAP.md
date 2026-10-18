@@ -65,9 +65,10 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 - [ ] [HUMAN] Playtest the slice. Write what feels wrong in plain words. The loop converts that into roadmap items.
 
 ## M7. Balance (depends on M6)
-- [ ] Strategy bots (Builder, Pitcher, Validator, Underpricer, Random) run headless on 200 fixed seeds through a separate `npm run balance` script. `npm run verify` runs only a 20-seed smoke subset so the gates stay fast. The reducer shares the immutable world by reference and never deep-clones it per step
-- [ ] Report script prints outcomes against the GAME-DESIGN.md targets
-- [ ] Checks: all bot targets met, or the deviation is written into the report and flagged to Nolan
+- [x] Strategy bots (Builder, Pitcher, Validator, Underpricer, Random) run headless on 200 fixed seeds through a separate `npm run balance` script. `npm run verify` runs only a 20-seed smoke subset so the gates stay fast. The reducer shares the immutable world by reference and never deep-clones it per step
+- [x] Report script prints outcomes against the GAME-DESIGN.md targets
+- [x] Checks: all bot targets met, or the deviation is written into the report and flagged to Nolan
+  - Result (2026-10-17, 200 seeds, SIM_VERSION 5): Builder crashes with V1 in 86.5%, Pitcher crashes 99% (V3 or V2), Validator lands 37%, Underpricer crashes with M1 in 93.5%, Random lands 2%. Levers used: demand pool divisor 1,000,000 to 3,000,000 in world.ts, V1 report weight raised so the root cause outranks its symptoms. `npm run balance` enforces the targets; the unit run does a 20-seed smoke.
 
 ## M8. Meta-progression and persistence (depends on M6)
 - [ ] Field notes codex and run history in localStorage with a safe-failure wrapper

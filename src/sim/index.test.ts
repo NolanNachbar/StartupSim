@@ -6,7 +6,7 @@ describe("public API (src/sim/index.ts)", () => {
     expect(Object.keys(sim).sort()).toEqual(
       ["CATALOG", "SIM_VERSION", "fromSave", "legalActions", "newRun", "report", "step", "toSave", "view"].sort(),
     );
-    expect(sim.SIM_VERSION).toBe(4);
+    expect(sim.SIM_VERSION).toBe(5);
   });
 
   it("newRun rejects seeds that are not integers in [0, 0xFFFFFFFF]", () => {
@@ -26,7 +26,7 @@ describe("public API (src/sim/index.ts)", () => {
     if (!r.ok) return;
     run = r.run;
     expect(sim.view(run).week).toBe(1);
-    expect(sim.toSave(run)).toEqual({ simVersion: 4, seed: 42, actions: [{ type: "wait" }] });
+    expect(sim.toSave(run)).toEqual({ simVersion: 5, seed: 42, actions: [{ type: "wait" }] });
   });
 
   it("gives no report while a run is going and a report once it has ended", () => {

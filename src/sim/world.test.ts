@@ -41,7 +41,7 @@ describe("generateWorld", () => {
         expect(s.incumbentSatisfactionPct).toBeGreaterThanOrEqual(0);
         expect(s.incumbentSatisfactionPct).toBeLessThanOrEqual(80);
         expect(s.trueDemand).toBe(
-          Math.floor((s.size * s.pain * s.pain * (100 - s.incumbentSatisfactionPct)) / 1_000_000),
+          Math.floor((s.size * s.pain * s.pain * (100 - s.incumbentSatisfactionPct)) / 3_000_000),
         );
         for (const n of Object.values(s)) {
           if (typeof n === "number") expect(Number.isSafeInteger(n)).toBe(true);

@@ -24,6 +24,8 @@ const CHANNELS = [
 ] as const;
 
 const WEATHER_DEMAND_PCT = 70;
+/** Scales the customers a segment can hold. Tuned in M7 so a careful founder lands about 4 runs in 10. */
+const DEMAND_POOL_DIVISOR = 3_000_000;
 
 function generateSegment(seed: number, i: number): Segment {
   const pain = randInt(seed, 20, 100, "seg", i, "pain");
@@ -37,7 +39,7 @@ function generateSegment(seed: number, i: number): Segment {
     reachability: randInt(seed, 10, 100, "seg", i, "reach"),
     size,
     incumbentSatisfactionPct,
-    trueDemand: Math.floor((size * pain * pain * (100 - incumbentSatisfactionPct)) / 1_000_000),
+    trueDemand: Math.floor((size * pain * pain * (100 - incumbentSatisfactionPct)) / DEMAND_POOL_DIVISOR),
   };
 }
 

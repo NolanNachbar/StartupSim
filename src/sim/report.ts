@@ -82,7 +82,8 @@ const v1: Rule = (h) => {
   return {
     id: "V1",
     title: "Built first, asked later",
-    weight: week,
+    // The root cause of a build-first run: it outranks the symptoms (no paid test, bad growth spend) it produces.
+    weight: 50 + Math.min(week, 20),
     headline: `The product took shape first. The first buyer conversation happened in week ${week}.`,
     evidence: [evidence],
     fix: `A ${usd(INTERVIEW_ROUND_CASH_CENTS)} interview round in week 1 takes one week and shows whether anyone has the problem before money goes into a build.`,

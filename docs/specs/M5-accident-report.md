@@ -24,7 +24,7 @@ Each rule returns evidence lines (with numbers), a weight (bigger means closer t
 
 | ID | Pattern | Fires when | Weight |
 |---|---|---|---|
-| V1 | Built first, asked later | The first interview, channel test or paid test came at week 6 or later and at least a builds worth 20+ progress points existed before it; or builds happened and there was never any customer conversation | week of the first conversation (or the end week) |
+| V1 | Built first, asked later | The first interview, channel test or paid test came at week 6 or later and at least a builds worth 20+ progress points existed before it; or builds happened and there was never any customer conversation | 50 + min(week of the first conversation or the end week, 20): the root cause outranks its symptoms (changed in M7) |
 | V2 | Polite-lie validation | 3+ completed interviews, at least 60 percent of them pitches, hypotheticals or friends, and at most 1 tagged fact | 40 + conversations |
 | V3 | Interest mistaken for demand | A product reached 20+ progress and nobody was ever asked to pay (no paid test) | 50 |
 | V4 | Distribution as an afterthought | Progress reached 60 and marketing stayed off for 8+ weeks after (or never started) | weeks idle + 30 |
