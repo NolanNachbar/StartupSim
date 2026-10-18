@@ -1,0 +1,79 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--t-md);
+  line-height: 1.4;
+}
+
+.shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: end;
+  gap: var(--gutter);
+  padding: 12px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+
+.instrument { display: flex; flex-direction: column; }
+.instrument__caption { font-size: var(--t-xs); line-height: 16px; color: var(--ink-soft); }
+.instrument__value { font-size: var(--t-xl); line-height: 32px; font-weight: 600; text-align: right; }
+.instrument--large .instrument__value { font-size: var(--t-2xl); line-height: 44px; text-align: left; }
+
+.gauge { display: flex; gap: 4px; align-self: center; padding-bottom: 6px; }
+.gauge__segment {
+  flex: 1;
+  height: 10px;
+  max-width: 28px;
+  border: 1px solid var(--ink-soft);
+  border-radius: 2px;
+}
+.gauge__segment--on { background: var(--ink); border-color: var(--ink); }
+
+.board { padding: var(--gutter); }
+.board__title { margin: 0 0 4px; font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
+.board__lede { margin: 0 0 var(--gutter); color: var(--ink-soft); max-width: 60ch; }
+
+.chart {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  display: block;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+}
+
+.actions {
+  padding: var(--gutter);
+  padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
+
+.button {
+  min-height: var(--tap);
+  padding: 0 20px;
+  font: inherit;
+  font-weight: 600;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--airspace);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.button--primary { width: 100%; background: var(--airspace); color: var(--on-airspace); }
+.button--primary:active { background: var(--ink); border-color: var(--ink); }
+
+@media (min-width: 900px) {
+  .button--primary { width: auto; }
+}
