@@ -55,13 +55,13 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 - [x] Checks: for hand-built run histories, each pattern's classifier rule fires on its fixture and not on controls; every report cites at least one number from its own run; no report text is reused across different causes
 
 ## M6. Vertical slice UI (depends on M5)
-- [ ] Flight board: instrument strip, chart, detail sheet, action tray, per DESIGN.md
-- [ ] Full run playable from start to crash and to landing on phone portrait and desktop
-- [ ] Interview card UI with post-call debrief
-- [ ] Accident report screen: full reveal once per new cause, compressed on repeats, always skippable, "Fly again" works during the reveal
-- [ ] Board as front door with "Start a run" or "Continue flight", run setup, interaction states from the DESIGN.md table, at most five first-run callouts with a Settings switch
-- [ ] Accessibility landmarks, live region, keyboard map and controller focus model from DESIGN.md
-- [ ] Checks: e2e plays a scripted full run on both viewports; axe has zero violations; screenshots of every screen at both viewports and both themes pass the DESIGN.md verify checklist; no console errors
+- [x] Flight board: instrument strip, chart, detail panel (inline on phone), action list, per DESIGN.md
+- [ ] Full run playable from start to crash and to landing on phone portrait and desktop (crash path verified in e2e on all three viewports; the landing report is covered by sim tests but not yet driven through the browser)
+- [x] Interview card UI with post-call debrief
+- [x] Accident report screen: full reveal once per new cause, compressed on repeats, always skippable, "Fly again" works during the reveal
+- [x] Board as front door with "Start a run" or "Continue flight", run setup, interaction states from the DESIGN.md table, at most five first-run callouts with a Settings switch
+- [x] Accessibility landmarks, live region, keyboard map and controller focus model from DESIGN.md (gamepad mapping is implemented but untested without a device; M9 audits it)
+- [x] Checks: e2e plays a scripted full run on both viewports; axe has zero violations; screenshots of every screen at both viewports and both themes pass the DESIGN.md verify checklist; no console errors
 - [ ] [HUMAN] Playtest the slice. Write what feels wrong in plain words. The loop converts that into roadmap items.
 
 ## M7. Balance (depends on M6)

@@ -1,5 +1,11 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+h1, h2, h3, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+legend { padding: 0; }
+input, select, button { margin: 0; font: inherit; color: inherit; }
+
 body {
   margin: 0;
   min-height: 100dvh;
@@ -13,8 +19,8 @@ body {
 .shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "strip" "board" "actions";
-  grid-template-rows: auto 1fr auto;
+  grid-template-areas: "strip" "board" "panel" "actions";
+  grid-template-rows: auto 1fr auto auto;
   min-height: 100dvh;
   max-width: 960px;
   margin: 0 auto;
@@ -23,14 +29,18 @@ body {
 .strip {
   grid-area: strip;
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "pivots gauge menu" "cash week week";
   align-items: end;
-  gap: var(--gutter);
+  gap: var(--s-2) var(--gutter);
   padding: var(--s-3) var(--gutter);
   border-bottom: 1px solid var(--line);
 }
+.strip > .gauge { grid-area: gauge; }
+.strip > .button--menu { grid-area: menu; align-self: start; }
 
 .instrument { display: flex; flex-direction: column; }
+.instrument[style*="week"] { align-items: flex-end; }
 .instrument__caption { font-size: var(--t-xs); line-height: 16px; color: var(--ink-soft); }
 .instrument__value { font-size: var(--t-xl); line-height: 32px; font-weight: 600; text-align: right; }
 .instrument--large .instrument__value { font-size: var(--t-2xl); line-height: 44px; text-align: left; }
@@ -59,13 +69,16 @@ body {
   border-radius: var(--radius-panel);
 }
 
-.panel { display: none; }
+.panel { grid-area: panel; }
+.panel--board { display: none; }
 .panel__section { padding: var(--gutter); border-bottom: 1px solid var(--line); }
 .panel__title { margin: 0 0 var(--s-2); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
 .panel__text { margin: 0; color: var(--ink-soft); max-width: 60ch; }
 
 .actions {
   grid-area: actions;
+  display: grid;
+  gap: var(--s-2);
   padding: var(--gutter);
   padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
@@ -76,13 +89,16 @@ body {
   padding: 0 var(--s-5);
   font: inherit;
   font-weight: 600;
+  background: transparent;
+  color: var(--ink);
+  width: 100%;
   border-radius: var(--radius-control);
   border: 1px solid var(--ink);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 /* The one filled button per screen: --ink fill, --paper text, in both themes (DESIGN.md, Color). */
-.button--primary { width: 100%; background: var(--ink); color: var(--paper); }
+.button--primary { background: var(--ink); color: var(--paper); }
 .button--primary:active { background: var(--ink-soft); border-color: var(--ink-soft); }
 
 @media (min-width: 600px) {
@@ -91,6 +107,10 @@ body {
     grid-template-areas: "strip strip" "board panel" "board actions";
     grid-template-rows: auto 1fr auto;
   }
-  .panel { display: block; grid-area: panel; border-left: 1px solid var(--line); }
+  .strip {
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: "pivots gauge cash week menu";
+  }
+  .panel, .panel--board { display: block; border-left: 1px solid var(--line); }
   .actions { border-left: 1px solid var(--line); }
 }

@@ -12,6 +12,9 @@
   --amber: #b87500;
   --ok: #2f8f5b;
   --blackbox: #f2551b;
+  /* Text on --blackbox and --ok fills stays dark in both themes (--ink turns light at night and fails AA there). */
+  --on-blackbox: #16243a;
+  --on-ok: #0e1a2a;
 
   --font-ui: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
   --font-report: "Source Serif 4", Georgia, "Times New Roman", serif;

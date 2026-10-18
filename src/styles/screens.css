@@ -1,0 +1,133 @@
+/* Screens built on the shell: forms, choices, results, the report. Spacing uses the 4 px scale only. */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.board > * + * { margin-top: var(--s-4); }
+.board__sub { font-size: var(--t-lg); line-height: 26px; font-weight: 600; margin-top: var(--s-5); }
+.board__empty { color: var(--ink-soft); }
+.board h1:focus { outline: none; }
+
+.button--menu { width: auto; padding: 0 var(--s-4); }
+.button--quiet { width: auto; padding: 0 var(--s-4); }
+.button--row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  background: var(--paper-raised);
+}
+.key { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.menu-list { display: grid; gap: var(--s-2); }
+
+.notice {
+  padding: var(--s-3) var(--s-4);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  display: grid;
+  gap: var(--s-2);
+}
+.notice--error { border-color: var(--amber); }
+
+.callout {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  background: var(--paper-raised);
+  border: 1px solid var(--airspace);
+  border-radius: var(--radius-panel);
+}
+.callout__text { max-width: 60ch; }
+
+/* The route list under the chart. */
+.routes { display: grid; gap: var(--s-2); }
+.route-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s-2) var(--s-4);
+  text-align: left;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+.route-row[aria-pressed="true"] { border-color: var(--airspace); outline: 1px solid var(--airspace); outline-offset: -2px; }
+.route-row__state { display: flex; align-items: center; gap: var(--s-2); color: var(--ink-soft); white-space: nowrap; }
+.swatch { width: 40px; height: 8px; }
+
+.facts { display: grid; grid-template-columns: 1fr auto; gap: var(--s-1) var(--s-4); }
+.facts dd { text-align: right; font-variant-numeric: tabular-nums; }
+.facts dt { color: var(--ink-soft); }
+.log { display: grid; gap: var(--s-2); }
+
+/* Forms. */
+.field { display: grid; gap: var(--s-2); }
+.field__label { font-weight: 600; margin-bottom: var(--s-1); }
+.select {
+  min-height: var(--tap);
+  padding: 0 var(--s-3);
+  background: var(--paper-raised);
+  border: 1px solid var(--ink-soft);
+  border-radius: var(--radius-control);
+  max-width: 100%;
+}
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-height: var(--tap);
+  padding: var(--s-3) var(--s-4);
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+.choice:has(input:checked) { border-color: var(--airspace); outline: 1px solid var(--airspace); outline-offset: -2px; }
+.choice input { flex: none; width: 20px; height: 20px; }
+.choice__text { display: grid; gap: var(--s-1); }
+.choice__title { font-weight: 600; }
+.choice__hint { color: var(--ink-soft); }
+
+/* Results and the interview debrief. */
+.entries { display: grid; gap: var(--s-4); }
+.entry { display: grid; gap: var(--s-1); padding-bottom: var(--s-4); border-bottom: 1px solid var(--line); }
+.entry__head { color: var(--ink-soft); }
+.entry__quote { font-family: var(--font-report); font-size: var(--t-md); line-height: 1.55; max-width: 60ch; }
+.entry__debrief { font-weight: 600; max-width: 60ch; }
+
+/* The accident report: the one loud screen. */
+.report { font-family: var(--font-report); line-height: 1.55; display: grid; gap: var(--s-5); }
+.report__head {
+  padding: var(--s-5) var(--gutter);
+  background: var(--blackbox);
+  color: var(--on-blackbox);
+}
+.report__head--landed { background: var(--ok); color: var(--on-ok); }
+.report__title { font-size: var(--t-2xl); line-height: 44px; font-weight: 600; max-width: 24ch; }
+.report__title:focus { outline: none; }
+.report__section { display: grid; gap: var(--s-2); max-width: 60ch; }
+.report__section h2 { font-family: var(--font-ui); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
+.report__section ul { display: grid; gap: var(--s-2); list-style: disc; padding-left: var(--s-5); }
+.report__cause { font-weight: 600; }
+
+/* Reveal (DESIGN.md, The accident report): full once per new cause, compressed on repeats, skippable. */
+.report[data-reveal="full"] .report__head { animation: wipe 600ms var(--ease-out) both; }
+.report[data-reveal="full"] .report__section { animation: set-in 400ms var(--ease-out) both; animation-delay: calc(600ms + var(--i) * 360ms); }
+.report[data-reveal="compressed"] .report__head { animation: wipe 300ms var(--ease-out) both; }
+.report[data-reveal="compressed"] .report__section { animation: set-in 200ms var(--ease-out) 300ms both; }
+@keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes set-in { from { opacity: 0; } to { opacity: 1; } }
+:root[data-reduce-motion] .report *, :root[data-reduce-motion] .report { animation: none !important; }

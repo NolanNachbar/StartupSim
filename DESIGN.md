@@ -76,7 +76,7 @@ Light is the default ("day chart"). Dark ("night chart") follows the system sett
 
 Primary action (decision D3): the primary button is filled with `--ink` and its text uses `--paper`, in both themes (about 12.9:1 day, 14.5:1 night). Magenta is kept for boundaries, selection and focus, so it keeps one meaning across screens. Because the primary button is quieter than a bright color, it is always full width at the bottom of the phone layout, 44 px minimum height, and the only filled button on screen.
 
-Contrast rules: never put `--ink` text on an `--airspace` fill, use `--on-airspace` (that pairing measured 4.38:1 at night and failed AA). Body text on `--paper` must meet 4.5:1. `--blackbox` is used as a fill with `--ink` text on top (about 4.6:1), never as small text on paper. `--airspace` text on paper is about 5:1.
+Contrast rules: never put `--ink` text on an `--airspace` fill, use `--on-airspace` (that pairing measured 4.38:1 at night and failed AA). Body text on `--paper` must meet 4.5:1. `--blackbox` is used as a fill with dark text on top, never as small text on paper. In the night theme `--ink` is light and fails on orange, so text on `--blackbox` and `--ok` fills uses the fixed dark tokens `--on-blackbox` (#16243A, about 5.7:1) and `--on-ok` (#0E1A2A), in both themes. `--airspace` text on paper is about 5:1.
 
 Color is meaning. Magenta means "boundary or selected." Blue means "information, and tested route." Amber means "attention soon." Green means "verified by paying customers or real behavior," never "you did something." Never use color alone: pair it with an icon, a line style or a label.
 

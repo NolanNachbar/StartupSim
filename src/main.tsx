@@ -5,9 +5,15 @@ import "@fontsource/source-serif-4/latin-400.css";
 import "@fontsource/source-serif-4/latin-600.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
+import "./styles/screens.css";
 import { render } from "preact";
 import { App } from "./app";
+import { installGamepad, installKeyboard } from "./ui/input";
+import { init } from "./ui/store";
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app root element");
+init(location.search);
+installKeyboard();
+installGamepad();
 render(<App />, root);
