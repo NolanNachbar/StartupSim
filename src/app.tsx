@@ -52,6 +52,16 @@ export function App() {
         <p class="board__lede">Run a startup. Learn why most fail. Fly again.</p>
         <Chart />
       </main>
+      <aside class="panel" aria-label="Log and details">
+        <section class="panel__section">
+          <h2 class="panel__title">Log</h2>
+          <p class="panel__text">No tests yet. Interview a customer to start your route.</p>
+        </section>
+        <section class="panel__section">
+          <h2 class="panel__title">Selected</h2>
+          <p class="panel__text">Select a point on the route to see what you know about it.</p>
+        </section>
+      </aside>
       <footer class="actions">
         <button type="button" class="button button--primary">Start a run</button>
       </footer>

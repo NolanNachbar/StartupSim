@@ -9,8 +9,11 @@ body {
   line-height: 1.4;
 }
 
+/* Phone portrait is the primary canvas; the side panel appears from 600 px (DESIGN.md, Layout). */
 .shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "strip" "board" "actions";
   grid-template-rows: auto 1fr auto;
   min-height: 100dvh;
   max-width: 960px;
@@ -18,11 +21,12 @@ body {
 }
 
 .strip {
+  grid-area: strip;
   display: grid;
   grid-template-columns: auto 1fr auto auto;
   align-items: end;
   gap: var(--gutter);
-  padding: 12px var(--gutter);
+  padding: var(--s-3) var(--gutter);
   border-bottom: 1px solid var(--line);
 }
 
@@ -31,7 +35,7 @@ body {
 .instrument__value { font-size: var(--t-xl); line-height: 32px; font-weight: 600; text-align: right; }
 .instrument--large .instrument__value { font-size: var(--t-2xl); line-height: 44px; text-align: left; }
 
-.gauge { display: flex; gap: 4px; align-self: center; padding-bottom: 6px; }
+.gauge { display: flex; gap: var(--s-1); align-self: center; padding-bottom: var(--s-2); }
 .gauge__segment {
   flex: 1;
   height: 10px;
@@ -41,13 +45,13 @@ body {
 }
 .gauge__segment--on { background: var(--ink); border-color: var(--ink); }
 
-.board { padding: var(--gutter); }
-.board__title { margin: 0 0 4px; font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
+.board { grid-area: board; padding: var(--gutter); }
+.board__title { margin: 0 0 var(--s-1); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
 .board__lede { margin: 0 0 var(--gutter); color: var(--ink-soft); max-width: 60ch; }
 
 .chart {
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   height: auto;
   display: block;
   background: var(--paper-raised);
@@ -55,7 +59,13 @@ body {
   border-radius: var(--radius-panel);
 }
 
+.panel { display: none; }
+.panel__section { padding: var(--gutter); border-bottom: 1px solid var(--line); }
+.panel__title { margin: 0 0 var(--s-2); font-size: var(--t-lg); line-height: 26px; font-weight: 600; }
+.panel__text { margin: 0; color: var(--ink-soft); max-width: 60ch; }
+
 .actions {
+  grid-area: actions;
   padding: var(--gutter);
   padding-bottom: max(var(--gutter), env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
@@ -63,17 +73,24 @@ body {
 
 .button {
   min-height: var(--tap);
-  padding: 0 20px;
+  padding: 0 var(--s-5);
   font: inherit;
   font-weight: 600;
   border-radius: var(--radius-control);
-  border: 1px solid var(--airspace);
+  border: 1px solid var(--ink);
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
-.button--primary { width: 100%; background: var(--airspace); color: var(--on-airspace); }
-.button--primary:active { background: var(--ink); border-color: var(--ink); }
+/* The one filled button per screen: --ink fill, --paper text, in both themes (DESIGN.md, Color). */
+.button--primary { width: 100%; background: var(--ink); color: var(--paper); }
+.button--primary:active { background: var(--ink-soft); border-color: var(--ink-soft); }
 
-@media (min-width: 900px) {
-  .button--primary { width: auto; }
+@media (min-width: 600px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr) var(--panel-w);
+    grid-template-areas: "strip strip" "board panel" "board actions";
+    grid-template-rows: auto 1fr auto;
+  }
+  .panel { display: block; grid-area: panel; border-left: 1px solid var(--line); }
+  .actions { border-left: 1px solid var(--line); }
 }

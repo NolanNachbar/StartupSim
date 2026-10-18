@@ -23,10 +23,20 @@
   --t-xl: 1.75rem;
   --t-2xl: 2.75rem;
 
+  /* 4 px spacing scale (DESIGN.md, Spacing). Use only these. */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
   --radius-panel: 4px;
   --radius-control: 6px;
-  --gutter: 16px;
+  --gutter: var(--s-4);
   --tap: 44px;
+  --panel-w: 280px;
 
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --dur-fast: 120ms;
@@ -63,16 +73,39 @@
   --blackbox: #ff6a33;
 }
 
+/* Browser surfaces (DESIGN.md, Browser surfaces): theme what the browser draws. */
+:root { color-scheme: light dark; }
+:root[data-theme="day"] { color-scheme: light; }
+:root[data-theme="night"] { color-scheme: dark; }
+
 html {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: 16px;
   font-variant-numeric: tabular-nums;
+  caret-color: var(--airspace);
+  accent-color: var(--airspace);
+  scrollbar-color: var(--line) transparent;
+  scrollbar-width: thin;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--airspace) 25%, transparent);
+  color: var(--ink);
+}
+
+@media (min-width: 600px) {
+  :root {
+    --gutter: var(--s-5);
+    --panel-w: 280px;
+  }
 }
 
 @media (min-width: 900px) {
   html { font-size: 17px; }
+  :root { --panel-w: 320px; }
 }
 
 :focus-visible {
