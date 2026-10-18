@@ -13,6 +13,7 @@ function freezePublic(pub: PublicState): PublicState {
   for (const r of pub.receivables) Object.freeze(r);
   Object.freeze(pub.receivables);
   Object.freeze(pub.marketing);
+  Object.freeze(pub.ledger);
   if (pub.offer) Object.freeze(pub.offer);
   if (pub.loan) Object.freeze(pub.loan);
   for (const h of pub.hypotheses) Object.freeze(h);

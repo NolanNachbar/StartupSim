@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import fixture from "./fixtures/golden-replay.json";
 import interviewFixture from "./fixtures/golden-replay-interview.json";
 import landingFixture from "./fixtures/golden-replay-landing.json";
+import reports from "./fixtures/golden-reports.json";
+import { buildHistory, buildReport } from "../../src/sim/report";
 import { SIM_VERSION, fromSave } from "../../src/sim/save";
 import { view } from "../../src/sim/view";
 
@@ -41,5 +43,15 @@ describe("golden replay", () => {
     expect(landingFixture.expected.status).toBe("landed");
     expect(landingFixture.expected.endReason).toBe("default-alive");
     expect(landingFixture.expected.hypotheses.some((h) => h.state === "verified")).toBe(true);
+  });
+
+  it("writes the same accident reports for the committed landing and crash runs", () => {
+    // protects: the report text and classifier stay stable for known runs; fails_when: a rule, a threshold or
+    // a sentence changes without a SIM_VERSION bump and a regenerated fixture.
+    expect(reports.simVersion).toBe(SIM_VERSION);
+    expect(buildReport(buildHistory(landingFixture.seed, landingFixture.actions as never))).toEqual(reports.landing);
+    expect(buildReport(buildHistory(fixture.seed, fixture.actions as never))).toEqual(reports.crash);
+    expect(reports.crash.probableCause).not.toBeNull();
+    expect(reports.crash.numbers.length).toBeGreaterThan(0);
   });
 });

@@ -65,6 +65,14 @@ export interface Loan {
   readonly weeksLeft: number;
 }
 
+/** Cumulative books for the whole run. Revenue is accrual revenue. */
+export interface Ledger {
+  readonly revenueCents: Cents;
+  readonly marketingCents: Cents;
+  readonly buildCents: Cents;
+  readonly payrollCents: Cents;
+}
+
 export interface Marketing {
   readonly channel: number | null;
   readonly level: number;
@@ -100,6 +108,11 @@ export interface PublicState {
   readonly focusSegment: number;
   readonly log: readonly LogEntry[];
   readonly landingPageBuilt: boolean;
+  readonly ledger: Ledger;
+  /** The week of the first paid test that produced a payment. */
+  readonly firstPaymentWeek: number | null;
+  /** Weeks spent raising money. */
+  readonly raiseWeeks: number;
   readonly marketing: Marketing;
   readonly hires: number;
   /** Revenue earned but not yet paid. */
@@ -223,4 +236,27 @@ export interface Save {
   simVersion: number;
   seed: number;
   actions: Action[];
+}
+
+export type PatternId = "V1" | "V2" | "V3" | "V4" | "V5" | "V6" | "V8" | "M1" | "M2" | "M3" | "M4" | "M5" | "M6" | "M7";
+
+export interface Cause {
+  readonly id: PatternId;
+  readonly title: string;
+  readonly evidence: readonly string[];
+  readonly lesson: string;
+}
+
+/** The accident report for a finished run. */
+export interface Report {
+  readonly outcome: "landed" | "crashed" | "stalled";
+  readonly headline: string;
+  readonly summary: string;
+  readonly probableCause: Cause | null;
+  readonly contributing: readonly Cause[];
+  /** The probable cause's fix: one concrete action that would have changed the outcome. */
+  readonly wouldHaveChanged: string | null;
+  readonly noDominantCause: boolean;
+  /** Every number the text quotes, as written. */
+  readonly numbers: readonly string[];
 }

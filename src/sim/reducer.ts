@@ -207,6 +207,12 @@ function tick(run: InternalRun): InternalRun {
       weeklyRevenueCents,
       profitableStreakWeeks,
       pivotsRemaining: runway,
+      ledger: {
+        ...pub.ledger,
+        revenueCents: pub.ledger.revenueCents + weeklyRevenueCents,
+        marketingCents: pub.ledger.marketingCents + marketingSpend,
+        payrollCents: pub.ledger.payrollCents + pub.hires * HIRE_WEEKLY_CENTS,
+      },
       receivables,
       loan,
       offer,
@@ -248,7 +254,8 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         return fail("investors-want-proof");
       }
       const weeks = randInt(run.seed, 3, 9, "raise", run.pub.raisesUsed);
-      const after = advance(run, weeks);
+      const advanced = advance(run, weeks);
+      const after = withPub(advanced, { raiseWeeks: run.pub.raiseWeeks + (advanced.pub.week - run.pub.week) });
       if (after.pub.status !== "running") return ok(recorded(after, action));
       const cashCents = after.pub.cashCents + RAISE_AMOUNT_CENTS;
       return ok(
@@ -298,7 +305,13 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       if (alreadyThere) return fail("already-built");
       if (run.pub.cashCents < spec.cashCents) return fail("insufficient-cash");
       const weeks = Math.max(1, spec.weeks - run.pub.hires);
-      const after = advance(withPub(run, { cashCents: run.pub.cashCents - spec.cashCents }), weeks);
+      const after = advance(
+        withPub(run, {
+          cashCents: run.pub.cashCents - spec.cashCents,
+          ledger: { ...run.pub.ledger, buildCents: run.pub.ledger.buildCents + spec.cashCents },
+        }),
+        weeks,
+      );
       // If the run ended before the build finished, nothing was built.
       if (after.pub.status !== "running") return ok(recorded(after, action));
       return ok(
@@ -334,6 +347,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
           // Payments are real money; only payers in the focus segment become ongoing customers.
           cashCents: run.pub.cashCents - CHANNEL_TEST_BUDGET_CENTS + test.payments * run.pub.priceCents,
           payingCustomers: segment === run.pub.focusSegment ? run.pub.payingCustomers + test.payments : run.pub.payingCustomers,
+          firstPaymentWeek: run.pub.firstPaymentWeek ?? (test.payments > 0 ? run.pub.week : null),
           ...withEvidence(run.pub, [test]),
           log: withLog(run.pub, `Paid test: ${test.payments} of ${test.leads} paid.`),
         };

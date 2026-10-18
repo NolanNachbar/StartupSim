@@ -4,13 +4,14 @@ import { legalActions as legalActionsInternal } from "./actions";
 import { step as stepInternal } from "./reducer";
 import { fromSave as fromSaveInternal, SIM_VERSION, toSave as toSaveInternal } from "./save";
 import { initialRun, type InternalRun } from "./state";
-import type { Action, IllegalReason, LoadError, PublicState, Save } from "./types";
+import type { Action, IllegalReason, LoadError, PublicState, Report, Save } from "./types";
+import { buildHistory, buildReport } from "./report";
 import { view as viewInternal } from "./view";
 
 declare const runBrand: unique symbol;
 export type Run = { readonly [runBrand]: true };
 
-export type { Action, IllegalReason, LoadError, PublicState, Save };
+export type { Action, IllegalReason, LoadError, PublicState, Report, Save };
 export type StepResult = { ok: true; run: Run } | { ok: false; reason: IllegalReason };
 export type LoadResult = { ok: true; run: Run } | { ok: false; reason: LoadError; atAction?: number };
 
@@ -52,4 +53,11 @@ export function fromSave(input: unknown): LoadResult {
       : { ok: false, reason: result.reason, atAction: result.atAction };
   }
   return { ok: true, run: outside(result.run) };
+}
+
+/** The accident report for a finished run, or null while the run is still going. */
+export function report(run: Run): Report | null {
+  const internal = inside(run);
+  if (internal.pub.status === "running") return null;
+  return buildReport(buildHistory(internal.seed, internal.actions));
 }

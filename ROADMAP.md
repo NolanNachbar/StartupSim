@@ -49,10 +49,10 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 - Tuning levers left for M7 (validator wins 65 percent of 400 seeds against a 25 to 45 percent target): fixed burn, `ACQUISITION_DIVISOR`, churn, the landing threshold, run length, demand pool size.
 
 ## M5. Events and accident report (depends on M3, M4)
-- [ ] Event system tied to pattern IDs (V1 to V9, M1 to M7 where supported)
-- [ ] Cause classifier with explicit rules and evidence
-- [ ] Report generator: summary, probable cause, contributing factors, what would have changed the outcome
-- [ ] Checks: for hand-built run histories, each pattern's classifier rule fires on its fixture and not on controls; every report cites at least one number from its own run; no report text is reused across different causes
+- [x] Event system tied to pattern IDs (V1 to V9, M1 to M7 where supported)
+- [x] Cause classifier with explicit rules and evidence
+- [x] Report generator: summary, probable cause, contributing factors, what would have changed the outcome
+- [x] Checks: for hand-built run histories, each pattern's classifier rule fires on its fixture and not on controls; every report cites at least one number from its own run; no report text is reused across different causes
 
 ## M6. Vertical slice UI (depends on M5)
 - [ ] Flight board: instrument strip, chart, detail sheet, action tray, per DESIGN.md
