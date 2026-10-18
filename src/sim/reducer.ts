@@ -5,8 +5,10 @@
 //                 └─ illegal: { ok: false, reason }, run unchanged
 //
 // A tick: demand target, customers ramp, revenue, cash, week, profit streak, then end checks.
-import { hasKnownType, PRICE_LADDER_CENTS, RESERVED_ACTION_TYPES } from "./actions";
+import { hasKnownType, isQuestionTriple, PRICE_LADDER_CENTS, RESERVED_ACTION_TYPES } from "./actions";
+import { runInterviewRound } from "./interview";
 import {
+  INTERVIEW_ROUND_CASH_CENTS,
   LANDING_STREAK_WEEKS,
   MAX_RAISES,
   MAX_WEEKS,
@@ -49,6 +51,12 @@ function canonical(action: Action): Action {
       return Object.freeze({ type: "pivot", toSegment: action.toSegment });
     case "raiseMoney":
       return Object.freeze({ type: "raiseMoney" });
+    case "interview":
+      return Object.freeze({
+        type: "interview",
+        segment: action.segment,
+        questions: Object.freeze([...action.questions]),
+      });
     default:
       return Object.freeze({ type: "wait" });
   }
@@ -153,6 +161,32 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
           action,
         ),
       );
+    }
+
+    case "interview": {
+      const segment = action.segment;
+      if (!Number.isInteger(segment) || segment < 0 || segment >= run.pub.segmentNames.length) {
+        return fail("invalid-segment");
+      }
+      if (!isQuestionTriple(action.questions)) return fail("invalid-questions");
+      if (run.pub.cashCents < INTERVIEW_ROUND_CASH_CENTS) return fail("insufficient-cash");
+      const round = runInterviewRound({
+        secret: run.secret,
+        seed: run.seed,
+        index: run.actions.filter((a) => a.type === "interview").length,
+        week: run.pub.week,
+        segment,
+        questions: action.questions,
+        priceCents: run.pub.priceCents,
+      });
+      const answered = round.filter((e) => e.outcome === "completed").length;
+      const paid = withPub(run, {
+        cashCents: run.pub.cashCents - INTERVIEW_ROUND_CASH_CENTS,
+        evidence: [...run.pub.evidence, ...round],
+        log: withLog(run.pub, `Interview round: ${answered} of ${round.length} answered.`),
+      });
+      // The conversations happened, so the evidence stays even if the week then ends the run.
+      return ok(recorded(advance(paid, 1), action));
     }
 
     case "pivot": {

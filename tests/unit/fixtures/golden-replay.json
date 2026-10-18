@@ -4,69 +4,248 @@
   "seed": 42,
   "actions": [
     {
-      "type": "setPrice",
-      "priceCents": 99900
-    },
-    {
-      "type": "wait"
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 19900
     },
     {
-      "type": "pivot",
-      "toSegment": 0
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 49900
     },
     {
       "type": "raiseMoney"
     },
     {
-      "type": "setPrice",
-      "priceCents": 9900
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
     },
     {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 1900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
     },
     {
       "type": "wait"
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 99900
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 19900
     },
     {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
       "type": "setPrice",
-      "priceCents": 49900
+      "priceCents": 99900
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 9900
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 4900
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "raiseMoney"
     },
     {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 49900
+    },
+    {
+      "type": "wait"
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
       "type": "pivot",
       "toSegment": 0
     },
@@ -79,271 +258,474 @@
       "priceCents": 1900
     },
     {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 4900
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "pivot",
       "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
     },
     {
       "type": "setPrice",
       "priceCents": 19900
     },
     {
-      "type": "wait"
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
       "type": "setPrice",
-      "priceCents": 4900
+      "priceCents": 900
     },
     {
-      "type": "pivot",
-      "toSegment": 0
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 19900
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 1900
     },
     {
-      "type": "pivot",
-      "toSegment": 2
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
     },
     {
-      "type": "setPrice",
-      "priceCents": 4900
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
-      "type": "wait"
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 9900
     },
     {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "wait"
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 4900
     },
     {
-      "type": "pivot",
-      "toSegment": 1
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 900
     },
     {
-      "type": "pivot",
-      "toSegment": 0
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
     },
     {
-      "type": "wait"
+      "type": "setPrice",
+      "priceCents": 99900
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 9900
     },
     {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
+    },
+    {
       "type": "pivot",
       "toSegment": 2
     },
     {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
       "type": "setPrice",
-      "priceCents": 19900
+      "priceCents": 1900
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
       "type": "wait"
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "pivot",
+      "toSegment": 0
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "pivot",
+      "toSegment": 1
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 49900
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 4900
+    },
+    {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 99900
+    },
+    {
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
+    },
+    {
+      "type": "setPrice",
+      "priceCents": 49900
+    },
+    {
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 9900
     },
     {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 99900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 4900
-    },
-    {
-      "type": "wait"
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 1900
     },
     {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 99900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 1900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 99900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 99900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 4900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 99900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 4900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 1900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 900
-    },
-    {
-      "type": "wait"
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
     },
     {
       "type": "setPrice",
@@ -354,285 +736,173 @@
       "toSegment": 2
     },
     {
-      "type": "setPrice",
-      "priceCents": 1900
+      "type": "interview",
+      "segment": 2,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
-      "type": "pivot",
-      "toSegment": 0
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
-      "type": "pivot",
-      "toSegment": 1
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "hypothetical",
+        "hypothetical",
+        "hypothetical"
+      ]
     },
     {
-      "type": "setPrice",
-      "priceCents": 4900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 1900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 4900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "pitch",
+        "pitch",
+        "pitch"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 19900
     },
     {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 900
-    },
-    {
       "type": "pivot",
       "toSegment": 1
     },
     {
-      "type": "setPrice",
-      "priceCents": 1900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 19900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 99900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 1900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 19900
-    },
-    {
-      "type": "wait"
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 9900
     },
     {
-      "type": "wait"
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
-      "type": "setPrice",
-      "priceCents": 19900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 19900
-    },
-    {
-      "type": "wait"
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 49900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 9900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 9900
-    },
-    {
-      "type": "wait"
     },
     {
       "type": "pivot",
       "toSegment": 2
     },
     {
-      "type": "setPrice",
-      "priceCents": 4900
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
     },
     {
-      "type": "pivot",
-      "toSegment": 1
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     },
     {
-      "type": "setPrice",
-      "priceCents": 19900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 1900
     },
     {
+      "type": "interview",
+      "segment": 0,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
+    },
+    {
       "type": "wait"
     },
     {
-      "type": "pivot",
-      "toSegment": 1
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
     },
     {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "past-behavior",
+        "past-behavior",
+        "past-behavior"
+      ]
     },
     {
       "type": "setPrice",
       "priceCents": 900
     },
     {
-      "type": "wait"
-    },
-    {
-      "type": "pivot",
-      "toSegment": 0
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 19900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 2
-    },
-    {
-      "type": "setPrice",
-      "priceCents": 9900
-    },
-    {
-      "type": "pivot",
-      "toSegment": 1
+      "type": "interview",
+      "segment": 1,
+      "questions": [
+        "commitment",
+        "commitment",
+        "commitment"
+      ]
     }
   ],
   "expected": {
     "week": 104,
     "status": "crashed",
     "endReason": "stalled",
-    "cashCents": 7400000,
+    "cashCents": 5030000,
     "weeklyBurnCents": 150000,
-    "priceCents": 9900,
+    "priceCents": 900,
     "pivotCostCents": 680000,
-    "pivotsRemaining": 10,
-    "pivotsUsed": 60,
+    "pivotsRemaining": 7,
+    "pivotsUsed": 9,
     "raisesUsed": 2,
     "equityGivenPct": 30,
     "productProgressPct": 0,
@@ -648,258 +918,3215 @@
     "focusSegment": 2,
     "log": [
       {
-        "week": 2,
-        "text": "Pivoted to Solo operators."
+        "week": 0,
+        "text": "Interview round: 2 of 3 answered."
       },
       {
-        "week": 10,
+        "week": 1,
+        "text": "Interview round: 1 of 3 answered."
+      },
+      {
+        "week": 2,
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 3,
+        "text": "Interview round: 1 of 3 answered."
+      },
+      {
+        "week": 4,
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 5,
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 14,
         "text": "Raised $100,000 for 15% equity."
       },
       {
-        "week": 11,
-        "text": "Pivoted to Small teams."
-      },
-      {
-        "week": 13,
-        "text": "Pivoted to Established shops."
+        "week": 14,
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 15,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
-        "week": 16,
-        "text": "Pivoted to Established shops."
+        "week": 17,
+        "text": "Interview round: 1 of 3 answered."
+      },
+      {
+        "week": 18,
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 19,
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 20,
-        "text": "Raised $100,000 for 15% equity."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 21,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 22,
-        "text": "Pivoted to Established shops."
+        "text": "Interview round: 3 of 3 answered."
+      },
+      {
+        "week": 23,
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 24,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 25,
-        "text": "Pivoted to Established shops."
+        "text": "Interview round: 1 of 3 answered."
+      },
+      {
+        "week": 26,
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 27,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 28,
-        "text": "Pivoted to Established shops."
-      },
-      {
-        "week": 30,
-        "text": "Pivoted to Small teams."
-      },
-      {
-        "week": 31,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 33,
-        "text": "Pivoted to Small teams."
+        "text": "Raised $100,000 for 15% equity."
       },
       {
-        "week": 34,
+        "week": 33,
+        "text": "Interview round: 3 of 3 answered."
+      },
+      {
+        "week": 35,
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 37,
         "text": "Pivoted to Solo operators."
       },
       {
-        "week": 36,
+        "week": 38,
         "text": "Pivoted to Established shops."
       },
       {
-        "week": 39,
-        "text": "Pivoted to Small teams."
+        "week": 38,
+        "text": "Interview round: 3 of 3 answered."
+      },
+      {
+        "week": 40,
+        "text": "Pivoted to Solo operators."
+      },
+      {
+        "week": 40,
+        "text": "Interview round: 0 of 3 answered."
+      },
+      {
+        "week": 41,
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 42,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 0 of 3 answered."
       },
       {
         "week": 43,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 3 of 3 answered."
+      },
+      {
+        "week": 44,
+        "text": "Interview round: 0 of 3 answered."
       },
       {
         "week": 45,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 46,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 47,
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 48,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 0 of 3 answered."
       },
       {
         "week": 49,
-        "text": "Pivoted to Established shops."
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 50,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 51,
-        "text": "Pivoted to Established shops."
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 52,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 53,
+        "text": "Interview round: 0 of 3 answered."
       },
       {
         "week": 54,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 55,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 56,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 57,
-        "text": "Pivoted to Established shops."
-      },
-      {
-        "week": 58,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 59,
         "text": "Pivoted to Established shops."
       },
       {
+        "week": 59,
+        "text": "Interview round: 0 of 3 answered."
+      },
+      {
         "week": 60,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 61,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 62,
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 63,
-        "text": "Pivoted to Established shops."
-      },
-      {
-        "week": 64,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 65,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 66,
-        "text": "Pivoted to Established shops."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 67,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 68,
-        "text": "Pivoted to Established shops."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
-        "week": 70,
-        "text": "Pivoted to Small teams."
+        "week": 69,
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 71,
         "text": "Pivoted to Solo operators."
       },
       {
+        "week": 71,
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 72,
+        "text": "Interview round: 1 of 3 answered."
+      },
+      {
         "week": 73,
+        "text": "Interview round: 1 of 3 answered."
+      },
+      {
+        "week": 75,
         "text": "Pivoted to Small teams."
+      },
+      {
+        "week": 75,
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 76,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 77,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 3 of 3 answered."
+      },
+      {
+        "week": 78,
+        "text": "Interview round: 1 of 3 answered."
+      },
+      {
+        "week": 79,
+        "text": "Interview round: 0 of 3 answered."
       },
       {
         "week": 80,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
+      },
+      {
+        "week": 81,
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 82,
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 83,
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 84,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 85,
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 87,
-        "text": "Pivoted to Solo operators."
+        "text": "Pivoted to Established shops."
+      },
+      {
+        "week": 87,
+        "text": "Interview round: 3 of 3 answered."
       },
       {
         "week": 88,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 89,
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 90,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
-        "week": 91,
+        "week": 92,
         "text": "Pivoted to Small teams."
       },
       {
         "week": 92,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 2 of 3 answered."
+      },
+      {
+        "week": 93,
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 94,
-        "text": "Pivoted to Established shops."
-      },
-      {
-        "week": 95,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 96,
-        "text": "Pivoted to Solo operators."
+        "text": "Pivoted to Established shops."
+      },
+      {
+        "week": 96,
+        "text": "Interview round: 0 of 3 answered."
+      },
+      {
+        "week": 97,
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 98,
-        "text": "Pivoted to Small teams."
+        "text": "Interview round: 1 of 3 answered."
       },
       {
         "week": 99,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 3 of 3 answered."
       },
       {
-        "week": 100,
-        "text": "Pivoted to Small teams."
+        "week": 101,
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 102,
-        "text": "Pivoted to Solo operators."
+        "text": "Interview round: 0 of 3 answered."
       },
       {
         "week": 103,
-        "text": "Pivoted to Established shops."
+        "text": "Interview round: 2 of 3 answered."
       },
       {
         "week": 104,
         "text": "Week 104 passed without a viable business."
       }
     ],
-    "evidence": []
+    "evidence": [
+      {
+        "kind": "interview",
+        "week": 0,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 0,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 0,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 38,
+        "committed": null,
+        "quote": "I love it. Let me know when it launches."
+      },
+      {
+        "kind": "interview",
+        "week": 0,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 1,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 13,
+        "committed": false,
+        "quote": "Not at that price, and not right now."
+      },
+      {
+        "kind": "interview",
+        "week": 1,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 1,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 2,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 2,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 14,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 2,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 31,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 3,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 66,
+        "committed": null,
+        "quote": "I love it. Let me know when it launches."
+      },
+      {
+        "kind": "interview",
+        "week": 3,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 3,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 4,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 4,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 7,
+        "committed": null,
+        "quote": "The last time was two weeks ago. I lost half a day fixing it by hand."
+      },
+      {
+        "kind": "interview",
+        "week": 4,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 0,
+        "committed": null,
+        "quote": "It happened on Tuesday. I paid someone to sort it out and it cost real money."
+      },
+      {
+        "kind": "interview",
+        "week": 5,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 9,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 5,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 5,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 14,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 31,
+        "committed": null,
+        "quote": "Sure, why not. Sounds great."
+      },
+      {
+        "kind": "interview",
+        "week": 14,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 37,
+        "committed": null,
+        "quote": "That sounds really useful, I'm sure I would."
+      },
+      {
+        "kind": "interview",
+        "week": 14,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 15,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 60,
+        "committed": null,
+        "quote": "It happened on Tuesday. I paid someone to sort it out and it cost real money."
+      },
+      {
+        "kind": "interview",
+        "week": 15,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 18,
+        "committed": null,
+        "quote": "It comes up now and then, I guess."
+      },
+      {
+        "kind": "interview",
+        "week": 15,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 17,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 17,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 17,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 6,
+        "committed": true,
+        "quote": "Absolutely, put me down. Anything for you."
+      },
+      {
+        "kind": "interview",
+        "week": 18,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 14,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 18,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 14,
+        "committed": false,
+        "quote": "I'd have to ask my partner, and honestly probably not."
+      },
+      {
+        "kind": "interview",
+        "week": 18,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 19,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Let's not do this on a call."
+      },
+      {
+        "kind": "interview",
+        "week": 19,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 76,
+        "committed": null,
+        "quote": "Yeah, I'd totally use that."
+      },
+      {
+        "kind": "interview",
+        "week": 19,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 20,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 46,
+        "committed": null,
+        "quote": "That sounds really useful, I'm sure I would."
+      },
+      {
+        "kind": "interview",
+        "week": 20,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 32,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 20,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 22,
+        "committed": null,
+        "quote": "That sounds really useful, I'm sure I would."
+      },
+      {
+        "kind": "interview",
+        "week": 21,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Send me something in writing and I'll look."
+      },
+      {
+        "kind": "interview",
+        "week": 21,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 17,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 21,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 22,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 11,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 22,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 80,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 22,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 23,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 2,
+        "committed": false,
+        "quote": "Not at that price, and not right now."
+      },
+      {
+        "kind": "interview",
+        "week": 23,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 33,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 23,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "I'm not committing to anything on a call."
+      },
+      {
+        "kind": "interview",
+        "week": 24,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 44,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 24,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 24,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 25,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 54,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 25,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 25,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 26,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": false,
+        "quote": "I'd have to ask my partner, and honestly probably not."
+      },
+      {
+        "kind": "interview",
+        "week": 26,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 0,
+        "committed": false,
+        "quote": "Ask me again when it's finished."
+      },
+      {
+        "kind": "interview",
+        "week": 26,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 9,
+        "committed": false,
+        "quote": "Maybe later. Let's see how it goes."
+      },
+      {
+        "kind": "interview",
+        "week": 27,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 51,
+        "committed": null,
+        "quote": "That sounds really useful, I'm sure I would."
+      },
+      {
+        "kind": "interview",
+        "week": 27,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 27,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 34,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 28,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 26,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 28,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 28,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 44,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 33,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 2,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 33,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 20,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 33,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 27,
+        "committed": null,
+        "quote": "That sounds really useful, I'm sure I would."
+      },
+      {
+        "kind": "interview",
+        "week": 35,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 35,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 35,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 29,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 38,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 38,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 38,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 40,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "I'm not committing to anything on a call."
+      },
+      {
+        "kind": "interview",
+        "week": 40,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Send me something in writing and I'll look."
+      },
+      {
+        "kind": "interview",
+        "week": 40,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Send me something in writing and I'll look."
+      },
+      {
+        "kind": "interview",
+        "week": 41,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 0,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 41,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 27,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 41,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 10,
+        "committed": null,
+        "quote": "I love it. Let me know when it launches."
+      },
+      {
+        "kind": "interview",
+        "week": 42,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Send me something in writing and I'll look."
+      },
+      {
+        "kind": "interview",
+        "week": 42,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 42,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 43,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 43,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 19,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 43,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 70,
+        "committed": null,
+        "quote": "That sounds really useful, I'm sure I would."
+      },
+      {
+        "kind": "interview",
+        "week": 44,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 44,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 44,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 45,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 92,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 45,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 45,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 38,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 46,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 46,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 58,
+        "committed": true,
+        "quote": "Of course I would. I'm happy to support you."
+      },
+      {
+        "kind": "interview",
+        "week": 46,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 0,
+        "committed": true,
+        "quote": "Absolutely, put me down. Anything for you."
+      },
+      {
+        "kind": "interview",
+        "week": 47,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 47,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 77,
+        "committed": true,
+        "quote": "Of course I would. I'm happy to support you."
+      },
+      {
+        "kind": "interview",
+        "week": 47,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 48,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 48,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 48,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 49,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 5,
+        "committed": null,
+        "quote": "It happened on Tuesday. I paid someone to sort it out and it cost real money."
+      },
+      {
+        "kind": "interview",
+        "week": 49,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 49,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 50,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 36,
+        "committed": null,
+        "quote": "I love it. Let me know when it launches."
+      },
+      {
+        "kind": "interview",
+        "week": 50,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 0,
+        "committed": null,
+        "quote": "I love it. Let me know when it launches."
+      },
+      {
+        "kind": "interview",
+        "week": 50,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 2,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 51,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 51,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 51,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 30,
+        "committed": true,
+        "quote": "Of course I would. I'm happy to support you."
+      },
+      {
+        "kind": "interview",
+        "week": 52,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 0,
+        "committed": null,
+        "quote": "It happened on Tuesday. I paid someone to sort it out and it cost real money."
+      },
+      {
+        "kind": "interview",
+        "week": 52,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 23,
+        "committed": null,
+        "quote": "We keep a spreadsheet for it and it breaks every month."
+      },
+      {
+        "kind": "interview",
+        "week": 52,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 53,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 53,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 53,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 54,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 27,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 54,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 28,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 54,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 28,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 55,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 55,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 55,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 56,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 25,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 56,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 38,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 56,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 26,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 57,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 64,
+        "committed": null,
+        "quote": "We keep a spreadsheet for it and it breaks every month."
+      },
+      {
+        "kind": "interview",
+        "week": 57,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 13,
+        "committed": null,
+        "quote": "The last time was two weeks ago. I lost half a day fixing it by hand."
+      },
+      {
+        "kind": "interview",
+        "week": 57,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 17,
+        "committed": null,
+        "quote": "We keep a spreadsheet for it and it breaks every month."
+      },
+      {
+        "kind": "interview",
+        "week": 59,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 59,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 59,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 60,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 1,
+        "committed": false,
+        "quote": "I'd have to ask my partner, and honestly probably not."
+      },
+      {
+        "kind": "interview",
+        "week": 60,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 17,
+        "committed": false,
+        "quote": "Not at that price, and not right now."
+      },
+      {
+        "kind": "interview",
+        "week": 60,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 61,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 13,
+        "committed": null,
+        "quote": "It happened on Tuesday. I paid someone to sort it out and it cost real money."
+      },
+      {
+        "kind": "interview",
+        "week": 61,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 9,
+        "committed": null,
+        "quote": "It comes up now and then, I guess."
+      },
+      {
+        "kind": "interview",
+        "week": 61,
+        "segment": 2,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 62,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 62,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 66,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 62,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 63,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 43,
+        "committed": true,
+        "quote": "Yes, and I know two other people who need this."
+      },
+      {
+        "kind": "interview",
+        "week": 63,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 23,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 63,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "I'm not committing to anything on a call."
+      },
+      {
+        "kind": "interview",
+        "week": 65,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 65,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 71,
+        "committed": true,
+        "quote": "Absolutely, put me down. Anything for you."
+      },
+      {
+        "kind": "interview",
+        "week": 65,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 66,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 66,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 30,
+        "committed": null,
+        "quote": "I love it. Let me know when it launches."
+      },
+      {
+        "kind": "interview",
+        "week": 66,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 67,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "It comes up now and then, I guess."
+      },
+      {
+        "kind": "interview",
+        "week": 67,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 9,
+        "committed": null,
+        "quote": "Yeah, it can be annoying sometimes."
+      },
+      {
+        "kind": "interview",
+        "week": 67,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 14,
+        "committed": null,
+        "quote": "We keep a spreadsheet for it and it breaks every month."
+      },
+      {
+        "kind": "interview",
+        "week": 68,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 11,
+        "committed": false,
+        "quote": "Maybe later. Let's see how it goes."
+      },
+      {
+        "kind": "interview",
+        "week": 68,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 68,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 69,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 45,
+        "committed": true,
+        "quote": "Of course I would. I'm happy to support you."
+      },
+      {
+        "kind": "interview",
+        "week": 69,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 69,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "I'm not committing to anything on a call."
+      },
+      {
+        "kind": "interview",
+        "week": 71,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 20,
+        "committed": false,
+        "quote": "Not at that price, and not right now."
+      },
+      {
+        "kind": "interview",
+        "week": 71,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 71,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 18,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 72,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 72,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 72,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 85,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 73,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 41,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 73,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 73,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 75,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 59,
+        "committed": null,
+        "quote": "I love it. Let me know when it launches."
+      },
+      {
+        "kind": "interview",
+        "week": 75,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 75,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 66,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 76,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 9,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 76,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 22,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 76,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 21,
+        "committed": false,
+        "quote": "Not at that price, and not right now."
+      },
+      {
+        "kind": "interview",
+        "week": 77,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 42,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 77,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 77,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 48,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 78,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 0,
+        "committed": true,
+        "quote": "Of course I would. I'm happy to support you."
+      },
+      {
+        "kind": "interview",
+        "week": 78,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 78,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 79,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 79,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 79,
+        "segment": 1,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 80,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 29,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 80,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 80,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 2,
+        "committed": null,
+        "quote": "Yeah, I'd totally use that."
+      },
+      {
+        "kind": "interview",
+        "week": 81,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Send me something in writing and I'll look."
+      },
+      {
+        "kind": "interview",
+        "week": 81,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 31,
+        "committed": false,
+        "quote": "Ask me again when it's finished."
+      },
+      {
+        "kind": "interview",
+        "week": 81,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 88,
+        "committed": false,
+        "quote": "I'd have to ask my partner, and honestly probably not."
+      },
+      {
+        "kind": "interview",
+        "week": 82,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 3,
+        "committed": false,
+        "quote": "I'd have to ask my partner, and honestly probably not."
+      },
+      {
+        "kind": "interview",
+        "week": 82,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 7,
+        "committed": false,
+        "quote": "Not at that price, and not right now."
+      },
+      {
+        "kind": "interview",
+        "week": 82,
+        "segment": 2,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Send me something in writing and I'll look."
+      },
+      {
+        "kind": "interview",
+        "week": 83,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 25,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 83,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 35,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 83,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 52,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 84,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 12,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 84,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "I don't have time for this."
+      },
+      {
+        "kind": "interview",
+        "week": 84,
+        "segment": 1,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 57,
+        "committed": null,
+        "quote": "Sure, why not. Sounds great."
+      },
+      {
+        "kind": "interview",
+        "week": 85,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 7,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 85,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 42,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 85,
+        "segment": 2,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 19,
+        "committed": null,
+        "quote": "Maybe. It depends on the price and how it works."
+      },
+      {
+        "kind": "interview",
+        "week": 87,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 87,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 87,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 78,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 87,
+        "segment": 2,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 88,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 88,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 28,
+        "committed": null,
+        "quote": "Interesting. I'll have to think about it."
+      },
+      {
+        "kind": "interview",
+        "week": 88,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 71,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 89,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 39,
+        "committed": null,
+        "quote": "Yeah, I'd totally use that."
+      },
+      {
+        "kind": "interview",
+        "week": 89,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "I could see that being useful for someone."
+      },
+      {
+        "kind": "interview",
+        "week": 89,
+        "segment": 0,
+        "question": "hypothetical",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Let's not do this on a call."
+      },
+      {
+        "kind": "interview",
+        "week": 90,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 90,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 29,
+        "committed": null,
+        "quote": "That's a great idea. You should definitely build it."
+      },
+      {
+        "kind": "interview",
+        "week": 90,
+        "segment": 0,
+        "question": "pitch",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 10,
+        "committed": null,
+        "quote": "Not sure it's for me, but good luck."
+      },
+      {
+        "kind": "interview",
+        "week": 92,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "Send me something in writing and I'll look."
+      },
+      {
+        "kind": "interview",
+        "week": 92,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 10,
+        "committed": false,
+        "quote": "Not at that price, and not right now."
+      },
+      {
+        "kind": "interview",
+        "week": 92,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 29,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 93,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 0,
+        "committed": false,
+        "quote": "Ask me again when it's finished."
+      },
+      {
+        "kind": "interview",
+        "week": 93,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 93,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 16,
+        "committed": false,
+        "quote": "Not at that price, and not right now."
+      },
+      {
+        "kind": "interview",
+        "week": 94,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 28,
+        "committed": false,
+        "quote": "I'd have to ask my partner, and honestly probably not."
+      },
+      {
+        "kind": "interview",
+        "week": 94,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "ended-early",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "I'm not committing to anything on a call."
+      },
+      {
+        "kind": "interview",
+        "week": 94,
+        "segment": 0,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 1,
+        "committed": false,
+        "quote": "I'd have to ask my partner, and honestly probably not."
+      },
+      {
+        "kind": "interview",
+        "week": 96,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 96,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 96,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 97,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 11,
+        "committed": false,
+        "quote": "I can't commit to paying for this yet."
+      },
+      {
+        "kind": "interview",
+        "week": 97,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 97,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 98,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 98,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 64,
+        "committed": null,
+        "quote": "I don't really keep track of how often."
+      },
+      {
+        "kind": "interview",
+        "week": 98,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 99,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 0,
+        "committed": null,
+        "quote": "It happened on Tuesday. I paid someone to sort it out and it cost real money."
+      },
+      {
+        "kind": "interview",
+        "week": 99,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 0,
+        "committed": null,
+        "quote": "I don't really keep track of how often."
+      },
+      {
+        "kind": "interview",
+        "week": 99,
+        "segment": 0,
+        "question": "past-behavior",
+        "customer": "stranger",
+        "outcome": "completed",
+        "tag": "fact",
+        "painReading": 0,
+        "committed": null,
+        "quote": "We keep a spreadsheet for it and it breaks every month."
+      },
+      {
+        "kind": "interview",
+        "week": 101,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 43,
+        "committed": null,
+        "quote": "Yeah, it can be annoying sometimes."
+      },
+      {
+        "kind": "interview",
+        "week": 101,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 101,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "fluff",
+        "painReading": 52,
+        "committed": null,
+        "quote": "Yeah, it can be annoying sometimes."
+      },
+      {
+        "kind": "interview",
+        "week": 102,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 102,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 102,
+        "segment": 1,
+        "question": "past-behavior",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      },
+      {
+        "kind": "interview",
+        "week": 103,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 83,
+        "committed": false,
+        "quote": "Maybe later. Let's see how it goes."
+      },
+      {
+        "kind": "interview",
+        "week": 103,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "friend",
+        "outcome": "completed",
+        "tag": "compliment",
+        "painReading": 96,
+        "committed": false,
+        "quote": "Ask me again when it's finished."
+      },
+      {
+        "kind": "interview",
+        "week": 103,
+        "segment": 1,
+        "question": "commitment",
+        "customer": "none",
+        "outcome": "no-response",
+        "tag": null,
+        "painReading": null,
+        "committed": null,
+        "quote": "No reply."
+      }
+    ]
   }
 }

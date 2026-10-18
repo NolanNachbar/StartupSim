@@ -199,7 +199,7 @@ describe("illegal actions", () => {
       ["unknown action", fresh(), { type: "bogus" }, "unknown-action"],
       ["missing type", fresh(), {}, "unknown-action"],
       ["not an object", fresh(), "wait", "unknown-action"],
-      ["not implemented", fresh(), { type: "interview" }, "not-implemented"],
+      ["not implemented", fresh(), { type: "buildTest" }, "not-implemented"],
       ["price off the ladder", fresh(), { type: "setPrice", priceCents: 1234 }, "invalid-price"],
       ["price is the current price", fresh(), { type: "setPrice", priceCents: 4900 }, "invalid-price"],
       ["fractional price", fresh(), { type: "setPrice", priceCents: 9900.5 }, "invalid-price"],
@@ -252,8 +252,8 @@ describe("terminal states and reserved actions", () => {
     expect(legalActions(ended.run)).toEqual([]);
   });
 
-  it("rejects the six reserved actions and never lists them", () => {
-    const reserved = ["interview", "buildTest", "chargeTest", "pickChannel", "hire", "doubleDown"] as const;
+  it("rejects the five reserved actions and never lists them", () => {
+    const reserved = ["buildTest", "chargeTest", "pickChannel", "hire", "doubleDown"] as const;
     const run = initialRun(3);
     for (const type of reserved) {
       const r = step(run, { type });
@@ -270,6 +270,7 @@ describe("terminal states and reserved actions", () => {
     expect(actions.filter((a) => a.type === "setPrice")).toHaveLength(PRICE_LADDER_CENTS.length - 1);
     expect(actions.filter((a) => a.type === "raiseMoney")).toHaveLength(1);
     expect(actions.filter((a) => a.type === "pivot")).toHaveLength(run.pub.segmentNames.length - 1);
+    expect(actions.filter((a) => a.type === "interview")).toHaveLength(run.pub.segmentNames.length * 4);
   });
 });
 

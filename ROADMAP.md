@@ -29,9 +29,9 @@ Eng review 2026-10-17 (docs/eng-review-2026-10-17.md). Decisions: D1 one file pe
 - [x] Checks: same seed gives an identical world (property test); a golden replay fixture (fixed seed and action list gives an expected end state); every sequence of legal actions never throws and never produces NaN, negative time or an out-of-order week; illegal actions return an error and leave state unchanged; non-interference: `view()` output contains no hidden-field keys and is identical for two worlds that differ only in hidden parameters but produced identical evidence; 1,000 random legal sequences
 
 ## M2. Interview system (depends on M1)
-- [ ] Customer archetypes and four question types
-- [ ] Signal quality model with debrief outputs (compliment, fluff, fact)
-- [ ] Checks: across 500 seeds, for each archetype separately, mean signal quality for past-behavior questions exceeds hypothetical by at least 0.15 on a 0 to 1 scale, and hypothetical exceeds pitch; commitment questions cut sample size; results are deterministic per seed; a monotonicity property: for a fixed customer, more specific questions never lower signal quality
+- [x] Customer archetypes and four question types
+- [x] Signal quality model with debrief outputs (compliment, fluff, fact)
+- [x] Checks: across 500 seeds, for each archetype separately, mean signal quality for past-behavior questions exceeds hypothetical by at least 0.15 on a 0 to 1 scale, and hypothetical exceeds pitch; commitment questions cut sample size; results are deterministic per seed; a monotonicity property: for a fixed customer, more specific questions never lower signal quality
 
 ## M3. Tests and evidence (depends on M2)
 - [ ] Hypothesis model with untested, weak and verified states

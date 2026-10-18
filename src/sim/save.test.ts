@@ -22,6 +22,19 @@ describe("save round trip", () => {
     }
   });
 
+  it("round trips runs that contain interviews", () => {
+    const actions = [
+      { type: "interview", segment: 0, questions: ["past-behavior", "commitment", "pitch"] },
+      { type: "wait" },
+      { type: "interview", segment: 1, questions: ["hypothetical", "hypothetical", "past-behavior"] },
+    ];
+    const loaded = fromSave({ simVersion: SIM_VERSION, seed: 21, actions });
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    expect(view(loaded.run).evidence).toHaveLength(6);
+    expect(toSave(loaded.run).actions).toEqual(actions);
+  });
+
   it("survives a JSON round trip", () => {
     const { run } = playFuzz(11, 25);
     const loaded = fromSave(JSON.parse(JSON.stringify(toSave(run))));
@@ -92,6 +105,9 @@ describe("fromSave errors", () => {
       { ...VALID, actions: [{ type: "setPrice", priceCents: Number.NaN }] },
       { ...VALID, actions: [{ type: "pivot", toSegment: "1" }] },
       { ...VALID, actions: [null] },
+      { ...VALID, actions: [{ type: "interview", segment: 0, questions: ["pitch", "pitch"] }] },
+      { ...VALID, actions: [{ type: "interview", segment: 0, questions: ["pitch", "pitch", "nope"] }] },
+      { ...VALID, actions: [{ type: "interview", segment: 0.5, questions: ["pitch", "pitch", "pitch"] }] },
     ];
     for (const input of bad) {
       const r = fromSave(input);
@@ -114,7 +130,7 @@ describe("fromSave errors", () => {
       actions: [{ type: "wait" }, { type: "setPrice", priceCents: 12_345 }, { type: "wait" }],
     });
     expect(second).toEqual({ ok: false, reason: "replay-failed", atAction: 1 });
-    const first = fromSave({ simVersion: SIM_VERSION, seed: 7, actions: [{ type: "interview" }] });
+    const first = fromSave({ simVersion: SIM_VERSION, seed: 7, actions: [{ type: "buildTest" }] });
     expect(first).toEqual({ ok: false, reason: "replay-failed", atAction: 0 });
   });
 

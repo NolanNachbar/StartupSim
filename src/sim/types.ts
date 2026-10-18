@@ -66,12 +66,32 @@ export interface PublicState {
   readonly segmentNames: readonly string[];
   readonly focusSegment: number;
   readonly log: readonly LogEntry[];
-  /** Reserved for interviews and tests (M2, M3). */
-  readonly evidence: readonly never[];
+  /** What the player has learned from conversations (interviews now, tests in M3). */
+  readonly evidence: readonly InterviewEvidence[];
+}
+
+export type QuestionType = "past-behavior" | "commitment" | "hypothetical" | "pitch";
+export type DebriefTag = "fact" | "fluff" | "compliment";
+
+/** One conversation (or attempted conversation). Never reveals the archetype, the true pain or the quality. */
+export interface InterviewEvidence {
+  readonly kind: "interview";
+  /** The week the round started. */
+  readonly week: number;
+  readonly segment: number;
+  readonly customer: "stranger" | "friend" | "none";
+  readonly question: QuestionType;
+  readonly outcome: "no-response" | "ended-early" | "completed";
+  /** The post-call debrief; null unless the conversation completed. */
+  readonly tag: DebriefTag | null;
+  /** How severe they said the problem is, 0 to 100, noisy; null unless completed. */
+  readonly painReading: number | null;
+  /** Only a completed commitment question. */
+  readonly committed: boolean | null;
+  readonly quote: string;
 }
 
 export type ReservedActionType =
-  | "interview"
   | "buildTest"
   | "chargeTest"
   | "pickChannel"
@@ -83,6 +103,7 @@ export type Action =
   | { readonly type: "setPrice"; readonly priceCents: Cents }
   | { readonly type: "raiseMoney" }
   | { readonly type: "pivot"; readonly toSegment: number }
+  | { readonly type: "interview"; readonly segment: number; readonly questions: readonly QuestionType[] }
   | { readonly type: ReservedActionType };
 
 export type IllegalReason =
@@ -91,6 +112,8 @@ export type IllegalReason =
   | "not-implemented"
   | "invalid-price"
   | "invalid-segment"
+  | "invalid-questions"
+  | "insufficient-cash"
   | "no-pivots-left"
   | "raise-limit";
 
