@@ -54,7 +54,7 @@ export function playValidator(seed: number, options: ValidatorOptions = {}): { r
   };
 
   // A founder prices for the kind of business: a coaching client or a gym member pays more than an app user.
-  const price = options.price ?? (options.business && (options.business.model === 1) ? 9900 : undefined);
+  const price = options.price ?? (options.business && (options.business.model === 1) ? 49900 : undefined);
   if (price !== undefined) act({ type: "setPrice", priceCents: price });
   act({ type: "raiseMoney" });
   const n = run.pub.segmentNames.length;

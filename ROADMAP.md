@@ -107,3 +107,9 @@ Selling skill (offers, objections, Hormozi-style), mindset layer (sunk cost, ego
 
 ## Later: real places (Nolan's idea, 2026-10-18)
 - [ ] Let the player build the company in a named real city (New York with Central Park, and others) instead of a generated one. The theme system (`Theme` in `src/ui/art/iso.ts`) is the seam: a place would be a hand-authored layout (landmarks, parks, water, grid angle) plus its own economics in the sim (rents, talent, customer density). Needs the sim to take a place parameter the way it takes an industry, a licensing check on any landmark art (no trademarks), and probably a map-authoring tool. Not started; decide after the generated themes are playtested.
+
+## Realism pass 2 (from the realism auditor, 2026-10-18)
+
+Ranked: founder pay and weekly hours budget; start capex and cash per kind (location needs far more than $30k); cost of goods
+and gross margin; visit and order revenue for places and products; per-kind churn and price ladders; hiring lag and ramp;
+realistic loan pricing; channel learning; refunds and taxes.

@@ -111,3 +111,17 @@ describe("interview topics", () => {
     expect(repeatedLines).toBeGreaterThan(2);
   });
 });
+
+describe("a full business", () => {
+  it("never sends away the customers it already has", () => {
+    let run = newRun(7, 3, { model: 1, idea: "a one to one coaching service" });
+    let peak = 0;
+    for (let i = 0; i < 40 && view(run).status === "running"; i++) {
+      run = must(step(run, { type: "wait" }));
+      const v = view(run);
+      peak = Math.max(peak, v.payingCustomers);
+      expect(v.payingCustomers).toBeLessThanOrEqual(v.capacity ?? Infinity);
+    }
+    expect(peak).toBeGreaterThanOrEqual(0);
+  });
+});

@@ -89,7 +89,7 @@ for letter in "lmn":
 # Compound buildings (see build_compound): several real kit pieces assembled into one complex, so the silhouettes are
 # not all boxes. "cx-" is a 3 x 3 cell lot; "cs-" is the same complex scaled down to 2 x 2.
 import random as _random
-COMPOUND_KINDS = {"court": 6, "podium": 8, "wing": 6, "solar": 6, "yard": 4, "towers": 4, "terrace": 4}
+COMPOUND_KINDS = {"court": 6, "podium": 8, "wing": 6, "solar": 6, "yard": 4, "towers": 4, "terrace": 4, "ring": 4, "wave": 4, "garden": 5}
 for kind, count in COMPOUND_KINDS.items():
     for i in range(1, count + 1):
         add_rotations(f"cx-{kind}-{i}", f"compound:{kind}:{i}", rots=(0, 90))
@@ -331,6 +331,41 @@ def build_compound(kind, n):
         for pos in ((-0.75, 0.55), (0.7, 0.25), (-0.05, -0.85)):
             s = r.uniform(0.75, 1.0)
             part(ch(TOWER_MODELS + SLENDER), (pos[0], pos[1], 0), r.choice((0, 90)), scale=(s, s, r.uniform(0.6, 1.4)))
+    elif kind == "ring":  # an octagonal ring of slabs around a green court, one taller block, like a campus
+        R = r.uniform(1.0, 1.15)
+        tall = r.randrange(8)
+        for k in range(8):
+            ang = k * 45.0
+            x, y = R * math.cos(math.radians(ang)), R * math.sin(math.radians(ang))
+            h = r.uniform(1.4, 2.0) if k == tall else r.uniform(0.7, 1.15)
+            part(ch(SLABS), (x, y, 0), ang + 90, scale=(0.85, 0.62, h))
+        part("road:road-square", (0, 0, 0.01), 0, scale=(1.4, 1.4, 1))
+        for _ in range(r.choice((3, 4, 5))):
+            part(ch(["sub:tree-large", "sub:tree-small"]), (r.uniform(-0.45, 0.45), r.uniform(-0.45, 0.45), 0), 0, scale=(2.0, 2.0, 2.0))
+    elif kind == "wave":  # a sweeping curve of narrow glass towers, rising in the middle
+        n = 7
+        for i in range(n):
+            t = i / (n - 1)
+            x = (t - 0.5) * 3.0
+            y = 0.7 * math.sin(t * math.pi) - 0.35
+            slope = math.degrees(math.atan2(0.7 * math.pi * math.cos(t * math.pi) / 3.0, 1.0))
+            h = 0.7 + 1.5 * math.sin(t * math.pi)
+            part(SKY(ch("abcde")), (x, y, 0), slope + r.choice((0, 0)), scale=(0.46, 0.8, h * 0.45))
+        part("road:road-square", (0, -0.1, 0.01), 0, scale=(3.0, 1.4, 1))
+    elif kind == "garden":  # a wide podium with a green roof: lawns and trees up on the roof
+        pw, pd, ph = part(ch(FLATS + ["com:building-j", "com:building-k"]), (0, 0, 0), ch((0, 90)), fit=(r.uniform(2.5, 2.9), r.uniform(2.0, 2.4), r.uniform(0.8, 1.2)))
+        grass = bpy.data.materials.new("roof-green")
+        grass.use_nodes = True
+        grass.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.20, 0.36, 0.14, 1.0)
+        grass.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.9
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, ph + 0.02))
+        lawn = bpy.context.object
+        lawn.scale = (pw * 0.86, pd * 0.86, 0.06)
+        lawn.data.materials.append(grass)
+        for _ in range(r.choice((4, 5, 6, 7))):
+            part(ch(["sub:tree-large", "sub:tree-small", "nat:tree_oak"]), (r.uniform(-pw * 0.38, pw * 0.38), r.uniform(-pd * 0.38, pd * 0.38), ph + 0.05), 0, scale=(1.3, 1.3, 1.3))
+        if r.random() < 0.6:
+            part(ch(MIDS), (r.choice((-1, 1)) * pw * 0.28, 0, ph), ch((0, 90)), scale=(0.7, 0.7, r.uniform(0.9, 1.5)))
     elif kind == "terrace":  # three slabs stepping up
         zs = sorted([r.uniform(0.6, 1.0), r.uniform(1.0, 1.5), r.uniform(1.5, 2.1)])
         for i, y in enumerate((0.95, 0.0, -0.95)):

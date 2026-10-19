@@ -87,7 +87,11 @@ export function realisticWeek(run: InternalRun): WeekResult {
         buyPct,
         draw: randInt(run.seed, 1, 100_000_000 * ACQUISITION_DIVISOR, "acq", pub.week),
       });
-      customers[target] = (customers[target] ?? 0) + acquired;
+      // A full business stops selling; it never sends away the customers it already has.
+      const room = Math.max(0, capacityOf(model, pub.team.ops) - customers.reduce((a, b) => a + b, 0));
+      const taken = Math.min(acquired, room);
+      if (taken < acquired) notes.push(model === "location" ? "The place is full: new people are being turned away." : "You are at capacity: new customers go on a waiting list.");
+      customers[target] = (customers[target] ?? 0) + taken;
     }
   }
 
@@ -96,27 +100,12 @@ export function realisticWeek(run: InternalRun): WeekResult {
   secret.segments.forEach((seg, i) => {
     const here = customers[i] ?? 0;
     if (here === 0) return;
-    const churned = churnedCustomers(here, effective, randInt(run.seed, 1, 10_000, "churn", pub.week, i));
+    // A better product keeps people even when it is already finished: quality cuts churn by up to a third.
+    const raw = churnedCustomers(here, effective, randInt(run.seed, 1, 10_000, "churn", pub.week, i));
+    const churned = raw - Math.floor((raw * quality) / 300);
     const ceiling = marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(pub.priceCents, wtpBoost(seg.willingnessToPayCents))));
     customers[i] = Math.max(0, Math.min(ceiling, here - churned));
   });
-
-  // The business can only serve so many people. Beyond that some walk away.
-  const total = customers.reduce((a, b) => a + b, 0);
-  const capacity = capacityOf(model, pub.team.ops);
-  if (total > capacity) {
-    let lose = Math.ceil((total - capacity) / 3);
-    notes.push(model === "location" ? "The place is full: people are being turned away." : "You are at capacity: some customers are leaving because you cannot serve them all.");
-    while (lose > 0) {
-      let biggest = 0;
-      customers.forEach((c, i) => {
-        if (c > (customers[biggest] ?? 0)) biggest = i;
-      });
-      if ((customers[biggest] ?? 0) === 0) break;
-      customers[biggest] = (customers[biggest] ?? 0) - 1;
-      lose -= 1;
-    }
-  }
 
   return { progress, quality, marketingSpend, rndSpend, customers, notes };
 }
