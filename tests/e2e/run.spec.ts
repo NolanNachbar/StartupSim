@@ -31,7 +31,7 @@ for (const colorScheme of ["light"] as const) {
 
       await page.getByRole("button", { name: "Start a run" }).click();
       await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeVisible();
-      await expect(page.getByRole("radio")).toHaveCount(6);
+      await expect(page.getByRole("radio")).toHaveCount(14);
       await auditScreen(page, "setup-industry", info, colorScheme, { panelOnWide: false });
       await page.getByRole("button", { name: "Next" }).click();
       await page.getByRole("button", { name: "Next" }).click();

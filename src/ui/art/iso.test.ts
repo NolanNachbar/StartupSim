@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { INDUSTRY_LIST } from "../../sim";
 import manifest from "../../../public/art/city/manifest.json";
 import { buildCity, buildRoute, DIR, project, roadMask, roadSprite, gridFor, spreadPlates, themeFor, unproject, vehicleCell, CAR_SPRITES, type Cell, type Theme } from "./iso";
 
@@ -255,9 +256,11 @@ describe("the city", () => {
 const THEMES: readonly Theme[] = ["rural", "suburban", "urban", "downtown"];
 describe("themes", () => {
   it("gives every industry a setting, and the unknown a city", () => {
-    expect([0, 1, 2, 3, 4, 5].map(themeFor)).toEqual(["rural", "urban", "downtown", "suburban", "downtown", "suburban"]);
+    expect(INDUSTRY_LIST.map((_, i) => themeFor(i)).slice(0, 6)).toEqual(["rural", "urban", "downtown", "suburban", "downtown", "suburban"]);
+    expect(INDUSTRY_LIST.length).toBe(14);
+    for (let i = 0; i < INDUSTRY_LIST.length; i++) expect(["rural", "suburban", "urban", "downtown"]).toContain(themeFor(i));
     expect(themeFor(null)).toBe("urban");
-    expect(new Set([0, 1, 2, 3, 4, 5].map(themeFor)).size).toBe(4);
+    expect(new Set(INDUSTRY_LIST.map((_, i) => themeFor(i))).size).toBe(4);
   });
 
   for (const theme of THEMES) {

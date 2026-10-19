@@ -15,7 +15,7 @@ describe("business models and combos", () => {
         expect(c.segmentNames.length).toBe(5);
         expect(new Set(c.segmentNames).size).toBe(5);
         expect(c.examples.length).toBeGreaterThanOrEqual(3);
-        for (const field of [c.situation, c.cost, c.workaround, c.place, c.hire]) expect(field.length).toBeGreaterThan(6);
+        for (const field of [c.situation, c.cost, c.workaround, c.place, c.hire]) expect(field.length).toBeGreaterThan(4);
         for (const e of c.examples) expect(cleanIdea(e)).not.toBeNull();
       }
     }

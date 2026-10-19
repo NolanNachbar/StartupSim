@@ -164,8 +164,8 @@ export interface City {
 /** What kind of place the company is built in. Each industry has one, so the setting matches the business. */
 export type Theme = "rural" | "suburban" | "urban" | "downtown";
 export const THEME_LABEL: Record<Theme, string> = { rural: "Rural", suburban: "Suburban", urban: "Urban", downtown: "Downtown" };
-/** In the order of INDUSTRIES in the sim: local services, consumer apps, business software, health, fintech, creators. */
-const INDUSTRY_THEME: readonly Theme[] = ["rural", "urban", "downtown", "suburban", "downtown", "suburban"];
+/** In the order of INDUSTRIES in the sim: local services, consumer apps, business software, health, fintech, creators, food, retail, travel, real estate, pets, entertainment, transport, beauty. */
+const INDUSTRY_THEME: readonly Theme[] = ["rural", "urban", "downtown", "suburban", "downtown", "suburban", "urban", "urban", "downtown", "suburban", "suburban", "urban", "rural", "urban"];
 export const themeFor = (industry: number | null | undefined): Theme => (industry === null || industry === undefined ? "urban" : (INDUSTRY_THEME[industry] ?? "urban"));
 /** How many paint tints a building can take (see IsoWorld). */
 export const TINT_COUNT = 10;
