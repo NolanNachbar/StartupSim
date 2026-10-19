@@ -60,6 +60,8 @@ export const challengeIndustry = signal<number | null>(null);
 export const company = signal({ name: "", industry: 0 });
 /** The setup form. */
 export const draft = signal({ name: "", industry: 0 });
+/** Which of the two setup pages is showing: 1 industry, 2 name. */
+export const setupStep = signal<1 | 2>(1);
 export const shareNotice = signal<string | null>(null);
 export const notes = signal<Note[]>([]);
 export const flights = signal<Flight[]>([]);
@@ -188,6 +190,7 @@ export function go(next: Screen): void {
 export function openSetup(): void {
   const seed = challengeSeed.value ?? baseSeed.value;
   draft.value = { name: suggestName(seed), industry: challengeIndustry.value ?? draft.value.industry };
+  setupStep.value = 1;
   go({ name: "setup" });
 }
 
@@ -301,7 +304,10 @@ export function back(): void {
   switch (s.name) {
     case "form": go({ name: "actions" }); break;
     case "actions": go({ name: "week" }); break;
-    case "setup": go({ name: "board" }); break;
+    case "setup":
+      if (setupStep.value === 2 && challengeIndustry.value === null) setupStep.value = 1;
+      else go({ name: "board" });
+      break;
     case "result": go({ name: "week" }); break;
     case "menu": go(s.from); break;
     case "notes": go(s.from); break;

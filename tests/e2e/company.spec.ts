@@ -3,7 +3,13 @@ import { expect, test } from "@playwright/test";
 test("you name your company and choose an industry, and both stay with the run", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
-  await expect(page.getByRole("heading", { name: "Found your company" })).toBeVisible();
+  // Step 1 is the industry; the name comes on the next page.
+  await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeVisible();
+  await expect(page.getByLabel("Company name")).toHaveCount(0);
+  await page.getByRole("radio", { name: /Business software/ }).check();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { name: "Name your company" })).toBeVisible();
+  await expect(page.getByText(/Industry: Business software/)).toBeVisible();
 
   // A name is suggested; the player can ask for another or type their own.
   const name = page.getByLabel("Company name");
@@ -12,8 +18,6 @@ test("you name your company and choose an industry, and both stay with the run",
   await page.getByRole("button", { name: "Suggest another name" }).click();
   await expect(name).not.toHaveValue(suggested);
   await name.fill("  Pretzel   Robotics <b> ");
-
-  await page.getByRole("radio", { name: /Business software/ }).check();
   await page.getByRole("button", { name: "Start the company" }).click();
 
   // The plate shows the tidied name and the market; the customer groups come from the market.
@@ -31,6 +35,7 @@ test("you name your company and choose an industry, and both stay with the run",
 test("an empty name falls back to a suggested one", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByLabel("Company name").fill("   ");
   await page.getByRole("button", { name: "Start the company" }).click();
   await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
@@ -43,8 +48,9 @@ test("the report names the company and the market", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
-  await page.getByLabel("Company name").fill("Kiln Labs");
   await page.getByRole("radio", { name: /Consumer apps/ }).check();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByLabel("Company name").fill("Kiln Labs");
   await page.getByRole("button", { name: "Start the company" }).click();
   for (let i = 0; i < 160 && (await page.getByRole("article").count()) === 0; i++) {
     const wait = page.getByRole("button", { name: "Wait a week" });
@@ -65,8 +71,9 @@ test("start over wipes everything, and only after you confirm", async ({ page })
   });
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
-  await page.getByLabel("Company name").fill("Pretzel Robotics");
   await page.getByRole("radio", { name: /Money and fintech/ }).check();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByLabel("Company name").fill("Pretzel Robotics");
   await page.getByRole("button", { name: "Start the company" }).click();
   await expect(page.locator(".plate__company")).toHaveText("Money and fintech");
   await expect(page.locator(".way--hq")).toContainText("Pretzel Robotics");
@@ -95,18 +102,20 @@ test("start over wipes everything, and only after you confirm", async ({ page })
 
   // And the next run begins at setup, with nothing carried over.
   await page.getByRole("button", { name: "Start a run" }).click();
-  await expect(page.getByRole("heading", { name: "Found your company" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeVisible();
+  await page.getByRole("button", { name: "Next" }).click();
   await expect(page.getByLabel("Company name")).not.toHaveValue("Pretzel Robotics");
 });
 
 test("backing out of setup keeps the saved run", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByLabel("Company name").fill("Pretzel Robotics");
   await page.getByRole("button", { name: "Start the company" }).click();
   await page.reload();
   await page.getByRole("button", { name: "Start a new run" }).click();
-  await expect(page.getByRole("heading", { name: "Found your company" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeVisible();
   await page.getByRole("button", { name: "Back" }).click();
   await expect(page.getByRole("button", { name: "Continue run" })).toBeVisible();
   await page.getByRole("button", { name: "Continue run" }).click();
@@ -116,6 +125,7 @@ test("backing out of setup keeps the saved run", async ({ page }) => {
 test("starting a new company warns that it replaces the saved run", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByLabel("Company name").fill("Pretzel Robotics");
   await page.getByRole("button", { name: "Start the company" }).click();
   await page.reload();
@@ -126,6 +136,7 @@ test("starting a new company warns that it replaces the saved run", async ({ pag
 test("the browser Back button steps back through the game, and from a run it leaves the run safe on the front door", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   await page.getByRole("button", { name: "Choose an action" }).click();
   await expect(page.getByRole("heading", { name: "Choose an action" })).toBeVisible();
@@ -143,6 +154,7 @@ test("start over also drops a shared-run link, so it does not come back on reloa
   await page.goto("/?play=77&industry=2");
   await expect(page.getByText("A shared run is waiting")).toBeVisible();
   await page.getByRole("button", { name: "Start the shared run" }).click();
+  await expect(page.getByRole("heading", { name: "Name your company" })).toBeVisible(); // the industry came with the link
   await page.getByRole("button", { name: "Start the company" }).click();
   await page.getByRole("button", { name: "Menu" }).click();
   await page.getByRole("button", { name: "Start over from scratch" }).click();
@@ -156,6 +168,6 @@ test("start over also drops a shared-run link, so it does not come back on reloa
 test("a shared link with a market that does not exist leaves the choice to you", async ({ page }) => {
   await page.goto("/?play=3&industry=99");
   await page.getByRole("button", { name: "Start the shared run" }).click();
-  await expect(page.getByText("Choose your market.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeVisible(); // a bad industry leaves the choice to the player
   await expect(page.getByRole("radio", { name: /Business software/ })).toBeEnabled();
 });

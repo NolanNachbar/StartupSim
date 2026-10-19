@@ -197,6 +197,7 @@
 .choice__hint { color: var(--ink-soft); }
 
 /* The name field on its own row, with the suggestion button under it. */
+.step { margin: 0; color: var(--ink-soft); font-weight: 700; }
 .namebar { display: grid; gap: var(--s-2); justify-items: start; }
 .namebar .select { justify-self: stretch; }
 
