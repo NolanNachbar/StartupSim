@@ -77,6 +77,21 @@
       "level": 0
     },
     "hires": 0,
+    "team": {
+      "builder": 0,
+      "seller": 0,
+      "ops": 0
+    },
+    "rndLevel": 0,
+    "qualityPct": 0,
+    "customersBySegment": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "capacity": null,
     "receivables": [],
     "offer": null,
     "loan": null,

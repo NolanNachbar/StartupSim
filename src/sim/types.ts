@@ -78,6 +78,14 @@ export interface Ledger {
 export interface Marketing {
   readonly channel: number | null;
   readonly level: number;
+  /** The customer group the marketing is aimed at (null: the group the company is focused on). Only with a chosen business. */
+  readonly target?: number | null;
+}
+
+export interface Team {
+  readonly builder: number;
+  readonly seller: number;
+  readonly ops: number;
 }
 
 export type RunStatus = "running" | "crashed" | "landed";
@@ -117,6 +125,16 @@ export interface PublicState {
   readonly raiseWeeks: number;
   readonly marketing: Marketing;
   readonly hires: number;
+  /** The team by role (the roles of a chosen business: someone who builds, someone who sells, someone who serves customers). */
+  readonly team: Team;
+  /** Weekly R&D budget level, 0 for none. */
+  readonly rndLevel: number;
+  /** What R&D has built up, 0 to 100: a better product that converts and keeps more customers. */
+  readonly qualityPct: number;
+  /** Paying customers in each group. Their sum is `payingCustomers`. */
+  readonly customersBySegment: readonly number[];
+  /** The most customers the business can serve now, or null with no limit (the original worlds). */
+  readonly capacity: number | null;
   /** Revenue earned but not yet paid. */
   readonly receivables: readonly Receivable[];
   readonly offer: LoanOffer | null;
@@ -137,6 +155,8 @@ export type DebriefTag = "fact" | "fluff" | "compliment";
 /** One conversation (or attempted conversation). Never reveals the archetype, the true pain or the quality. */
 export interface InterviewEvidence {
   readonly kind: "interview";
+  /** What the question was about (see QUESTION_BANK); absent for older runs. */
+  readonly topic?: string;
   /** The week the round started. */
   readonly week: number;
   readonly segment: number;
@@ -204,12 +224,13 @@ export type Action =
   | { readonly type: "setPrice"; readonly priceCents: Cents }
   | { readonly type: "raiseMoney" }
   | { readonly type: "pivot"; readonly toSegment: number }
-  | { readonly type: "interview"; readonly segment: number; readonly questions: readonly QuestionType[] }
+  | { readonly type: "interview"; readonly segment: number; readonly questions: readonly QuestionType[]; readonly topics?: readonly string[] }
   | { readonly type: "buildTest"; readonly kind: BuildKind }
   | { readonly type: "pickChannel"; readonly segment: number; readonly channel: number }
   | { readonly type: "chargeTest"; readonly segment: number; readonly channel: number }
-  | { readonly type: "setMarketing"; readonly channel: number | null; readonly level: number }
-  | { readonly type: "hire" }
+  | { readonly type: "setMarketing"; readonly channel: number | null; readonly level: number; readonly target?: number | null }
+  | { readonly type: "hire"; readonly role?: import("./realism").Role }
+  | { readonly type: "setRnd"; readonly level: number }
   | { readonly type: "respondOffer"; readonly accept: boolean }
   | { readonly type: ReservedActionType };
 
@@ -226,6 +247,9 @@ export type IllegalReason =
   | "nothing-to-sell"
   | "invalid-level"
   | "hire-limit"
+  | "invalid-role"
+  | "role-limit"
+  | "invalid-target"
   | "no-offer"
   | "investors-want-proof"
   | "insufficient-cash"

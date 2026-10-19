@@ -6,7 +6,8 @@
 //
 // A tick: marketing wins customers, churn takes some, the market ceiling caps them, revenue accrues,
 // late payers delay some cash, costs and loan repayments go out, the week advances, then end checks.
-import { hasKnownType, isBuildKind, isQuestionTriple, PRICE_LADDER_CENTS, RESERVED_ACTION_TYPES } from "./actions";
+import { hasKnownType, isBuildKind, isQuestionTriple, PRICE_LADDER_CENTS, RESERVED_ACTION_TYPES, topicsMatch } from "./actions";
+import { MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
@@ -80,6 +81,7 @@ function canonical(action: Action): Action {
         type: "interview",
         segment: action.segment,
         questions: Object.freeze([...action.questions]),
+        ...(action.topics ? { topics: Object.freeze([...action.topics]) } : {}),
       });
     case "buildTest":
       return Object.freeze({ type: "buildTest", kind: action.kind });
@@ -88,9 +90,11 @@ function canonical(action: Action): Action {
     case "chargeTest":
       return Object.freeze({ type: "chargeTest", segment: action.segment, channel: action.channel });
     case "setMarketing":
-      return Object.freeze({ type: "setMarketing", channel: action.channel, level: action.level });
+      return Object.freeze({ type: "setMarketing", channel: action.channel, level: action.level, ...(action.target !== undefined ? { target: action.target } : {}) });
     case "hire":
-      return Object.freeze({ type: "hire" });
+      return Object.freeze({ type: "hire", ...(action.role ? { role: action.role } : {}) });
+    case "setRnd":
+      return Object.freeze({ type: "setRnd", level: action.level });
     case "respondOffer":
       return Object.freeze({ type: "respondOffer", accept: action.accept });
     default:
@@ -109,11 +113,14 @@ function tick(run: InternalRun): InternalRun {
   const segment = secret.segments[pub.focusSegment];
   if (!segment) throw new RangeError(`focus segment ${pub.focusSegment} does not exist`);
 
-  // Marketing: the budget is spent, and paid leads turn into customers.
+  // A chosen business plays by the fuller rules: a team, R&D, capacity and a marketing target (see realism.ts).
+  const fuller = secret.business ? realisticWeek(run) : null;
   const channel = pub.marketing.channel === null ? undefined : secret.channels[pub.marketing.channel];
-  const marketingSpend = channel ? (BUDGET_LEVELS_CENTS[pub.marketing.level] ?? 0) : 0;
+  const marketingSpend = fuller ? fuller.marketingSpend : channel ? (BUDGET_LEVELS_CENTS[pub.marketing.level] ?? 0) : 0;
+  const rndSpend = fuller ? fuller.rndSpend : 0;
+  // Marketing: the budget is spent, and paid leads turn into customers.
   let acquired = 0;
-  if (channel && marketingSpend > 0) {
+  if (!fuller && channel && marketingSpend > 0) {
     const credibility = Math.max(CREDIBILITY_FLOOR_PCT, pub.productProgressPct);
     const buyPct = Math.floor((conversionPct(priceRatioPct(pub.priceCents, segment.willingnessToPayCents)) * credibility) / 100);
     acquired = acquiredCustomers({
@@ -133,7 +140,7 @@ function tick(run: InternalRun): InternalRun {
     weatherPctAt(secret, pub.week),
     conversionPct(priceRatioPct(pub.priceCents, segment.willingnessToPayCents)),
   );
-  const payingCustomers = Math.min(ceiling, withNew - churned);
+  const payingCustomers = fuller ? fuller.customers.reduce((a, b) => a + b, 0) : Math.min(ceiling, withNew - churned);
 
   // Revenue accrues; during a late-payer window part of it arrives weeks later.
   const weeklyRevenueCents = weeklyRevenue(payingCustomers, pub.priceCents);
@@ -148,9 +155,9 @@ function tick(run: InternalRun): InternalRun {
   const repayment = pub.loan ? pub.loan.weeklyRepaymentCents : 0;
   const loan = pub.loan && pub.loan.weeksLeft > 1 ? { ...pub.loan, weeksLeft: pub.loan.weeksLeft - 1 } : null;
 
-  const cashCents = pub.cashCents + (weeklyRevenueCents - late) + collected - pub.weeklyBurnCents - marketingSpend - repayment;
+  const cashCents = pub.cashCents + (weeklyRevenueCents - late) + collected - pub.weeklyBurnCents - marketingSpend - rndSpend - repayment;
   const profitableStreakWeeks =
-    weeklyRevenueCents >= pub.weeklyBurnCents + marketingSpend ? pub.profitableStreakWeeks + 1 : 0;
+    weeklyRevenueCents >= pub.weeklyBurnCents + marketingSpend + rndSpend ? pub.profitableStreakWeeks + 1 : 0;
 
   let status: RunStatus = "running";
   let endReason: EndReason | null = null;
@@ -175,6 +182,7 @@ function tick(run: InternalRun): InternalRun {
     log = [...log, { week, text }];
   };
   if (pub.loan && !loan) note("The loan is paid off.");
+  for (const n of fuller?.notes ?? []) note(n);
 
   // A cash offer appears once, when the runway is nearly gone, and lapses after a few weeks.
   let offer: LoanOffer | null = pub.offer;
@@ -204,13 +212,14 @@ function tick(run: InternalRun): InternalRun {
       endReason,
       cashCents,
       payingCustomers,
+      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality } : {}),
       weeklyRevenueCents,
       profitableStreakWeeks,
       pivotsRemaining: runway,
       ledger: {
         ...pub.ledger,
         revenueCents: pub.ledger.revenueCents + weeklyRevenueCents,
-        marketingCents: pub.ledger.marketingCents + marketingSpend,
+        marketingCents: pub.ledger.marketingCents + marketingSpend + rndSpend,
         payrollCents: pub.ledger.payrollCents + pub.hires * HIRE_WEEKLY_CENTS,
       },
       receivables,
@@ -277,7 +286,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       if (!Number.isInteger(segment) || segment < 0 || segment >= run.pub.segmentNames.length) {
         return fail("invalid-segment");
       }
-      if (!isQuestionTriple(action.questions)) return fail("invalid-questions");
+      if (!isQuestionTriple(action.questions) || !topicsMatch(action.questions, action.topics)) return fail("invalid-questions");
       if (run.pub.cashCents < INTERVIEW_ROUND_CASH_CENTS) return fail("insufficient-cash");
       const round = runInterviewRound({
         secret: run.secret,
@@ -286,6 +295,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         week: run.pub.week,
         segment,
         questions: action.questions,
+        ...(action.topics ? { topics: action.topics } : {}),
         priceCents: run.pub.priceCents,
       });
       const answered = round.filter((e) => e.outcome === "completed").length;
@@ -372,10 +382,39 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       if (channel !== null && (!Number.isInteger(channel) || channel < 0 || channel >= run.pub.channels.length)) {
         return fail("invalid-channel");
       }
+      if (run.secret.business) {
+        const target = action.target ?? null;
+        if (target !== null && (!Number.isInteger(target) || target < 0 || target >= run.pub.segmentNames.length)) return fail("invalid-target");
+        return ok(recorded(withPub(run, { marketing: { channel, level, target } }), action));
+      }
       return ok(recorded(withPub(run, { marketing: { channel, level } }), action));
     }
 
     case "hire": {
+      if (run.secret.business) {
+        const role = action.role;
+        if (!role || !(ROLES as readonly string[]).includes(role)) return fail("invalid-role");
+        if (run.pub.hires >= MAX_TEAM) return fail("hire-limit");
+        if (run.pub.team[role] >= ROLE_CAP) return fail("role-limit");
+        const salary = run.pub.weeklyBurnCents + HIRE_WEEKLY_CENTS;
+        if (run.pub.cashCents < salary) return fail("insufficient-cash");
+        // Finding the right person takes a week of the founder's time.
+        const hired = advance(run, 1);
+        if (hired.pub.status !== "running") return ok(recorded(hired, action));
+        const team = { ...hired.pub.team, [role]: hired.pub.team[role] + 1 };
+        return ok(
+          recorded(
+            withPub(hired, {
+              hires: hired.pub.hires + 1,
+              team,
+              weeklyBurnCents: hired.pub.weeklyBurnCents + HIRE_WEEKLY_CENTS,
+              capacity: capacityOf(hired.secret.business?.model.id ?? "software", team.ops),
+              log: withLog(hired.pub, `Hired a ${role === "builder" ? "builder" : role === "seller" ? "salesperson" : "operations person"}.`),
+            }),
+            action,
+          ),
+        );
+      }
       if (run.pub.hires >= MAX_HIRES) return fail("hire-limit");
       const burn = run.pub.weeklyBurnCents + HIRE_WEEKLY_CENTS;
       if (run.pub.cashCents < burn) return fail("insufficient-cash");
@@ -385,6 +424,12 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
           action,
         ),
       );
+    }
+
+    case "setRnd": {
+      if (!run.secret.business) return fail("not-implemented");
+      if (!Number.isInteger(action.level) || action.level < 0 || action.level >= RND_LEVELS_CENTS.length) return fail("invalid-level");
+      return ok(recorded(withPub(run, { rndLevel: action.level }), action));
     }
 
     case "respondOffer": {
@@ -425,6 +470,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
             productProgressPct: Math.floor(after.pub.productProgressPct / 2),
             // A pivot is a fresh start with a new customer group: nothing carries over from the old one.
             payingCustomers: 0,
+            customersBySegment: after.pub.customersBySegment.map(() => 0),
             weeklyRevenueCents: 0,
             profitableStreakWeeks: 0,
             log: withLog(after.pub, `Pivoted to ${after.pub.segmentNames[to] ?? "a new segment"}.`),

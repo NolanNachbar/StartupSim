@@ -8,12 +8,36 @@ import {
   MAX_RAISES,
 } from "./runway";
 import type { InternalRun } from "./state";
+import { MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP } from "./realism";
 import type { Action, BuildKind, QuestionType, ReservedActionType } from "./types";
 
 /** Monthly prices the player can choose, in cents. */
 export const PRICE_LADDER_CENTS: readonly number[] = [900, 1900, 4900, 9900, 19900, 49900, 99900];
 
 export const QUESTION_TYPES: readonly QuestionType[] = ["past-behavior", "commitment", "hypothetical", "pitch"];
+
+/** The questions a founder can ask: each is about a different thing and carries the signal of its type. */
+export const QUESTION_BANK: readonly { readonly topic: string; readonly type: QuestionType }[] = [
+  { topic: "last-time", type: "past-behavior" },
+  { topic: "cost", type: "past-behavior" },
+  { topic: "tried", type: "past-behavior" },
+  { topic: "who", type: "past-behavior" },
+  { topic: "pay-today", type: "commitment" },
+  { topic: "pre-order", type: "commitment" },
+  { topic: "deposit", type: "commitment" },
+  { topic: "would-use", type: "hypothetical" },
+  { topic: "useful", type: "hypothetical" },
+  { topic: "switch", type: "hypothetical" },
+  { topic: "pitch", type: "pitch" },
+  { topic: "feedback", type: "pitch" },
+];
+
+/** Topics are optional; when given there must be three, each a known topic of the question type at that position. */
+export function topicsMatch(questions: readonly QuestionType[], topics: unknown): boolean {
+  if (topics === undefined) return true;
+  if (!Array.isArray(topics) || topics.length !== 3) return false;
+  return topics.every((t, i) => QUESTION_BANK.some((b) => b.topic === t && b.type === questions[i]));
+}
 
 /** Exactly three known question types. */
 export function isQuestionTriple(x: unknown): x is readonly QuestionType[] {
@@ -37,6 +61,7 @@ const KNOWN_TYPES: ReadonlySet<string> = new Set([
   "chargeTest",
   "setMarketing",
   "hire",
+  "setRnd",
   "respondOffer",
   ...RESERVED_ACTION_TYPES,
 ]);
@@ -62,13 +87,18 @@ export function isActionShape(x: unknown): x is Action {
     return Number.isInteger(segment) && Number.isInteger(channel);
   }
   if (x.type === "setMarketing") {
-    const { channel, level } = x as { channel?: unknown; level?: unknown };
-    return (channel === null || Number.isInteger(channel)) && Number.isInteger(level);
+    const { channel, level, target } = x as { channel?: unknown; level?: unknown; target?: unknown };
+    return (channel === null || Number.isInteger(channel)) && Number.isInteger(level) && (target === undefined || target === null || Number.isInteger(target));
   }
+  if (x.type === "hire") {
+    const { role } = x as { role?: unknown };
+    return role === undefined || (typeof role === "string" && (ROLES as readonly string[]).includes(role));
+  }
+  if (x.type === "setRnd") return Number.isInteger((x as { level?: unknown }).level);
   if (x.type === "respondOffer") return typeof (x as { accept?: unknown }).accept === "boolean";
   if (x.type === "interview") {
-    const { segment, questions } = x as { segment?: unknown; questions?: unknown };
-    return Number.isInteger(segment) && isQuestionTriple(questions);
+    const { segment, questions, topics } = x as { segment?: unknown; questions?: unknown; topics?: unknown };
+    return Number.isInteger(segment) && isQuestionTriple(questions) && topicsMatch(questions, topics);
   }
   return true;
 }
@@ -112,7 +142,12 @@ export function legalActions(run: InternalRun): readonly Action[] {
     }
   }
   if (pub.marketing.level !== 0) actions.push({ type: "setMarketing", channel: null, level: 0 });
-  if (pub.hires < MAX_HIRES && pub.cashCents >= pub.weeklyBurnCents + HIRE_WEEKLY_CENTS) actions.push({ type: "hire" });
+  if (run.secret.business) {
+    if (pub.hires < MAX_TEAM && pub.cashCents >= pub.weeklyBurnCents + HIRE_WEEKLY_CENTS) {
+      for (const role of ROLES) if (pub.team[role] < ROLE_CAP) actions.push({ type: "hire", role });
+    }
+    for (let level = 0; level < RND_LEVELS_CENTS.length; level++) if (level !== pub.rndLevel) actions.push({ type: "setRnd", level });
+  } else if (pub.hires < MAX_HIRES && pub.cashCents >= pub.weeklyBurnCents + HIRE_WEEKLY_CENTS) actions.push({ type: "hire" });
   if (pub.offer) {
     actions.push({ type: "respondOffer", accept: true });
     actions.push({ type: "respondOffer", accept: false });

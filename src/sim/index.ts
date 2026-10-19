@@ -5,7 +5,8 @@ import { legalActions as legalActionsInternal } from "./actions";
 import { step as stepInternal } from "./reducer";
 import { fromSave as fromSaveInternal, SIM_VERSION, toSave as toSaveInternal } from "./save";
 import { initialRun, type InternalRun } from "./state";
-import { PRICE_LADDER_CENTS, QUESTION_TYPES } from "./actions";
+import { PRICE_LADDER_CENTS, QUESTION_BANK, QUESTION_TYPES } from "./actions";
+import { BUILDER_PROGRESS_PCT, MAX_TEAM, RND_GAIN, RND_LEVELS_CENTS, ROLES, ROLE_CAP, SELLER_OUTREACH_LEADS } from "./realism";
 import {
   BUDGET_LEVELS_CENTS,
   BUILD_TABLE,
@@ -60,6 +61,16 @@ export { SIM_VERSION };
 export const CATALOG = {
   priceLadderCents: PRICE_LADDER_CENTS,
   questionTypes: QUESTION_TYPES,
+  /** The questions a founder can ask: a topic, and the kind of question it is. */
+  questionBank: QUESTION_BANK,
+  /** The team roles, how many of each, and how many in all. */
+  roles: ROLES,
+  roleCap: ROLE_CAP,
+  maxTeam: MAX_TEAM,
+  builderProgressPct: BUILDER_PROGRESS_PCT,
+  sellerOutreachLeads: SELLER_OUTREACH_LEADS,
+  rndLevelsCents: RND_LEVELS_CENTS,
+  rndGain: RND_GAIN,
   builds: BUILD_TABLE,
   interviewCashCents: INTERVIEW_ROUND_CASH_CENTS,
   channelTestBudgetCents: CHANNEL_TEST_BUDGET_CENTS,
