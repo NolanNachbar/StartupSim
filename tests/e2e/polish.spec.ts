@@ -89,6 +89,74 @@ test.describe("performance budget", () => {
   });
 });
 
+test.describe("city art budget", () => {
+  test("a painted front door and a painted week screen together stay under 1.5 MB", async ({ page, context, browserName }) => {
+    test.skip(browserName !== "chromium", "needs the Chromium DevTools protocol");
+    test.setTimeout(60_000);
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Network.enable");
+    let bytes = 0;
+    let files = 0;
+    cdp.on("Network.loadingFinished", (e: { encodedDataLength: number }) => {
+      bytes += e.encodedDataLength;
+      files += 1;
+    });
+    // A fixed seed, so the measurement means the same thing every time. Wait until the city has actually painted,
+    // because the sprites are requested after the first render.
+    await page.goto("/?seed=21");
+    await expect(page.locator(".world__canvas--ready")).toBeAttached({ timeout: 20_000 });
+    const front = bytes;
+    expect(front, `front door: ${files} files`).toBeLessThan(1_500_000);
+    await page.getByRole("button", { name: "Start a run" }).click();
+    await page.getByRole("radio", { name: /Health and wellness/ }).check(); // the suburban map, the heaviest
+    await page.getByRole("button", { name: "Start the company" }).click();
+    await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    expect(bytes, `front door plus week screen: ${files} files`).toBeLessThan(1_500_000);
+  });
+});
+
+test.describe("name plates on the map", () => {
+  // The layout model could pass while the page overlaps, so this measures the real boxes in the browser.
+  for (const [seed, industry] of [[100, 0], [101, 2], [102, 3], [103, 5]] as const) {
+    test(`no plate covers another or the HUD or the route panel (seed ${seed}, market ${industry})`, async ({ page }) => {
+      test.setTimeout(40_000);
+      await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
+      await page.goto(`/?play=${seed}&industry=${industry}`);
+      await page.getByRole("button", { name: "Start the shared run" }).click();
+      await page.getByRole("button", { name: "Start the company" }).click();
+      await expect(page.locator(".world__canvas--ready")).toBeAttached({ timeout: 25_000 });
+      await expect(page.locator(".way__name").first()).toBeVisible();
+      const found = await page.evaluate(() => {
+        const rect = (e: Element) => e.getBoundingClientRect();
+        const plates = [...document.querySelectorAll(".way__name")].map(rect);
+        const hud = document.querySelector(".strip")?.getBoundingClientRect();
+        const panel = document.querySelector(".plate")?.getBoundingClientRect();
+        const hit = (a: DOMRect, c: DOMRect) => a.left < c.right && a.right > c.left && a.top < c.bottom && a.bottom > c.top;
+        const out: string[] = [];
+        plates.forEach((a, i) => {
+          for (let j = i + 1; j < plates.length; j++) if (hit(a, plates[j] as DOMRect)) out.push(`plate ${i} covers plate ${j}`);
+          if (hud && hit(a, hud)) out.push(`plate ${i} is under the HUD`);
+          if (panel && hit(a, panel)) out.push(`plate ${i} is under the route panel`);
+          if (a.left < 0 || a.right > innerWidth) out.push(`plate ${i} is off screen`);
+        });
+        return out;
+      });
+      expect(found).toEqual([]);
+    });
+  }
+});
+
+test("a double click on Wait a week counts once", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
+  await page.goto("/?seed=3");
+  await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Start the company" }).click();
+  await page.getByRole("button", { name: "Wait a week" }).dblclick();
+  await expect(page.getByText("Week 1", { exact: false }).first()).toBeVisible();
+  await expect(page.getByText("Week 2", { exact: true })).toHaveCount(0);
+});
+
 test("help explains the game without telling the player what to do", async ({ page }, info) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "How to play" }).click();

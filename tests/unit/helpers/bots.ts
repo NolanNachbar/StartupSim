@@ -14,8 +14,8 @@ export interface BotRun {
   readonly run: InternalRun;
 }
 
-function play(seed: number, script: (act: (a: Action) => boolean, run: () => InternalRun) => void): BotRun {
-  let run = initialRun(seed);
+function play(seed: number, script: (act: (a: Action) => boolean, run: () => InternalRun) => void, industry: number | null = null): BotRun {
+  let run = initialRun(seed, industry);
   const actions: Action[] = [];
   const act = (a: Action): boolean => {
     if (run.pub.status !== "running") return false;
@@ -31,18 +31,18 @@ function play(seed: number, script: (act: (a: Action) => boolean, run: () => Int
 }
 
 /** Builds for weeks before talking to anyone, then waits for customers who never come. */
-function builder(seed: number): BotRun {
+function builder(seed: number, industry: number | null): BotRun {
   return play(seed, (act, run) => {
     while (run().pub.status === "running" && run().pub.productProgressPct < 100) {
       const kind = run().pub.productProgressPct <= 60 ? "prototype" : "concierge";
       if (!act({ type: "buildTest", kind })) break;
     }
     act({ type: "setMarketing", channel: 0, level: 2 });
-  });
+  }, industry);
 }
 
 /** Asks only pitch and hypothetical questions, takes the compliments as proof, then builds. */
-function pitcher(seed: number): BotRun {
+function pitcher(seed: number, industry: number | null): BotRun {
   const qs: QuestionType[] = ["pitch", "hypothetical", "pitch"];
   return play(seed, (act, run) => {
     for (let s = 0; s < run().pub.segmentNames.length; s++) act({ type: "interview", segment: s, questions: qs });
@@ -50,15 +50,15 @@ function pitcher(seed: number): BotRun {
       if (!act({ type: "buildTest", kind: "prototype" }) && !act({ type: "buildTest", kind: "concierge" })) break;
     }
     act({ type: "setMarketing", channel: 0, level: 2 });
-  });
+  }, industry);
 }
 
-export function playBot(bot: BotName, seed: number): BotRun {
+export function playBot(bot: BotName, seed: number, industry: number | null = null): BotRun {
   switch (bot) {
-    case "builder": return builder(seed);
-    case "pitcher": return pitcher(seed);
-    case "validator": return playValidator(seed);
-    case "underpricer": return playValidator(seed, { price: 900 });
+    case "builder": return builder(seed, industry);
+    case "pitcher": return pitcher(seed, industry);
+    case "validator": return playValidator(seed, industry === null ? {} : { industry });
+    case "underpricer": return playValidator(seed, industry === null ? { price: 900 } : { price: 900, industry });
     case "random": return playFuzz(seed, 300);
   }
 }
@@ -72,12 +72,12 @@ export interface BotStats {
   readonly causes: Readonly<Record<string, number>>;
 }
 
-export function tally(bot: BotName, seeds: readonly number[]): BotStats {
+export function tally(bot: BotName, seeds: readonly number[], industry: number | null = null): BotStats {
   let landed = 0, crashed = 0, stalled = 0;
   const causes: Record<string, number> = {};
   for (const seed of seeds) {
-    const { run } = playBot(bot, seed);
-    const rep: Report = buildReport(buildHistory(seed, run.actions));
+    const { run } = playBot(bot, seed, industry);
+    const rep: Report = buildReport(buildHistory(seed, run.actions, industry));
     if (run.pub.status === "landed") landed++;
     else if (run.pub.endReason === "stalled") stalled++;
     else crashed++;

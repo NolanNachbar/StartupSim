@@ -13,7 +13,8 @@ import { ReportScreen } from "./ui/screens/report";
 import { Result } from "./ui/screens/result";
 import { Setup } from "./ui/screens/setup";
 import { Week } from "./ui/screens/week";
-import { announcement, currentSeed, baseSeed, screen, selected, settings, state, viewport } from "./ui/store";
+import { themeFor } from "./ui/art/iso";
+import { announcement, company, currentSeed, baseSeed, draft, screen, selected, settings, state, viewport } from "./ui/store";
 
 const FRESH = view(newRun(1));
 
@@ -67,6 +68,7 @@ export function App() {
         names={inRun ? st.segmentNames : BOARD_NAMES}
         focus={inRun ? st.focusSegment : -1}
         seed={inRun ? currentSeed.value : baseSeed.value}
+        theme={themeFor(inRun ? company.value.industry : screen.value.name === "setup" ? draft.value.industry : null)}
         progress={inRun ? pathProgress(st).fraction : 0}
         selected={inRun ? selected.value : null}
         w={vp.w}
@@ -76,7 +78,7 @@ export function App() {
       />
       <div class={open ? "veil" : "veil veil--on"} aria-hidden="true" />
     <div class="shell" data-screen={screen.value.name}>
-      <Strip fresh={FRESH} />
+      {screen.value.name === "setup" || screen.value.name === "menu" ? null : <Strip fresh={FRESH} />}
       <Current />
       <div class="sr-only" role="status" aria-live="polite">{announcement.value}</div>
     </div>

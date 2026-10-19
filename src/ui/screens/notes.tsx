@@ -8,7 +8,7 @@ export function Notes() {
       <main class="board">
         <h1 class="board__title" tabIndex={-1}>Field notes</h1>
         {list.length === 0 ? (
-          <p class="board__lede">No patterns met yet. Each flight adds a page.</p>
+          <p class="board__lede">No patterns met yet. Each run adds a page.</p>
         ) : (
           <ul class="entries">
             {list.map((n) => (

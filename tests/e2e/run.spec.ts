@@ -66,7 +66,7 @@ for (const colorScheme of ["light"] as const) {
       // An action that cannot happen explains why instead of failing silently.
       await openAction(page, "Charge for a test");
       await page.getByRole("button", { name: "Charge for a test" }).click();
-      await expect(page.getByRole("alert")).toContainText("Build a landing page before you charge anyone.");
+      await expect(page.getByRole("alert")).toContainText("There is nothing built to sell yet.");
       await auditScreen(page, "form-error", info, colorScheme, { panelOnWide: false });
       await page.getByRole("button", { name: "Back" }).click();
       await page.getByRole("button", { name: "Back" }).click();
@@ -155,7 +155,7 @@ test.describe("saving, keyboard and the reveal", () => {
     await expect(rows.nth(1)).toBeFocused();
     await page.keyboard.press("Enter");
     // On phone the details live in a sheet behind this button.
-    const sheet = page.getByRole("button", { name: "Log and details" });
+    const sheet = page.getByRole("button", { name: "Details" });
     if (await sheet.isVisible()) await sheet.click();
     await expect(page.getByRole("region", { name: "Selected" })).toContainText("Interviews");
   });

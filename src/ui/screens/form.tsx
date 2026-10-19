@@ -7,12 +7,14 @@ import { act, back, formError, state } from "../store";
 function FieldView({ field, value, onChange }: { field: Field; value: string; onChange: (v: string) => void }) {
   if (field.kind === "select") {
     const id = `f-${field.id}`;
+    const chosen = field.options.find((o) => o.value === value);
     return (
       <div class="field">
         <label class="field__label" for={id}>{field.label}</label>
         <select id={id} class="select" value={value} onChange={(e) => onChange((e.currentTarget as HTMLSelectElement).value)}>
           {field.options.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
         </select>
+        {chosen && chosen.label.length > 30 ? <p class="pick-detail" aria-hidden="true">{chosen.label}</p> : null}
       </div>
     );
   }

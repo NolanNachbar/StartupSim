@@ -101,4 +101,9 @@ Selling skill (offers, objections, Hormozi-style), mindset layer (sunk cost, ego
 - [x] Help screen and a milestone path bar. The game explains and shows progress; it never says what move to make.
 - [x] Name your company and choose an industry (six markets with real economic differences in the sim; optional parameter, original worlds unchanged).
 - [x] Copy changed from flight to run; route vehicle is a delivery van; crashes show debris, smoke and flames.
+- [x] Round 2 (Nolan: font off, city copy-pasted, roads go nowhere): font swapped to Plus Jakarta Sans; the city has a theme per industry (rural, suburban, urban, downtown) built from more real kits (suburban houses, crops, windmill, tractors) with traffic and per-building paint tints; the street grid is now large enough that no road ends inside the picture.
+- [ ] Studio-quality pass (round 3): city variety from compound buildings assembled in Blender, muted real-world palette, themes per industry, setup redesign, Start over that really wipes everything. Spec and rubric: `docs/specs/studio-pass.md`. Done when all three loop checkers pass with no blockers.
 - [ ] [HUMAN] Playtest and a "looks expensive" review of the new look.
+
+## Later: real places (Nolan's idea, 2026-10-18)
+- [ ] Let the player build the company in a named real city (New York with Central Park, and others) instead of a generated one. The theme system (`Theme` in `src/ui/art/iso.ts`) is the seam: a place would be a hand-authored layout (landmarks, parks, water, grid angle) plus its own economics in the sim (rents, talent, customer density). Needs the sim to take a place parameter the way it takes an industry, a licensing check on any landmark art (no trademarks), and probably a map-authoring tool. Not started; decide after the generated themes are playtested.

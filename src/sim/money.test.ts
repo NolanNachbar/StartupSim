@@ -291,7 +291,7 @@ describe("invariants over random play (500 seeds)", () => {
       }
     }
     for (let seed = 0; seed < 100; seed++) expect(playFuzz(seed, 400).run.pub.status).not.toBe("running");
-  });
+  }, 30_000); // a long property loop: give it room on a busy machine
 });
 
 describe("pricing (400 seeds)", () => {

@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { buildCity, buildRoute, DIR, project, roadMask, roadSprite, unproject, type Cell } from "./iso";
+import manifest from "../../../public/art/city/manifest.json";
+import { buildCity, buildRoute, DIR, project, roadMask, roadSprite, gridFor, spreadPlates, themeFor, unproject, type Cell, type Theme } from "./iso";
 
 const key = (c: Cell) => `${c.gx},${c.gy}`;
+
+/** Every sprite family the city may name, spelled out, so a typo or a stray model fails (not only a missing file). */
+const view = "(-r(90|180|270))?";
+const ALLOWED = new RegExp(
+  "^(" +
+    `((com-[a-n]|sky-[a-e]|ind-[a-t]|sub-[a-u](-brick|-slate)?|low-([a-n]|wide-[ab])|c[xs]-(court|podium|wing|solar|yard|towers|terrace)-\\d+)(-z\\d+)?${view})` +
+    "|water-tower|solar-group|silo|windmill|plant_bushLarge|tree_(oak|default|pineTallA|pineRoundA)|sub-tree-(large|small)|sub-planter" +
+    "|flower_(redA|yellowB|purpleC)|crops_(wheatStageA|wheatStageB|cornStageD|leafsStageB)(-r90)?" +
+    "|car-(sedan|suv|taxi|van|police|truck-flat)-(0|90|180|270)|car-tractor-(0|90|180|270)" +
+    "|light-square-double|traffic-light|dumpster|construction-cone|sign-(ring|rise|hex|tri|cubes)" +
+  ")$",
+);
 
 describe("isometric projection", () => {
   it("round-trips a cell through screen space", () => {
@@ -139,7 +152,7 @@ describe("the route stays readable", () => {
       for (const p of city.props) {
         if (landmarks.has(key(p))) continue;
         const d = Math.min(...route.cells.map((c) => Math.abs(c.gx - p.gx) + Math.abs(c.gy - p.gy)));
-        if (d <= 2) expect(p.sprite).toMatch(/^(tree_|plant_|rock_)/);
+        if (d <= 3) expect(p.sprite).toMatch(/^(tree_|plant_|rock_|sub-tree|sub-planter|flower_|stump_|log_|stone_large|fence_|crops_|light-|traffic-|dumpster|construction-)/);
       }
     }
   });
@@ -186,12 +199,14 @@ describe("the city", () => {
     }
   });
 
-  it("keeps buildings low next to the route and taller farther away", () => {
-    const heightOf = (s: string) => (s.startsWith("sky") ? 3 : s.startsWith("com-n") || s.startsWith("com-m") || s.startsWith("com-l") ? 2 : 1);
+  it("keeps buildings low next to the route: only shops and small offices within six cells", () => {
     const dist = (p: { gx: number; gy: number }) => Math.min(...route.cells.map((c) => Math.abs(c.gx - p.gx) + Math.abs(c.gy - p.gy)));
     const landmarkCells = new Set(city.landmarks.map((l) => key(l)));
-    const near = city.props.filter((p) => p.sprite.match(/^(com|sky|ind)/) && !landmarkCells.has(key(p)) && dist(p) <= 3);
-    for (const p of near) expect(heightOf(p.sprite)).toBeLessThan(3);
+    const smallOnly = /^(com-[a-e]|low-n|ind-[a-t]|sub-[a-u](-brick|-slate)?|solar-group|water-tower)(-r\d+)?$/;
+    for (const p of city.props) {
+      if (!/^(com|sky|ind|low|cx|cs)-/.test(p.sprite) || landmarkCells.has(key(p))) continue;
+      if (dist(p) <= 6) expect(p.sprite, `${p.sprite} at ${key(p)}`).toMatch(smallOnly);
+    }
   });
 
   it("varies the buildings: no model repeats more than a few times in a row", () => {
@@ -210,15 +225,205 @@ describe("the city", () => {
     expect(buildCity(7, route, 40)).toEqual(city);
   });
 
-  it("only names sprites that the build step renders", () => {
-    const rot = "(-r(90|180|270))?";
-    const allowed = new RegExp(`^((com-[a-n]|sky-[a-e]|ind-[abcefhij])${rot}|water-tower|solar-group|tree_oak|tree_default|tree_pineTallA|tree_pineRoundA|plant_bushLarge|rock_largeA|sign-(ring|rise|hex|tri|cubes))$`);
-    for (const p of city.props) expect(p.sprite).toMatch(allowed);
+  it("only names sprites that have been rendered", () => {
+    const rendered = new Set(Object.keys(manifest));
+    for (const p of city.props) {
+      expect(p.sprite).toMatch(ALLOWED);
+      expect(rendered.has(p.sprite)).toBe(true);
+    }
     for (const l of city.landmarks) {
-      expect(l.sprite).toMatch(allowed);
-      expect(l.sign.sprite).toMatch(allowed);
+      expect(l.sprite).toMatch(ALLOWED);
+      expect(l.sign.sprite).toMatch(ALLOWED);
+      expect(rendered.has(l.sprite)).toBe(true);
+      expect(rendered.has(l.sign.sprite)).toBe(true);
     }
   });
 });
 
+const THEMES: readonly Theme[] = ["rural", "suburban", "urban", "downtown"];
+describe("themes", () => {
+  it("gives every industry a setting, and the unknown a city", () => {
+    expect([0, 1, 2, 3, 4, 5].map(themeFor)).toEqual(["rural", "urban", "downtown", "suburban", "downtown", "suburban"]);
+    expect(themeFor(null)).toBe("urban");
+    expect(new Set([0, 1, 2, 3, 4, 5].map(themeFor)).size).toBe(4);
+  });
+
+  for (const theme of THEMES) {
+    describe(theme, () => {
+      const route = buildRoute(4, 9, 108);
+      const city = buildCity(9, route, 108, theme);
+      const road = new Set(city.roads.keys());
+      const rendered = new Set(Object.keys(manifest));
+
+      it("is deterministic, and only names sprites that have been rendered", () => {
+        expect(buildCity(9, route, 108, theme)).toEqual(city);
+        for (const p of [...city.props, ...city.cars, ...city.landmarks, ...city.landmarks.map((l) => l.sign)]) {
+          expect(p.sprite).toMatch(ALLOWED);
+          expect(rendered.has(p.sprite)).toBe(true);
+        }
+        expect(city.hqSprite).toMatch(ALLOWED);
+        expect(rendered.has(city.hqSprite)).toBe(true);
+      });
+
+      it("keeps buildings off the roads and only low things beside the route", () => {
+        for (const p of city.props) expect(road.has(key(p))).toBe(false);
+        const lowOnly = /^(tree_|plant_|rock_|sub-tree|sub-planter|flower_|stump_|log_|stone_large|fence_|crops_|light-|traffic-|dumpster|construction-)/;
+        const special = new Set(city.landmarks.flatMap((l) => [key(l), key(l.sign)]));
+        for (const p of city.props) {
+          if (special.has(key(p))) continue;
+          const d = Math.min(...route.cells.map((c) => Math.abs(c.gx - p.gx) + Math.abs(c.gy - p.gy)));
+          if (d <= 3) expect(p.sprite).toMatch(lowOnly);
+        }
+        const lots = new Set(city.pads.map(key));
+        for (const c of city.cars) expect(city.roads.get(key(c)) === -1 || lots.has(key(c))).toBe(true);
+        for (const c of city.pads) expect(road.has(key(c))).toBe(false);
+      });
+
+      it("is a place of its own: its signature buildings appear, and others do not", () => {
+        const count = (re: RegExp) => city.props.filter((p) => re.test(p.sprite)).length;
+        const houses = count(/^sub-[a-u](-brick|-slate)?(-r\d+)?$/);
+        const crops = count(/^crops_/);
+        const towers = count(/^(sky|low|cx-towers|cx-podium)-?/);
+        if (theme === "rural") expect(crops).toBeGreaterThan(count(/^(com|sky)-/));
+        if (theme === "suburban") expect(houses).toBeGreaterThan(towers + 40);
+        if (theme === "downtown") expect(towers).toBeGreaterThan(houses + 40);
+        if (theme === "urban") expect(count(/^(com|ind|low|sky|c[xs])-/)).toBeGreaterThan(houses);
+        if (theme === "downtown" || theme === "urban") expect(count(/^cx-/)).toBeGreaterThan(5);
+      });
+
+      it("paints buildings in several materials and foliage in greens", () => {
+        const built = city.props.filter((p) => /^((com|sky|ind|low|cx|cs)-|sub-[a-u](-brick|-slate)?(-r\d+)?$)/.test(p.sprite));
+        expect(new Set(built.map((p) => p.tint ?? 0)).size).toBeGreaterThanOrEqual(5);
+        const trees = city.props.filter((p) => /^(tree_|plant_|sub-tree|crops_)/.test(p.sprite));
+        for (const t of trees) expect(t.tint).toBeGreaterThanOrEqual(10);
+      });
+
+      it("is varied: many different models, none stamped in a row", () => {
+        const names = city.props.filter((p) => /^((com|sky|ind|low|cx|cs)-|sub-[a-u](-brick|-slate)?(-r\d+)?$)/.test(p.sprite)).sort((a, b) => a.gx - b.gx || a.gy - b.gy).map((p) => p.sprite);
+        expect(new Set(names.map((n) => n.replace(/-r\d+$/, ""))).size).toBeGreaterThanOrEqual(theme === "rural" ? 6 : 16);
+        const bases = new Map(city.props.filter((p) => /^((com|sky|ind|low|cx|cs)-|sub-[a-u](-brick|-slate)?(-r\d+)?$)/.test(p.sprite) && Number.isInteger(p.gx) && Number.isInteger(p.gy)).map((p) => [key(p), p.sprite.replace(/-r\d+$/, "")]));
+        for (const [cell, base] of bases) {
+          const [gx, gy] = cell.split(",").map(Number) as [number, number];
+          for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [1, -1]] as const) expect(bases.get(`${gx + dx},${gy + dy}`)).not.toBe(base);
+        }
+      });
+    });
+  }
+
+  it("runs the streets past the edges of any screen: the route sits near the middle of a big grid", () => {
+    const route = buildRoute(4, 9, 108);
+    const mid = route.cells[Math.floor(route.cells.length / 2)]!;
+    expect(mid.gx).toBeGreaterThan(40);
+    expect(mid.gx).toBeLessThan(68);
+    expect(mid.gy).toBeGreaterThan(40);
+    expect(mid.gy).toBeLessThan(68);
+  });
+});
+
 const DIR_STEP = { UL: [-1, 0], UR: [0, -1], DR: [1, 0], DL: [0, 1] } as const;
+
+describe("name plates", () => {
+  // The plate stands above its anchor: the pointer (7 px), any stem (dy), then a plate 30 px tall.
+  const plate = (key: string, name: string, x: number, top: number) => ({ key, index: 0, hq: false, name, x, top });
+  const box = (p: { name: string; x: number; dx: number; dy: number; top: number }) => {
+    const half = Math.max(40, p.name.length * 8.4 + 16) / 2;
+    const bottom = p.top - 7 - p.dy;
+    return { l: p.x + p.dx - half, r: p.x + p.dx + half, t: bottom - 30, b: bottom };
+  };
+
+  it("leaves a plate alone when nothing is near it", () => {
+    expect(spreadPlates([plate("a", "1", 200, 300)], 390)[0]!.dx).toBe(0);
+  });
+
+  it("slides crowded plates apart so no plate covers another, and none covers another's pointer", () => {
+    const placed = spreadPlates([plate("a", "2. Small teams", 120, 300), plate("b", "3", 196, 338), plate("c", "Default alive", 272, 376), plate("d", "1", 150, 400)], 390);
+    for (const p of placed) {
+      for (const q of placed) {
+        if (p === q) continue;
+        const a = box(p);
+        const b = box(q);
+        expect(a.r <= b.l || b.r <= a.l || a.b <= b.t || b.b <= a.t).toBe(true);
+        // q's pointer is a thin line from the bottom of its plate down to its anchor
+        const covered = q.x > a.l && q.x < a.r && q.top > a.t && b.b < a.b;
+        expect(covered).toBe(false);
+      }
+    }
+  });
+
+  it("never lets a plate rise above the limit it is given", () => {
+    for (const p of spreadPlates([plate("a", "Default alive", 200, 120), plate("b", "1", 210, 140), plate("c", "2", 230, 160)], 390, 100)) expect(box(p).t).toBeGreaterThanOrEqual(100);
+  });
+
+  it("copes with plates that cannot all be separated: it still answers, on screen", () => {
+    const placed = spreadPlates([plate("a", "Solo operators", 200, 300), plate("b", "Small shops", 215, 310), plate("c", "Multi-site owners", 190, 290)], 390);
+    expect(placed.length).toBe(3);
+    for (const p of placed) {
+      expect(box(p).l).toBeGreaterThanOrEqual(8);
+      expect(box(p).r).toBeLessThanOrEqual(382);
+    }
+  });
+
+  it("keeps plates on the screen", () => {
+    for (const p of spreadPlates([plate("a", "Enterprises", 20, 200), plate("b", "Departments", 372, 205)], 390)) {
+      const r = box(p);
+      expect(r.l).toBeGreaterThanOrEqual(8);
+      expect(r.r).toBeLessThanOrEqual(382);
+    }
+  });
+});
+
+describe("the city is big enough for the screen", () => {
+  it("stays at the base size on a phone and grows for a big window", () => {
+    expect(gridFor(390, 844, 38)).toBe(108);
+    expect(gridFor(1280, 800, 58)).toBe(108);
+    expect(gridFor(3440, 1440, 58)).toBeGreaterThan(130);
+    expect(gridFor(7680, 4320, 58)).toBeLessThanOrEqual(240);
+  });
+
+  it("covers every corner of an ultrawide screen with streets", () => {
+    const w = 3440;
+    const h = 1440;
+    const tw = 58;
+    const size = gridFor(w, h, tw);
+    const route = buildRoute(4, 3, size);
+    const mid = route.cells[Math.floor(route.cells.length / 2)]!;
+    const origin = { x: w / 2 - project(mid, tw, { x: 0, y: 0 }).x, y: h / 2 - project(mid, tw, { x: 0, y: 0 }).y };
+    for (const corner of [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: 0, y: h }, { x: w, y: h }]) {
+      const c = unproject(corner, tw, origin);
+      expect(c.gx).toBeGreaterThan(3);
+      expect(c.gy).toBeGreaterThan(3);
+      expect(c.gx).toBeLessThan(size - 4);
+      expect(c.gy).toBeLessThan(size - 4);
+    }
+  });
+});
+
+describe("the skyline rises away from the route", () => {
+  it("has a larger share of tall buildings far from the route than near it, in every dense theme", () => {
+    const tall = /^(sky-|low-[bfim]|cx-(towers|podium))/;
+    const building = /^(com|sky|ind|low|cx|cs)-/;
+    for (const theme of ["urban", "downtown"] as const) {
+      let nearTall = 0;
+      let nearAll = 0;
+      let farTall = 0;
+      let farAll = 0;
+      for (const seed of [3, 7, 11, 19]) {
+        const route = buildRoute(4, seed, 108);
+        const city = buildCity(seed, route, 108, theme);
+        for (const p of city.props) {
+          if (!building.test(p.sprite)) continue;
+          const d = Math.min(...route.cells.map((c) => Math.abs(c.gx - p.gx) + Math.abs(c.gy - p.gy)));
+          if (d <= 10) {
+            nearAll += 1;
+            if (tall.test(p.sprite)) nearTall += 1;
+          } else if (d >= 16) {
+            farAll += 1;
+            if (tall.test(p.sprite)) farTall += 1;
+          }
+        }
+      }
+      expect(farTall / farAll, `${theme}: far`).toBeGreaterThan(nearTall / nearAll);
+      expect(nearTall / nearAll, `${theme}: nothing tall hugs the route`).toBeLessThan(0.05);
+    }
+  });
+});

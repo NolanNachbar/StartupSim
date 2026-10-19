@@ -367,12 +367,12 @@ export function buildReport(history: History): Report {
 
   const summary =
     outcome === "stalled"
-      ? `The flight ran the full ${weeks(f.week)} without becoming a viable business.`
-      : `The flight lasted ${weeks(f.week)} and ended when cash ran out.`;
+      ? `The run lasted the full ${weeks(f.week)} without becoming a viable business.`
+      : `The run lasted ${weeks(f.week)} and ended when cash ran out.`;
   if (!top) {
     const talks = f.evidence.filter((e) => e.kind === "interview" && e.outcome === "completed").length;
     const paidTests = f.evidence.filter((e) => e.kind === "paid-test").length;
-    const headline = `No single mistake ended this flight in week ${f.week}.`;
+    const headline = `No single mistake ended this run in week ${f.week}.`;
     const facts = `Closest facts: ${talks} completed conversations, ${paidTests} paid tests, ${f.payingCustomers} paying customers, ${usd(f.cashCents)} left.`;
     return {
       outcome, headline, summary: `${summary} ${facts}`, probableCause: null, contributing: [],

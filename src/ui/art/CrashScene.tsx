@@ -3,7 +3,7 @@
 // Kenney renders; the smoke and flame shapes are Kenney's particle sprites, tinted with a CSS mask.
 import { useEffect, useRef, useState } from "preact/hooks";
 import { makeRng } from "./geometry";
-import { drawSprite, loadSprites, type Loaded } from "./city";
+import { drawSprite, drawStyled, loadSprites, RENDER_TILE_W, type Loaded } from "./city";
 import { project } from "./iso";
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 const BASE = import.meta.env.BASE_URL;
 const W = 560;
 const H = 260;
-const TW = 128;
+const TW = 112; // ground tile width on screen; the sprites are rendered for a 96 px tile
 
 export function CrashScene({ landed, seed }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -31,10 +31,10 @@ export function CrashScene({ landed, seed }: Props) {
       canvas.width = W * dpr;
       canvas.height = H * dpr;
       ctx.imageSmoothingQuality = "high";
-      ctx.fillStyle = "#86c05f";
+      ctx.fillStyle = "#7f9f5c";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       const origin = { x: W / 2, y: 70 };
-      const scale = dpr;
+      const scale = (dpr * TW) / RENDER_TILE_W;
       const at = (gx: number, gy: number) => {
         const p = project({ gx, gy }, TW, origin);
         return { x: p.x * dpr, y: p.y * dpr };
@@ -44,7 +44,7 @@ export function CrashScene({ landed, seed }: Props) {
       for (let gx = -1; gx <= 5; gx++) {
         for (let gy = 0; gy <= 4; gy++) {
           const c = at(gx, gy);
-          ctx.fillStyle = (gx + gy) % 2 === 0 ? "#86c05f" : "#82bc5a";
+          ctx.fillStyle = (gx + gy) % 2 === 0 ? "#8fb56a" : "#7a9a58";
           ctx.beginPath();
           ctx.moveTo(c.x, c.y - (TW * dpr) / 4);
           ctx.lineTo(c.x + (TW * dpr) / 2, c.y);
@@ -58,10 +58,12 @@ export function CrashScene({ landed, seed }: Props) {
         const c = at(gx, 2);
         drawSprite(ctx, l, "road-straight-0", c.x, c.y, scale);
       }
-      const scenery: [string, number, number][] = [["com-b", 0, 0], ["sky-c", 2, 0], ["com-d", 4, 0], ["tree_oak", 5, 1], ["tree_pineTallA", -1, 1], ["tree_oak", 1, 4], ["tree_pineTallA", 4, 4]];
-      for (const [name, gx, gy] of scenery) {
+      const scenery: [string, number, number, number][] = [["com-b", 0, 0, 2], ["sky-c", 2, 0, 0], ["com-d", 4, 0, 6], ["tree_oak", 5, 1, 10], ["tree_pineTallA", -1, 1, 11], ["tree_oak", 1, 3, 12], ["tree_pineTallA", 4, 3, 13]];
+      for (const [name, gx, gy, tint] of scenery) {
         const c = at(gx, gy);
-        drawSprite(ctx, l, name, c.x, c.y, scale);
+        const m = l.meta[name];
+        const img = l.img.get(name);
+        if (m && img) drawStyled(ctx, img, c.x - m.ax * scale, c.y - m.ay * scale, m.w * scale, m.h * scale, tint, false);
       }
       const van = at(2, 2);
       if (!landed) {
@@ -83,7 +85,8 @@ export function CrashScene({ landed, seed }: Props) {
       <canvas ref={ref} width={W} height={H} />
       {!landed && fx ? (
         <>
-          <span class="crash__fx crash__flame" style={{ left: `${fx.x - 4}%`, top: `${fx.y - 6}%`, width: "9%", height: "18%", maskImage: `url(${BASE}art/fx/flame_03.webp)`, WebkitMaskImage: `url(${BASE}art/fx/flame_03.webp)` }} />
+          <span class="crash__fx crash__flame" style={{ left: `${fx.x - 12}%`, top: `${fx.y - 20}%`, width: "26%", height: "46%", maskImage: `url(${BASE}art/fx/fire_01.webp)`, WebkitMaskImage: `url(${BASE}art/fx/fire_01.webp)` }} />
+          <span class="crash__fx crash__flame crash__flame--core" style={{ left: `${fx.x - 6}%`, top: `${fx.y - 12}%`, width: "14%", height: "28%", animationDelay: "120ms", maskImage: `url(${BASE}art/fx/fire_01.webp)`, WebkitMaskImage: `url(${BASE}art/fx/fire_01.webp)` }} />
           <span class="crash__fx crash__smoke" style={{ left: `${fx.x - 6}%`, top: `${fx.y - 24}%`, width: "14%", height: "26%", maskImage: `url(${BASE}art/fx/smoke_04.webp)`, WebkitMaskImage: `url(${BASE}art/fx/smoke_04.webp)` }} />
           <span class="crash__fx crash__smoke" style={{ left: `${fx.x + 2}%`, top: `${fx.y - 30}%`, width: "11%", height: "22%", animationDelay: "700ms", maskImage: `url(${BASE}art/fx/smoke_07.webp)`, WebkitMaskImage: `url(${BASE}art/fx/smoke_07.webp)` }} />
         </>

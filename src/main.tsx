@@ -1,6 +1,6 @@
-import "@fontsource/bricolage-grotesque/latin-500.css";
-import "@fontsource/bricolage-grotesque/latin-700.css";
-import "@fontsource/bricolage-grotesque/latin-800.css";
+import "@fontsource/plus-jakarta-sans/latin-500.css";
+import "@fontsource/plus-jakarta-sans/latin-700.css";
+import "@fontsource/plus-jakarta-sans/latin-800.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/screens.css";
@@ -9,11 +9,12 @@ import { App } from "./app";
 import { installGamepad, installKeyboard } from "./ui/input";
 import { installErrorReporting } from "./ui/errors";
 import { SIM_VERSION } from "./sim";
-import { init, screen, trackViewport } from "./ui/store";
+import { init, watchSystemBack, screen, trackViewport } from "./ui/store";
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Missing #app root element");
 init(location.search);
+watchSystemBack();
 installErrorReporting(import.meta.env.VITE_ERROR_ENDPOINT as string | undefined, () => ({ simVersion: SIM_VERSION, screen: screen.value.name }));
 installKeyboard();
 trackViewport();

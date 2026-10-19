@@ -1,5 +1,6 @@
 // Pieces shared by several screens: the HUD, the route chips, the callout.
 import type { ComponentChildren } from "preact";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { hypothesisLabel, money } from "./format";
 import { spriteUrl } from "./art/city";
@@ -71,11 +72,18 @@ export function HypothesisList({ hypotheses, names, focus }: { hypotheses: reado
     list[next]?.focus();
     e.preventDefault();
   };
+  const list = useRef<HTMLUListElement>(null);
+  const [more, setMore] = useState(false);
+  const measure = () => {
+    const el = list.current;
+    if (el) setMore(el.scrollWidth > el.clientWidth + el.scrollLeft + 4);
+  };
+  useEffect(measure, [hypotheses.length]);
   return (
-    <ul class="routes" onKeyDown={onKey}>
+    <ul class="routes" data-more={more} ref={list} onScroll={measure} onKeyDown={onKey}>
       {hypotheses.map((h, i) => (
         <li key={i}>
-          <button type="button" class="route-row" data-state={h.state} data-focus={i === focus} aria-pressed={selected.value === i} aria-label={`${i + 1}. ${names[i] ?? "Group"}${i === focus ? " (your focus)" : ""}. ${hypothesisLabel(h.state)}`} onClick={() => (selected.value = i)}>
+          <button type="button" class="route-row" data-state={h.state} data-focus={i === focus} aria-pressed={selected.value === i} aria-label={`${i + 1}. ${names[i] ?? "Group"} ${hypothesisLabel(h.state)}${i === focus ? ", your focus" : ""}`} onClick={() => (selected.value = i)}>
             <span class="route-row__name">{`${i + 1}. ${names[i] ?? "Group"}`}</span>
             <span class="route-row__state">{hypothesisLabel(h.state)}</span>
           </button>

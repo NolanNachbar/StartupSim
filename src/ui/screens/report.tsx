@@ -28,11 +28,11 @@ export function ReportScreen() {
       <main class="board">
         <article class="report" data-reveal={phase} data-outcome={r.outcome} onClick={() => (revealDone.value = true)}>
           <CrashScene landed={landed} seed={currentSeed.value} />
-          <p class="report__form">Accident investigation report</p>
+          <p class="report__form">{landed ? "Run report" : "Accident investigation report"}</p>
           <dl class="report__fields">
             <dt>Company</dt><dd>{company.value.name}</dd>
             <dt>Market</dt><dd>{INDUSTRY_LIST[company.value.industry]?.name ?? ""}</dd>
-            <dt>Run</dt><dd>{String(currentSeed.value)}</dd>
+            <dt>World</dt><dd>{String(currentSeed.value)}</dd>
             <dt>Weeks run</dt><dd>{String(state.value?.week ?? 0)}</dd>
             <dt>Outcome</dt><dd>{landed ? "Landed" : r.outcome === "stalled" ? "Stalled" : "Crashed"}</dd>
           </dl>
@@ -85,8 +85,8 @@ export function ReportScreen() {
       <footer class="actions">
         <button type="button" class="button button--primary" onClick={flyAgain}>Run again</button>
         <div class="actions__row actions__row--always">
-          <button type="button" class="button" onClick={() => void copyChallengeLink()}>Copy challenge link</button>
-          <button type="button" class="button" onClick={() => void saveShareCard()}>Save share card</button>
+          <button type="button" class="button" onClick={() => void copyChallengeLink()}>Copy link</button>
+          <button type="button" class="button" onClick={() => void saveShareCard()}>Save image</button>
         </div>
       </footer>
     </>

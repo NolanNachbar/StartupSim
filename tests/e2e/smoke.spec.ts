@@ -14,7 +14,7 @@ for (const colorScheme of ["light"] as const) {
       await expect(page.getByRole("button", { name: "Continue run" })).toHaveCount(0);
 
       // The chart's empty state (DESIGN.md, Interaction states).
-      await expect(page.getByText("No tests yet. Interview a customer to start your route.").first()).toBeAttached();
+      await expect(page.getByText("No tests yet.").first()).toBeAttached();
 
       await auditScreen(page, "board", info, colorScheme);
 

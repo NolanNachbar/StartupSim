@@ -24,20 +24,20 @@ colors:
   error: "#b3261e"
 typography:
   display:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Plus Jakarta Sans
     fontWeight: 800
     fontSize: 3.5rem
   heading:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Plus Jakarta Sans
     fontWeight: 700
     fontSize: 1.25rem
   body:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Plus Jakarta Sans
     fontWeight: 500
     fontSize: 1.0625rem
     lineHeight: 1.4
   label:
-    fontFamily: Bricolage Grotesque
+    fontFamily: Plus Jakarta Sans
     fontWeight: 500
     fontSize: 0.875rem
 rounded:
@@ -82,18 +82,18 @@ components:
 
 **Mode per surface:** the campus and the report are Experience; the HUD, action dock and forms are Operate.
 
-**Art sources (all CC0, verified 2026-10-18):** Kenney City Kit (Commercial 2.1, Industrial, Roads), Kenney Car Kit and Kenney Nature Kit (3D models, glTF), and Kenney Particle Pack (smoke and fire, PNG). The models are rendered to isometric WebP sprites in Blender 5.2 by `scripts/blender/render_city.py` (orthographic 2:1 camera, warm sun, soft shadows baked per sprite). Font: Bricolage Grotesque by Mathieu Triay, SIL OFL-1.1, from Fontsource.
+**Art sources (all CC0, verified 2026-10-18):** Kenney City Kit (Commercial 2.1, Industrial, Roads, Suburban), Kenney Car Kit and Kenney Nature Kit (3D models, glTF), and Kenney Particle Pack (smoke and fire, PNG). The models are rendered to isometric WebP sprites in Blender 5.2 by `scripts/blender/render_city.py` (orthographic 2:1 camera, warm sun, soft shadows baked per sprite). Font: Plus Jakarta Sans by Tokotype, SIL OFL-1.1, from Fontsource.
 
 **Key characteristics:**
 - The first five seconds: a bright isometric campus, a delivery van on a road climbing into the city, white panels and one blue button.
 - Pivots remaining is the biggest number, repeated as a row of little vans, one per pivot.
-- The city is laid out by code from the world's seed, so every run has its own campus. Each customer group is a building beside the road.
+- The city is laid out by code from the world's seed and the industry. Four settings (rural, suburban, urban, downtown) follow the industry: local services is rural, consumer apps urban, business software and fintech downtown, health and creators suburban. Districts grow from a core of towers down to low streets, with compound buildings (courtyards, podiums with towers, L-wings, solar-roofed halls, factory yards, stepped terraces) assembled from the kit pieces in Blender, big and small lots, paved lots with parked cars, tree-lined streets, roundabouts and traffic. Each customer group is a numbered landmark beside the road.
 - Depth is a soft offset shadow, the way the diorama is lit. No zero-offset glows, no gradients.
 - Honest limit: Kenney's kits are widely used. Distinctiveness comes from the composition, the lighting and the report.
 
 ## Colors
 
-**Strategy:** Committed. The city's own palette owns the page: white and lavender-gray structures, periwinkle glass, flat green parks and lavender-gray roads (all sampled from the renders). The interface uses white panels, a deep indigo ink and one saturated blue for the action.
+**Strategy:** Committed, and muted like a real city. Buildings are sand, stone, clay, concrete, cream and white with glass blue (the renders multiplied with a few neutral materials per block); trees and crops are deep natural green; lawns are olive; roads are lavender-gray. Colour is an accent (signs, a few cars), never a whole building. The reference is a dense, believable isometric city with very varied building shapes and heights. The interface uses white panels, a deep indigo ink and one saturated blue for the action.
 
 **Light or dark:** Light. It is a sunny afternoon diorama played on a phone in ordinary light. There is no night theme.
 
@@ -101,7 +101,7 @@ Blue is the one primary action per screen. Green means verified (the solid route
 
 ## Typography
 
-One family: Bricolage Grotesque. 800 for the pivots number and the report headline, 700 for headings, 500 for body and labels. Body is 17 px; anything meant to be read is never below 16 px. Instrument captions (14 px) are the one exception. Loaded from the self-hosted Fontsource package (`@fontsource/bricolage-grotesque`), `font-display: swap`, Latin subset only. Sentence case, never ALL CAPS.
+One family: Plus Jakarta Sans. 800 for the pivots number and the report headline, 700 for headings, 500 for body and labels. Body is 17 px; anything meant to be read is never below 16 px. Instrument captions (14 px) are the one exception. Loaded from the self-hosted Fontsource package (`@fontsource/plus-jakarta-sans`), `font-display: swap`, Latin subset only. Sentence case, never ALL CAPS.
 
 ## Layout
 
@@ -120,11 +120,13 @@ Rounded to 12 px for panels and buttons, 8 px for chips and fields, full only fo
 - **HUD card:** the pivots number (largest) beside a row of little vans, cash with a coin mark, and the week. Menu is a secondary button.
 - **Path bar:** five milestone segments under "Your route" (Talk to customers, Build a test, Ask for money, Get paid, Cover your costs). It shows what has been achieved and never what to do next. The van advances along the road with these milestones, not with the calendar.
 - **How to play:** a plain screen reachable from the HUD (the ? button), the menu and the h key. It explains the goal, the numbers, the map, the actions and how to read evidence, and ends with questions to think about. It never prescribes an order of play: working out how to win is the game.
-- **Setup:** the player names their company (a name is suggested; free text, tidied to letters, digits and . , ' & -, at most 24 characters) and chooses an industry. Industries are real market differences in the sim (willingness to pay, reachability, market size, how polite interviewees are), described in plain words without numbers.
+- **Setup:** two numbered steps that fit a 390x844 phone without scrolling (the HUD is hidden here, it means nothing before the company exists). 1. Company name: a suggested name in a full-width field, a quiet "Suggest another name" button beneath, free text tidied to letters, digits and . , ' & -, at most 24 characters. 2. Industry: six cards in two columns, each with its setting (Rural, Urban, Downtown, Suburban); the chosen one is described underneath. Industries are real market differences in the sim (willingness to pay, reachability, market size, how polite interviewees are), described in plain words without numbers. If a run is saved, setup says that a new company replaces it and Back keeps it.
+- **Front door:** one primary button. With a saved run it states what is saved (company, market, week) and offers Continue run first and Start a new run second.
+- **Start over (Menu):** wipes the run, company, notes, history, callouts and the shared-link address, keeps settings, and only after a confirmation step that says it cannot be undone.
 - **Route chips:** one per customer group. The border encodes evidence: dotted untested, dashed weak, solid green verified. Each chip also carries the words Untested, Weak evidence or Verified.
 - **Primary button:** solid blue with a 4 px darker lip, white text, 56 px tall, one per screen. Pressed state drops the lip.
 - **Secondary buttons:** white with a line border and indigo text.
-- **The campus:** each customer group is a tower beside the road with a name plate; the route is a road that climbs the screen; evidence lines are painted on the road (white dots, white dashes, a solid green line); a delivery van drives the route as weeks pass.
+- **The campus:** each customer group is a landmark beside the road marked with a numbered badge that matches the numbered chip below (the selected one expands to its name); the HQ carries a green "Default alive" plate; badges never overlap and never sit under the HUD; the route is a road that climbs the screen; evidence lines are painted on the road (white dots, white dashes, a solid green line); a delivery van drives the route as weeks pass.
 - **Accident report:** the loud screen. A short crash scene (the van stopped on the road with scattered debris, smoke and flames) plays once per new cause (compressed on repeats, always skippable), then a red-orange headline panel over a white sheet with the cause, contributing factors, what would have changed it and the numbers. "Fly again" is always visible and works during the reveal.
 - **States:** hover is never relied on. Focus is a 3 px indigo outline with a 2 px white gap, always visible. Empty, error and loading states keep the plain copy from the interaction table in `docs/DESIGN-aviation-dusk-2026-10-18.md`.
 
@@ -152,15 +154,17 @@ Rounded to 12 px for panels and buttons, 8 px for chips and fields, full only fo
 - Evidence language: dotted untested, dashed weak, solid verified, with a text label on each segment.
 - Screens: board (front door, "Start a run" or "Continue run"), found your company (name and industry), week, how to play, interview, result, report, field notes, menu and settings. At most five first-run callouts, each shown once, with a Settings switch.
 - Accessibility: landmarks (banner, main, labelled regions, report as an article), one polite live region, keyboard map (Tab order follows reading order, arrows between hypotheses, Escape closes, 1 to 4 for the first actions), controller map, text scales to 200 percent, no horizontal scroll from 360 px.
-- Performance: first load under 1.5 MB, interactive under 2 s on a throttled phone. Only the sprites a screen needs are fetched (about 40 small WebP files); the world is drawn to one canvas.
+- Performance: the page is interactive under 2 s on a throttled phone, and everything a screen needs, including the painted city, stays under 1.5 MB (enforced by two e2e tests; the city is about 1.1 MB for a front door plus a week screen). Only sprites near the visible area are fetched (about 250 small WebP files, shipped at a 96 px tile, quality 64); the world is painted once into cached layers and fades in, and a sprite that fails to load never blanks the map.
 
 ## Decisions Log
 | Date | Decision | Rationale |
 |------|----------|-----------|
 | 2026-10-18 | Replaced the aviation-paperwork and Dusk look with a pixel overworld from Kenney 2D assets | Nolan rejected the hand-written CSS/SVG UI as AI slop. gstack's image generator needs an OpenAI key we do not have, so the look came from real licensed art |
 | 2026-10-18 | Replaced the pixel overworld with an isometric low-poly tech campus | Nolan wanted the look of the Silicon Valley title sequence. Real assets: Kenney CC0 3D kits rendered to sprites in Blender. Approved under Nolan's standing delegation while away |
-| 2026-10-18 | Light theme only, one typeface (Bricolage Grotesque, OFL-1.1) | A sunny diorama on a phone; one family with real personality keeps it coherent |
+| 2026-10-18 | Light theme only, one typeface (now Plus Jakarta Sans, OFL-1.1) | A sunny diorama on a phone; one plain, legible family keeps it coherent |
+| 2026-10-18 | Swapped Bricolage Grotesque for Plus Jakarta Sans | Nolan: the font looked off. Bricolage's quirky letterforms (the y, R and 4) read as odd at heading size; compared Outfit and Plus Jakarta Sans in the real UI and kept the cleaner one |
 | 2026-10-18 | The route vehicle is a delivery van, not a plane | No CC0 aircraft kit exists; the Car Kit is real art and its debris pieces suit the crash. Copy changes from flight to run |
 | 2026-10-18 | The game does not coach; it explains | Nolan: telling the player the exact move makes it not fun. A Help screen and a milestone bar replace a "next move" suggestion |
 | 2026-10-18 | Name your company and choose an industry | Realism. Industries change the sim's hidden economics (optional parameter, original worlds unchanged); the name is display only |
+| 2026-10-18 | City themes per industry, compound buildings, muted palette, numbered landmark badges, setup as two steps, Start over, 96 px sprites at quality 64 | Nolan: the city looked copy-pasted, wanted it to differ by industry (rural, suburban, urban, downtown) and to look like the Silicon Valley reference, found setup unintuitive and could not reset. A hostile three-checker loop then found and drove fixes (see docs/specs/studio-pass.md) |
 | 2026-10-18 | No hand-drawn illustration, no real brand logos | Scenery and vehicles are real renders or absent; the show's logos are trademarks |

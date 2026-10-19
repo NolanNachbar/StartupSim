@@ -24,6 +24,8 @@ export interface FormDef {
   readonly id: FormId;
   /** The name on the action list and the form heading. */
   readonly title: string;
+  /** One plain line on what the action is. It says what it does, never when to use it. */
+  readonly blurb: string;
   readonly intro: (s: PublicState) => string;
   readonly fields: (s: PublicState) => readonly Field[];
   readonly submit: string;
@@ -62,6 +64,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "interview",
     title: "Interview a customer",
+    blurb: "Talk to people in one group and hear what they say.",
     intro: () =>
       `Three calls with people in one group. A round costs ${money(CATALOG.interviewCashCents)} and takes ${CATALOG.roundWeeks} weeks. What you ask changes what you learn.`,
     fields: (s) => [
@@ -87,6 +90,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "build",
     title: "Build a test",
+    blurb: "Make something customers can react to.",
     intro: () => "Build something small enough to put in front of people. A landing page is the cheapest way to find out if anyone wants it.",
     fields: () => [
       {
@@ -108,6 +112,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "test-channel",
     title: "Test a channel",
+    blurb: "Spend a little to see whether a way of reaching people works.",
     intro: () => `Spend ${money(CATALOG.channelTestBudgetCents)} to reach people through one channel and see how many are interested. Interest is weak evidence.`,
     fields: (s) => [segmentField(s), channelField(s)],
     submit: "Test the channel",
@@ -117,6 +122,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "charge",
     title: "Charge for a test",
+    blurb: "Ask for real money and see who pays.",
     intro: (s) =>
       `Ask real leads to pay ${money(s.priceCents)} a month. It needs a landing page. Payments are the strongest evidence there is.`,
     fields: (s) => [segmentField(s), channelField(s)],
@@ -127,6 +133,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "price",
     title: "Set price",
+    blurb: "Change what customers are charged.",
     intro: (s) => `You charge ${money(s.priceCents)} a month now. A price that is too low starves your cash; one that is too high shrinks the market.`,
     fields: (s) => [
       {
@@ -144,6 +151,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "marketing",
     title: "Set marketing",
+    blurb: "Choose how hard to push a channel each week.",
     intro: () => "Pay for a steady flow of leads on one channel. The spend comes out of cash every week until you turn it off.",
     fields: (s) => [
       {
@@ -171,6 +179,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "hire",
     title: "Hire someone",
+    blurb: "Add a person to the team. They cost money every week.",
     intro: () =>
       `A contractor costs ${money(CATALOG.hireWeeklyCents)} a week, shortens every build by a week and adds 25 percent to the leads your marketing reaches. You can hire up to ${CATALOG.maxHires}.`,
     fields: () => [],
@@ -181,6 +190,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "raise",
     title: "Raise money",
+    blurb: "Take outside money in exchange for part of the company.",
     intro: (s) =>
       `Take ${money(CATALOG.raiseAmountCents)} for ${CATALOG.raiseEquityPcts[s.raisesUsed] ?? 20} percent of the company. Raising takes three to nine weeks of your time. A second raise needs a customer who has paid.`,
     fields: () => [],
@@ -191,6 +201,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "pivot",
     title: "Pivot",
+    blurb: "Change which customers you serve. It uses up a pivot.",
     intro: () => "Change to another customer group. It costs a week, halves your product progress and starts you with no customers.",
     fields: (s) => [
       {
@@ -208,6 +219,7 @@ export const FORMS: readonly FormDef[] = [
   {
     id: "offer",
     title: "Answer the cash offer",
+    blurb: "A lender has made an offer. Accept or decline.",
     intro: (s) =>
       s.offer
         ? `A lender offers ${money(s.offer.amountCents)} now. You repay ${money(s.offer.weeklyRepaymentCents)} a week for ${s.offer.weeks} weeks. The offer ends in week ${s.offer.expiresWeek}.`

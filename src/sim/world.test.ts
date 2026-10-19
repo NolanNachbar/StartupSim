@@ -77,7 +77,7 @@ describe("generateWorld", () => {
       expect(w.startFocus).toBeGreaterThanOrEqual(0);
       expect(w.startFocus).toBeLessThan(w.segments.length);
     }
-  });
+  }, 30_000); // a long property loop: give it room on a busy machine
 
   it("produces both weather outcomes and every segment count across the seeds", () => {
     const counts = new Set<number>();

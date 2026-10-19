@@ -11,7 +11,7 @@
   --primary-pressed: #2440b8;
   --on-primary: #ffffff;
   --glass: #80b0ff;
-  --grass: #86c05f;
+  --grass: #7f9f5c;
   --road: #8888a0;
   --verified: #1b7a45;
   --verified-line: #3ddc84;
@@ -21,7 +21,7 @@
   --warning-ink: #8a5a00;
   --error-ink: #b3261e;
 
-  --font-ui: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-ui: "Plus Jakarta Sans", "Trebuchet MS", system-ui, sans-serif;
 
   --t-sm: 0.875rem;
   --t-md: 1.0625rem;

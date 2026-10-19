@@ -12,8 +12,12 @@
 }
 
 /* The world: the campus behind the game. Layers: world, veil, game. */
-.world { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--grass); }
-.world__canvas { display: block; }
+.world { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: #c9cddb; }
+.world__loading { position: absolute; left: 0; right: 0; top: 38%; margin: 0; text-align: center; color: var(--ink); font-weight: 700; }
+.world__canvas { display: block; opacity: 0; transition: opacity 450ms var(--ease-out); }
+.world__canvas--ready { opacity: 1; }
+[data-reduce-motion] .world__canvas { transition: none; }
+@media (prefers-reduced-motion: reduce) { .world__canvas { transition: none; } }
 .world__layer { position: absolute; inset: 0; pointer-events: none; }
 .way {
   position: absolute;
@@ -25,6 +29,8 @@
   cursor: pointer;
 }
 .way__name {
+  min-width: 40px;
+  text-align: center;
   padding: var(--s-1) var(--s-3);
   background: var(--surface);
   border-radius: var(--radius-chip);
@@ -33,7 +39,11 @@
   font-weight: 700;
   line-height: 22px;
   white-space: nowrap;
+  transform: translateX(var(--dx, 0px));
 }
+.way__stem { width: 3px; height: var(--dy, 0px); margin-bottom: -1px; background: var(--surface); }
+.way--hq .way__stem { background: var(--verified); }
+.way--on .way__stem, .way--focus .way__stem { background: var(--primary); }
 .way__pin { width: 0; height: 0; border: 7px solid transparent; border-top-color: var(--surface); border-bottom-width: 0; margin-top: -1px; }
 .way--hq .way__name { background: var(--verified); color: #ffffff; }
 .way--hq .way__pin { border-top-color: var(--verified); }
@@ -59,7 +69,11 @@
 .board__title--hero { font-size: var(--t-2xl); line-height: 40px; font-weight: 800; letter-spacing: -0.02em; }
 
 .button--menu, .button--quiet { width: auto; min-height: var(--tap); padding: 0 var(--s-4); }
-.button--row { display: flex; justify-content: space-between; align-items: center; text-align: left; }
+.button--row { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); text-align: left; }
+.row__text { display: grid; gap: 0; min-width: 0; }
+.row__title { font-weight: 700; }
+.row__hint { font-weight: 500; font-size: 1rem; line-height: 1.3; color: var(--ink-soft); }
+.button--row:has(.row__hint) { padding-top: var(--s-2); padding-bottom: var(--s-2); }
 .key { color: var(--ink-soft); }
 .menu-list { display: grid; gap: var(--s-2); }
 .actions__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
@@ -81,9 +95,8 @@
   align-items: center;
   gap: var(--s-3);
   padding: var(--s-3) var(--s-4);
-  background: var(--surface);
-  border-radius: var(--radius-panel);
-  box-shadow: var(--shadow-panel);
+  background: var(--surface-raised);
+  border-radius: var(--radius-chip);
 }
 .callout__text { max-width: 60ch; font-size: 1rem; line-height: 1.3; }
 
@@ -114,7 +127,10 @@
 }
 
 /* Route chips. The border carries the evidence language: dotted untested, dashed weak, solid verified. */
-.routes { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(136px, 1fr); gap: var(--s-2); overflow-x: auto; padding: var(--s-1) 0; }
+.routes { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(136px, 1fr); gap: var(--s-2); overflow-x: auto; scroll-snap-type: x proximity; padding: var(--s-1) 0; }
+.routes > li { scroll-snap-align: start; }
+/* A fade at the right edge shows there are more chips to swipe to. */
+.routes[data-more="true"] { mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
 .route-row {
   display: flex;
   flex-direction: column;
@@ -144,8 +160,13 @@
 
 /* Forms. */
 .field { display: grid; gap: var(--s-2); }
+.confirm { display: grid; gap: var(--s-2); }
+.field--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .field__label { font-weight: 700; margin-bottom: var(--s-1); }
 .select {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
   min-height: var(--tap);
   padding: 0 var(--s-3);
   background: var(--surface-raised);
@@ -169,6 +190,31 @@
 .choice__text { display: grid; gap: 0; }
 .choice__title { font-weight: 700; }
 .choice__hint { color: var(--ink-soft); }
+
+/* The name field on its own row, with the suggestion button under it. */
+.namebar { display: grid; gap: var(--s-2); justify-items: start; }
+.namebar .select { justify-self: stretch; }
+
+/* Industry picker: a grid of cards, with the chosen one described underneath. */
+.picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); }
+.pick {
+  position: relative;
+  display: grid;
+  align-content: center;
+  min-height: 64px;
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface-raised);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-chip);
+  cursor: pointer;
+}
+.pick input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.pick:has(input:checked) { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
+.pick:has(input:focus-visible) { outline: 3px solid var(--primary); outline-offset: 2px; }
+.pick:has(input:disabled) { opacity: 0.6; cursor: default; }
+.pick__title { font-weight: 700; line-height: 1.2; }
+.pick__where { color: var(--ink-soft); }
+.pick-detail { margin: 0; padding: var(--s-3); color: var(--ink); background: var(--surface-raised); border-radius: var(--radius-chip); }
 
 /* Results and the interview debrief. */
 .entries { display: grid; gap: var(--s-3); }
@@ -198,6 +244,7 @@
 .crash__fx { position: absolute; pointer-events: none; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; }
 .crash__smoke { background: #4a4d5e; opacity: 0.8; animation: rise 1800ms ease-out infinite; }
 .crash__flame { background: var(--flame); animation: flicker 420ms steps(2) infinite; }
+.crash__flame--core { background: #ffd166; }
 @keyframes rise { from { transform: translateY(0) scale(0.7); opacity: 0.85; } to { transform: translateY(-48px) scale(1.4); opacity: 0; } }
 @keyframes flicker { from { transform: scale(1); } to { transform: scale(1.12) translateY(-2px); } }
 .report[data-reveal="done"] .crash__smoke, .report[data-reveal="done"] .crash__flame { animation: none; }
@@ -245,3 +292,21 @@
 .help__facts dd { text-align: left; font-weight: 500; }
 .strip__buttons { display: grid; grid-template-columns: 1fr auto; gap: var(--s-2); }
 .button--help { width: var(--tap); min-height: var(--tap); padding: 0; font-size: 1.25rem; }
+
+/* Narrow phones (320 px): the van icons would run into the cash figure, so the number carries the count alone. */
+@media (max-width: 359px) {
+  .pivots__vans { display: none; }
+  .strip { grid-template-columns: auto minmax(0, 1fr); gap: var(--s-2); }
+}
+
+/* Landscape phones: a slim HUD in one row and a slim plate, so the map keeps most of the screen. */
+@media (max-height: 519px) {
+  .strip { grid-template-columns: auto minmax(0, 1fr); padding: var(--s-2) var(--s-4); margin-top: var(--s-1); }
+  .pivots { grid-template-columns: auto auto; align-items: center; column-gap: var(--s-3); }
+  .pivots__number { font-size: 2.25rem; line-height: 40px; }
+  .pivots__vans { display: none; }
+  .strip__side { grid-template-columns: repeat(3, auto); align-items: center; justify-content: end; min-width: 0; gap: var(--s-4); }
+  .strip__buttons { order: 3; }
+  .plate .routes, .plate .path__label { display: none; }
+  .plate__head .board__title { font-size: var(--t-md); line-height: 22px; }
+}

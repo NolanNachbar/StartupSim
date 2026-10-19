@@ -111,7 +111,10 @@ export function init(search: string): void {
     company.value = { name: savedName ?? suggestName(toSave(loaded.run).seed), industry: saveIndustry };
     currentSeed.value = toSave(loaded.run).seed;
   }
-  if (loaded.kind === "corrupt") notice.value = "We could not restore your last run. Start a new run.";
+  if (loaded.kind === "corrupt") {
+    storage.remove("runway.company");
+    notice.value = "We could not restore your last run. Start a new run.";
+  }
   syncBlocked();
   if (storageBlocked.value && !notice.value) notice.value = "Progress will not be saved in this browser. You can keep playing.";
 }
@@ -130,20 +133,55 @@ export function markCalloutShown(id: string): void {
   storage.setJson("runway.callouts", shownCallouts.value);
 }
 
-export function resetProgress(): void {
+/** A shared-run link (?play=...) would bring the old challenge back on reload, so Start over drops the query string. */
+function forgetLinkInAddressBar(): void {
+  try {
+    history.replaceState(history.state, "", location.pathname);
+  } catch {
+    // not allowed in this context: the in-memory reset still holds
+  }
+}
+
+/** True while the menu is asking "are you sure?" before it wipes everything. */
+export const confirmingStartOver = signal(false);
+
+/**
+ * Start over completely: the run in progress, the company, field notes, history, seen causes and callouts all go.
+ * Settings (sound, motion, callouts on or off) are kept. The next run begins at the front door with a fresh world.
+ */
+export function startOver(): void {
+  for (const key of ["runway.run", "runway.company", "runway.callouts", "runway.seen", "runway.notes", "runway.flights"]) storage.remove(key);
+  run.value = null;
+  savedRun.value = null;
+  last.value = null;
+  selected.value = null;
+  shareNotice.value = null;
+  notice.value = null;
+  formError.value = null;
   shownCallouts.value = [];
   seenCauses.value = [];
   notes.value = [];
   flights.value = [];
-  storage.remove("runway.callouts");
-  storage.remove("runway.seen");
-  storage.remove("runway.notes");
-  storage.remove("runway.flights");
-  announcement.value = "Progress reset.";
+  challengeSeed.value = null;
+  challengeIndustry.value = null;
+  company.value = { name: "", industry: 0 };
+  draft.value = { name: "", industry: 0 };
+  currentSeed.value = 0;
+  baseSeed.value = randomSeed() % 0xfffffffd;
+  confirmingStartOver.value = false;
+  sheetOpen.value = false;
+  revealDone.value = false;
+  revealMode.value = "full";
+  startPivots.value = 0;
+  forgetLinkInAddressBar();
+  announcement.value = "Everything is cleared. Start a new company whenever you like.";
+  syncBlocked();
+  go({ name: "board" });
 }
 
 export function go(next: Screen): void {
   formError.value = null;
+  confirmingStartOver.value = false;
   screen.value = next;
 }
 
@@ -195,7 +233,8 @@ export function continueFlight(): void {
   if (!saved) return;
   run.value = saved;
   savedRun.value = null;
-  startPivots.value = view(newRun(0)).pivotsRemaining;
+  const origin = toSave(saved);
+  startPivots.value = view(newRun(origin.seed, origin.industry)).pivotsRemaining;
   notice.value = null;
   go({ name: "week" });
 }
@@ -268,6 +307,27 @@ export function back(): void {
     case "notes": go(s.from); break;
     case "help": go(s.from); break;
     default: break;
+  }
+}
+
+/**
+ * The browser's own Back (a phone's edge swipe, the Back button). One history entry is kept in reserve while a
+ * screen other than the front door is showing, so Back steps back through the game and never drops a player out of
+ * a run. On the front door it is left alone, so Back can leave the page as usual.
+ */
+export function watchSystemBack(): void {
+  try {
+    history.pushState({ runway: true }, "");
+    window.addEventListener("popstate", () => {
+      if (screen.value.name === "board") {
+        history.back(); // the front door: Back leaves the page, as people expect
+        return;
+      }
+      history.pushState({ runway: true }, "");
+      back();
+    });
+  } catch {
+    // history is unavailable (a sandboxed frame): the on-screen Back buttons still work
   }
 }
 

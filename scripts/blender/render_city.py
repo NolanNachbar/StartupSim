@@ -1,8 +1,8 @@
 # Renders isometric sprites from Kenney's CC0 3D kits (City Kit Commercial/Industrial/Roads, Car Kit, Nature Kit)
 # into public/art/city/*.png plus manifest.json. Run headless:
-#   KENNEY3D=/path/to/kits OUT=public/art/city SET=all /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/blender/render_city.py
+#   KENNEY3D=/path/to/kits OUT=public/art/city SET=all blender -b -P scripts/blender/render_city.py
 # The models are real Kenney art; this script only places a camera and lights and renders them. One tile of ground
-# is a diamond 128 px wide and 64 px tall (a 2:1 isometric projection). Each sprite's anchor is the ground centre
+# is a diamond 96 px wide and 48 px tall (a 2:1 isometric projection). Each sprite's anchor is the ground centre
 # of its footprint, so the game can place it on its grid cell.
 import json
 import math
@@ -16,7 +16,7 @@ KITS = os.environ["KENNEY3D"]
 OUT = os.environ.get("OUT", "public/art/city")
 SET = os.environ.get("SET", "all")
 SAMPLES = int(os.environ.get("SAMPLES", "48"))
-TILE_W = 128.0  # diamond width in pixels for a 1 x 1 unit tile
+TILE_W = float(os.environ.get("TILE_W", "96"))  # diamond width in pixels for a 1 x 1 unit tile (the game draws at about this size)
 PX_PER_UNIT = TILE_W / math.sqrt(2)
 CANVAS = int(os.environ.get("CANVAS", "1024"))
 
@@ -31,11 +31,12 @@ NAT = lambda n: glb("nature-kit", "GLTF format", n)
 
 jobs = []  # (name, path, z_rotation_degrees, scale)
 def add(name, path, rot=0, scale=1.0):
-    jobs.append((name, path, rot, scale))
+    """scale is one number, or (x, y, z) to stretch a model: a taller tower, or a 2 x 2 footprint."""
+    jobs.append((name, path, rot, scale if isinstance(scale, tuple) else (scale, scale, scale)))
 
-def add_rotations(base, path, scale=1.0):
-    """Four views of one building (its sides differ), so a street of the same model never looks copy-pasted."""
-    for r in (0, 90, 180, 270):
+def add_rotations(base, path, scale=1.0, rots=(0, 90, 180, 270)):
+    """Several views of one building (its sides differ), so a street of the same model never looks copy-pasted."""
+    for r in rots:
         add(base if r == 0 else f"{base}-r{r}", path, r, scale)
 
 for letter in "abcdefghijklmn":
@@ -44,6 +45,58 @@ for letter in "abcde":
     add_rotations(f"sky-{letter}", COM(f"building-skyscraper-{letter}"))
 for letter in "abcefhij":  # ind-d and ind-g have texture glitches, so they are left out
     add_rotations(f"ind-{letter}", IND(f"building-{letter}"))
+SUB = lambda n: glb("city-kit-suburban", "GLB format", n)
+for letter in "abcdefghijklmnopqrstu":  # suburban houses
+    add_rotations(f"sub-{letter}", SUB(f"building-type-{letter}"))
+# The same houses with the green roofs recoloured (one palette swatch in the shared colour map), two views each.
+ROOFS = {"brick": (176, 98, 70), "slate": (88, 94, 112)}
+for variant in ROOFS:
+    for letter in "abcdefghijklmnopqrstu":
+        add_rotations(f"sub-{letter}-{variant}", f"recolor|{variant}|" + SUB(f"building-type-{letter}"), rots=(0, 180))
+add("sub-tree-large", SUB("tree-large"))
+add("sub-tree-small", SUB("tree-small"))
+add("sub-planter", SUB("planter"))
+# Farmland and country props (Nature Kit): crop tiles in two rotations so rows can run either way.
+for crop in ("crops_wheatStageB", "crops_cornStageD", "crops_dirtDoubleRow", "crops_leafsStageB", "crops_wheatStageA"):
+    for r in (0, 90):
+        add(crop if r == 0 else f"{crop}-r{r}", NAT(crop), r)
+for n in ("fence_simple", "stump_old", "log_stack", "flower_redA", "flower_yellowB", "flower_purpleC", "stone_largeA", "stone_tallA"):
+    add(n, NAT(n))
+add("windmill", IND("windmill"))
+add("silo", IND("detail-tank-large"))
+add("chimney", IND("chimney-large"))
+for r in (0, 90, 180, 270):
+    add(f"car-tractor-{r}", CAR("tractor"), r, 0.5)
+# More distinct buildings: the low-detail commercial set, more factories, and street furniture.
+for letter in "abcdefghijklmn":
+    add_rotations(f"low-{letter}", COM(f"low-detail-building-{letter}"), rots=(0, 90))
+for letter in "ab":
+    add_rotations(f"low-wide-{letter}", COM(f"low-detail-building-wide-{letter}"), rots=(0, 90))
+for letter in "klmnopqrst":
+    add_rotations(f"ind-{letter}", IND(f"building-{letter}"))
+# Heights: the same buildings rendered shorter and taller (a real change in floors, not a squash on screen), so a
+# skyline has a rhythm. Two views each. Names end -z<percent of the original height>.
+for letter in "abcde":
+    for z in (70, 135, 175):
+        add_rotations(f"sky-{letter}-z{z}", COM(f"building-skyscraper-{letter}"), (1, 1, z / 100), (0, 90))
+    add_rotations(f"com-{letter}-z150", COM(f"building-{letter}"), (1, 1, 1.5), (0, 90))
+for letter in "fghijk":
+    add_rotations(f"com-{letter}-z140", COM(f"building-{letter}"), (1, 1, 1.4), (0, 90))
+for letter in "lmn":
+    add_rotations(f"com-{letter}-z130", COM(f"building-{letter}"), (1, 1, 1.3), (0, 90))
+# Compound buildings (see build_compound): several real kit pieces assembled into one complex, so the silhouettes are
+# not all boxes. "cx-" is a 3 x 3 cell lot; "cs-" is the same complex scaled down to 2 x 2.
+import random as _random
+COMPOUND_KINDS = {"court": 6, "podium": 8, "wing": 6, "solar": 6, "yard": 4, "towers": 4, "terrace": 4}
+for kind, count in COMPOUND_KINDS.items():
+    for i in range(1, count + 1):
+        add_rotations(f"cx-{kind}-{i}", f"compound:{kind}:{i}", rots=(0, 90))
+        if i <= 3:
+            add_rotations(f"cs-{kind}-{i}", f"compound:{kind}:{i}", scale=(0.67, 0.67, 0.67), rots=(0, 90))
+add("road-square", ROAD("road-square"))
+add("tile-low", ROAD("tile-low"))
+for n in ("light-square-double", "traffic-light", "construction-cone", "dumpster", "electricity-pole", "road-sign-street"):
+    add(n, ROAD(n))
 add("water-tower", IND("water-tower"))
 add("solar-group", IND("solar-panel-landscape-group"))
 # Standing signs: abstract original marks on a pole (no real brand logos).
@@ -67,6 +120,8 @@ for car in ("van", "sedan", "taxi", "suv", "police", "ambulance", "firetruck", "
 for d in ("debris-bumper", "debris-door", "debris-tire", "debris-plate-a", "debris-spoiler-a", "debris-door-window", "debris-drivetrain"):
     add(d, CAR(d), 0, 0.5)
 
+if os.environ.get("ROT0"):  # a quick look: one view of each model
+    jobs = [j for j in jobs if j[2] == 0]
 if SET != "all":
     wanted = set(SET.split(","))
     jobs = [j for j in jobs if j[0] in wanted or any(j[0].startswith(w) for w in wanted)]
@@ -167,14 +222,148 @@ def build_sign(kind, colour):
             put(bpy.context.object, paint)
     return objs
 
+SKY = lambda n: f"com:building-skyscraper-{n}"
+SLABS = ["com:building-j", "com:building-k", "com:building-e", "ind:building-s", "ind:building-p", "ind:building-r", "ind:building-a", "ind:building-t"]
+FLATS = ["ind:building-p", "ind:building-q", "ind:building-r", "ind:building-s", "ind:building-t", "ind:building-a", "ind:building-k"]
+MIDS = ["com:building-l", "com:building-m", "com:building-i", "com:building-f", "com:building-g", "com:building-n", "com:building-h"]
+TOWER_MODELS = [SKY(c) for c in "abcde"] + ["com:building-m", "com:building-l"]
+SLENDER = [f"com:low-detail-building-{c}" for c in "bfim"] + [f"com:low-detail-building-{c}" for c in "adgkl"]
+
+def kit_path(spec):
+    kit, name = spec.split(":", 1)
+    base = {"com": COM, "ind": IND, "sub": SUB, "nat": NAT, "road": ROAD}[kit]
+    return base(name)
+
+def part(spec, pos=(0.0, 0.0, 0.0), rot=0, fit=None, scale=None):
+    """Import one kit model, centre it on its own footprint, then turn, size and place it. `fit` is the footprint
+    (width, depth) it should fill in the finished compound plus a height factor; returns its size as placed."""
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=kit_path(spec))
+    new = [o for o in bpy.data.objects if o not in before]
+    roots = [o for o in new if o.parent is None]
+    bpy.context.view_layer.update()
+    pts = [o.matrix_world @ mathutils.Vector(c) for o in new if o.type == "MESH" for c in o.bound_box]
+    mnx, mxx = min(p.x for p in pts), max(p.x for p in pts)
+    mny, mxy = min(p.y for p in pts), max(p.y for p in pts)
+    mnz, mxz = min(p.z for p in pts), max(p.z for p in pts)
+    nw, nd, nh = mxx - mnx, mxy - mny, mxz - mnz
+    inner = bpy.data.objects.new("inner", None)
+    bpy.context.scene.collection.objects.link(inner)
+    for o in roots:
+        o.parent = inner
+    inner.location = (-(mnx + mxx) / 2, -(mny + mxy) / 2, -mnz)
+    outer = bpy.data.objects.new("outer", None)
+    bpy.context.scene.collection.objects.link(outer)
+    inner.parent = outer
+    turned = rot % 180 == 90
+    if fit:
+        w, d, hz = fit
+        sx, sy, sz = ((d / nw, w / nd, hz) if turned else (w / nw, d / nd, hz))
+    else:
+        sx, sy, sz = scale if scale else (1, 1, 1)
+    outer.rotation_euler[2] = math.radians(rot)
+    outer.scale = (sx, sy, sz)
+    outer.location = pos
+    return ((nd * sy, nw * sx) if turned else (nw * sx, nd * sy)) + (nh * sz,)
+
+def build_compound(kind, n):
+    """Assemble one compound from real kit pieces. Deterministic per (kind, n), so a sprite can be re-rendered."""
+    r = _random.Random(f"{kind}-{n}")
+    ch = r.choice
+    if kind == "court":  # four wings around a courtyard with a tree
+        w = r.uniform(2.3, 2.7)
+        for pos, rot, fit in (((0, 1.05, 0), 0, (w, 0.95)), ((0, -1.05, 0), 180, (w, 0.95)), ((-1.05, 0, 0), 90, (0.95, 1.15)), ((1.05, 0, 0), 270, (0.95, 1.15))):
+            if rot in (90, 270) and r.random() < 0.25:
+                continue  # a gap in the ring
+            part(ch(SLABS), pos, rot, fit=(fit[0], fit[1], r.uniform(0.8, 1.4)))
+        part("road:road-square", (0, 0, 0.01), 0, scale=(1.5, 1.5, 1))
+        for _ in range(r.choice((1, 2, 3))):
+            part(ch(["sub:tree-large", "sub:tree-small"]), (r.uniform(-0.3, 0.3), r.uniform(-0.3, 0.3), 0), 0, scale=(2.2, 2.2, 2.2))
+    elif kind == "podium":  # a wide low base with one or two towers standing on it
+        pw, pd, ph = part(ch(FLATS + ["com:building-j", "com:building-k"]), (0, -0.1, 0), 0, fit=(r.uniform(2.4, 2.8), r.uniform(1.9, 2.3), r.uniform(0.9, 1.5)))
+        t1 = ch(TOWER_MODELS + MIDS)
+        s1 = r.uniform(0.8, 1.05)
+        part(t1, (r.uniform(-0.6, -0.3), r.uniform(-0.3, 0.1), ph), r.choice((0, 90)), scale=(s1, s1, r.uniform(0.7, 1.1)))
+        if r.random() < 0.6:
+            s2 = r.uniform(0.6, 0.85)
+            part(ch(MIDS), (r.uniform(0.4, 0.8), r.uniform(-0.5, 0.2), ph), r.choice((0, 90)), scale=(s2, s2, r.uniform(0.7, 1.1)))
+        elif r.random() < 0.7:
+            part("ind:solar-panel-landscape-group", (0.7, -0.2, ph), 0, scale=(0.9, 0.9, 0.9))
+    elif kind == "wing":  # an L of two slabs with a taller block at the corner
+        part(ch(SLABS), (0, 1.0, 0), 0, fit=(r.uniform(2.4, 2.8), 1.0, r.uniform(0.9, 1.5)))
+        part(ch(SLABS), (1.0, -0.45, 0), 90, fit=(1.0, r.uniform(1.5, 1.8), r.uniform(0.8, 1.3)))
+        part(ch(MIDS + SLENDER), (-0.95, -0.55, 0), r.choice((0, 90)), scale=(0.85, 0.85, r.uniform(0.8, 1.2)))
+        if r.random() < 0.6:
+            part(ch(["sub:tree-large", "sub:tree-small"]), (-0.2, -0.7, 0), 0, scale=(2.2, 2.2, 2.2))
+    elif kind == "solar":  # a wide flat hall with solar arrays on the roof
+        bw, bd, bh = part(ch(FLATS), (0, 0, 0), ch((0, 90)), fit=(r.uniform(2.6, 2.9), r.uniform(1.8, 2.2), r.uniform(1.0, 1.5)))
+        for (px, py) in ((-0.65, -0.45), (0.65, -0.45), (-0.65, 0.45), (0.65, 0.45))[: r.choice((2, 3, 4))]:
+            part("ind:solar-panel-landscape-group", (px, py, bh), 0, scale=(0.75, 0.75, 0.75))
+        if r.random() < 0.5:
+            part(ch(["ind:detail-tank", "ind:chimney-large"]), (r.uniform(-1.0, 1.0), r.uniform(-0.9, 0.9), 0), 0, scale=(0.8, 0.8, 0.8))
+    elif kind == "yard":  # a factory with its tanks, containers and stacks
+        part(ch(["ind:building-l", "ind:building-m", "ind:building-n", "ind:building-c", "ind:building-e"]), (-0.3, 0.3, 0), ch((0, 90, 180)), scale=(1.1, 1.1, 1.0))
+        part("ind:chimney-large", (-1.1, -0.9, 0), 0, scale=(0.8, 0.8, 0.9))
+        part("ind:detail-tank-large", (1.0, 0.9, 0), 0, scale=(0.7, 0.7, 0.7))
+        for i in range(r.choice((2, 3, 4))):
+            part(ch(["ind:shipping-container-a", "ind:shipping-container-b", "ind:shipping-container-c"]), (0.95 + 0.0, -0.8 + 0.42 * i, 0), 90, scale=(1.4, 1.4, 1.4))
+        if r.random() < 0.6:
+            part("ind:water-tower", (0.3, -1.0, 0), 0, scale=(0.8, 0.8, 0.8))
+    elif kind == "towers":  # a plaza with a cluster of towers of different heights
+        part("road:road-square", (0, 0, 0.01), 0, scale=(2.9, 2.9, 1))
+        for pos in ((-0.75, 0.55), (0.7, 0.25), (-0.05, -0.85)):
+            s = r.uniform(0.75, 1.0)
+            part(ch(TOWER_MODELS + SLENDER), (pos[0], pos[1], 0), r.choice((0, 90)), scale=(s, s, r.uniform(0.6, 1.4)))
+    elif kind == "terrace":  # three slabs stepping up
+        zs = sorted([r.uniform(0.6, 1.0), r.uniform(1.0, 1.5), r.uniform(1.5, 2.1)])
+        for i, y in enumerate((0.95, 0.0, -0.95)):
+            part(ch(SLABS + ["com:building-n"]), (0, y, 0), 0, fit=(r.uniform(2.0, 2.5), 0.9, zs[i]))
+        part(ch(["sub:tree-large", "sub:tree-small"]), (1.2, 0.95, 0), 0, scale=(2.2, 2.2, 2.2))
+
+def recolor_roof(variant):
+    """Swap the roof-green swatch of the shared colour map for another colour (brick, slate). The importer packs the
+    map and the renderer reads the packed copy, so the recoloured pixels go into a new image the materials then use."""
+    import numpy as np
+    target = ROOFS[variant]
+    for mat in bpy.data.materials:
+        if not mat.use_nodes:
+            continue
+        for node in mat.node_tree.nodes:
+            if node.type != "TEX_IMAGE" or node.image is None or "colormap" not in node.image.name:
+                continue
+            im = node.image
+            w, h = im.size
+            px = np.array(im.pixels[:], dtype=np.float32).reshape(h, w, 4)
+            rgb = px[:, :, :3] * 255.0
+            # the roof is a ramp of greens (shaded swatches): every green pixel takes the new colour, keeping its brightness
+            near = (rgb[:, :, 1] > rgb[:, :, 0] + 25.0) & (rgb[:, :, 1] > rgb[:, :, 2] + 10.0)
+            lum = 0.3 * rgb[:, :, 0] + 0.59 * rgb[:, :, 1] + 0.11 * rgb[:, :, 2]
+            ref = 0.3 * 97.0 + 0.59 * 203.0 + 0.11 * 139.0
+            for c in range(3):
+                px[:, :, c][near] = np.clip(target[c] / 255.0 * (lum[near] / ref), 0.0, 1.0)
+            fresh = bpy.data.images.new(im.name + "_" + variant, width=w, height=h, alpha=True)
+            fresh.colorspace_settings.name = im.colorspace_settings.name
+            fresh.pixels = px.reshape(-1).tolist()
+            fresh.update()
+            node.image = fresh
+            node.interpolation = "Closest"
+
 def render_one(name, path, rot, scale, manifest):
     scene = reset_scene()
     before = set(bpy.data.objects)
+    recolor = None
+    if path.startswith("recolor|"):
+        _, recolor, path = path.split("|", 2)
     if path.startswith("sign:"):
         _, kind, colour = path.split(":")
         build_sign(kind, colour)
+    elif path.startswith("compound:"):
+        _, kind, n = path.split(":")
+        build_compound(kind, int(n))
     else:
         bpy.ops.import_scene.gltf(filepath=path)
+    if recolor:
+        recolor_roof(recolor)
     new = [o for o in bpy.data.objects if o not in before]
     roots = [o for o in new if o.parent is None]
     # Some kits (the Car Kit) ship wheels as separate root objects, so rotate and scale them together around one pivot.
@@ -183,7 +372,7 @@ def render_one(name, path, rot, scale, manifest):
     for o in roots:
         o.parent = pivot
     pivot.rotation_euler[2] = math.radians(rot)
-    pivot.scale = (scale, scale, scale)
+    pivot.scale = scale
     bpy.context.view_layer.update()
     out_png = os.path.join(OUT, name + ".png")
     scene.render.filepath = out_png
@@ -216,9 +405,9 @@ os.makedirs(OUT, exist_ok=True)
 manifest_path = os.path.join(OUT, "manifest.json")
 manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {}
 for name, path, rot, scale in jobs:
-    if name in manifest and os.path.exists(os.path.join(OUT, name + ".png")):
-        continue  # resume
-    if not path.startswith("sign:") and not os.path.exists(path):
+    if name in manifest and any(os.path.exists(os.path.join(OUT, name + ext)) for ext in (".png", ".webp")):
+        continue  # resume (the PNG is deleted once it has been converted to WebP)
+    if not path.startswith(("sign:", "compound:")) and not os.path.exists(path.split("|")[-1]):
         print("MISSING", path)
         continue
     render_one(name, path, rot, scale, manifest)

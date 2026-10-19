@@ -10,7 +10,7 @@ export function Panel({ idle }: { idle?: boolean }) {
     return (
       <aside class="panel panel--board" aria-label="Log and details">
         <Section title="Log" id="log-h">
-          <p class="panel__text">No tests yet. Interview a customer to start your route.</p>
+          <p class="panel__text">No tests yet.</p>
         </Section>
         <Section title="Selected" id="sel-h">
           <p class="panel__text">Select a point on the route to see what you know about it.</p>
@@ -34,7 +34,7 @@ export function Panel({ idle }: { idle?: boolean }) {
       </Section>
       <Section title="Log" id="log-h">
         {log.length === 0 ? (
-          <p class="panel__text">No tests yet. Interview a customer to start your route.</p>
+          <p class="panel__text">No tests yet.</p>
         ) : (
           <ul class="log">
             {log.map((e, i) => (

@@ -15,12 +15,12 @@ async function finishRun(page: Page): Promise<void> {
 
 test.use({ reducedMotion: "reduce" });
 
-test("field notes and flight history fill in after a flight", async ({ page }, info) => {
+test("field notes and run history fill in after a run", async ({ page }, info) => {
   test.setTimeout(120_000);
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Menu" }).click();
   await page.getByRole("button", { name: "Field notes" }).click();
-  await expect(page.getByText("No patterns met yet. Each flight adds a page.")).toBeVisible();
+  await expect(page.getByText("No patterns met yet. Each run adds a page.")).toBeVisible();
   await page.getByRole("button", { name: "Back" }).click();
   await page.getByRole("button", { name: "Back" }).click();
 
@@ -62,11 +62,11 @@ test("the report offers a challenge link and a share card PNG", async ({ page })
   await page.getByRole("button", { name: "Start the company" }).click();
   await finishRun(page);
 
-  await page.getByRole("button", { name: "Copy challenge link" }).click();
+  await page.getByRole("button", { name: "Copy link" }).click();
   await expect(page.getByRole("status").filter({ hasText: "?play=3" })).toBeVisible();
 
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Save share card" }).click();
+  await page.getByRole("button", { name: "Save image" }).click();
   const file = await download;
   expect(file.suggestedFilename()).toBe("runway-run-3.png");
   const bytes = readFileSync(await file.path());

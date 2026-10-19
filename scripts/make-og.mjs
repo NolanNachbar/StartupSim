@@ -6,8 +6,8 @@ import { readFileSync } from "node:fs";
 
 const base = process.argv[2] ?? "http://localhost:4173";
 const font = (f) => `data:font/woff2;base64,${readFileSync(f).toString("base64")}`;
-const heavy = font("node_modules/@fontsource/bricolage-grotesque/files/bricolage-grotesque-latin-800-normal.woff2");
-const mid = font("node_modules/@fontsource/bricolage-grotesque/files/bricolage-grotesque-latin-500-normal.woff2");
+const heavy = font("node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-800-normal.woff2");
+const mid = font("node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff2");
 const van = `data:image/webp;base64,${readFileSync("public/art/city/car-van-270.webp").toString("base64")}`;
 
 const browser = await chromium.launch();

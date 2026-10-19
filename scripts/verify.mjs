@@ -6,8 +6,8 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 const gates = [
-  // The repo is public: no tracked file may contain a local home path. git grep exits 1 when nothing matches.
-  { name: "no-local-paths", cmd: "sh", args: ["-c", "! git grep -nI -e '/Users/' -e '/home/' -- . ':!package-lock.json' ':!scripts/verify.mjs'"] },
+  // The repo is public: no tracked file may contain a local machine path (home folders, temp folders, the Applications folder). git grep exits 1 when nothing matches.
+  { name: "no-local-paths", cmd: "sh", args: ["-c", "! git grep -nI -e '/Users/' -e '/home/' -e '/private/' -e '/Applications/' -e '/Volumes/' -- . ':!package-lock.json' ':!scripts/verify.mjs'"] },
   { name: "typecheck", cmd: "npm", args: ["run", "typecheck", "--silent"] },
   { name: "lint", cmd: "npm", args: ["run", "lint", "--silent"] },
   { name: "unit", cmd: "npm", args: ["test", "--silent"] },
