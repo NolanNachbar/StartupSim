@@ -25,11 +25,13 @@ Plan  ->  Build  ->  Verify (fresh context, up to 3 checkers in parallel)  ->  G
 - Run `npm run verify` before handing off to verification.
 
 ### Verify node (fresh context)
-Verification runs in separate subagents that did not do the building and have not seen the build conversation. Give each only the item text, the diff, and the file paths it needs. Up to three run in parallel because they are read-only:
+Verification runs in separate subagents that did not do the building and have not seen the build conversation. Give each only the item text, the diff, and the file paths it needs. Up to four run in parallel because they are read-only:
 
 1. Behavior checker: runs `npm run verify`, reads `.verify/report.json`, and reports each roadmap check as pass or fail with evidence. Passing means the real signal, such as a test result or a measured value, not a claim that the work is done.
 2. Design checker: for any UI change, opens the screenshots in `.verify/screens/` and answers the DESIGN.md verify checklist question by question, with a pass or fail and the screenshot name for each.
 3. Adversary: tries to break the work. Reads the diff for hidden-truth leaks into the UI, nondeterminism, missing edge cases, and any weakened test or gate. Reports concrete failing cases or "none found" with what it tried.
+
+4. Player walkthrough (see `docs/specs/player-walkthrough.md`): plays the real game as a first-time founder with a specific business, and reports every moment that is confusing, wrong for that business, or unexplained. It is the checker for clarity and fit. It never reads the code or the rules first.
 
 Each checker returns this shape so the gate can read it:
 
