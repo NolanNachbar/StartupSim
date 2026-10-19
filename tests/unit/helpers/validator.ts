@@ -34,11 +34,15 @@ export interface ValidatorOptions {
   readonly marketingLevel?: number;
   readonly maxWeeks?: number;
   readonly industry?: number | null;
+  /** A chosen business: the fuller rules apply (team, R&D, capacity, marketing target). */
+  readonly business?: { model: number; idea: string } | null;
+  /** With a chosen business: hire an operations person once customers near the limit. */
+  readonly hireOps?: boolean;
 }
 
 export function playValidator(seed: number, options: ValidatorOptions = {}): { run: InternalRun; actions: Action[] } {
   const maxWeeks = options.maxWeeks ?? 110;
-  let run = initialRun(seed, options.industry ?? null);
+  let run = initialRun(seed, options.industry ?? null, options.business ?? null);
   const actions: Action[] = [];
   const act = (a: Action): boolean => {
     if (run.pub.status !== "running") return false;
@@ -49,7 +53,9 @@ export function playValidator(seed: number, options: ValidatorOptions = {}): { r
     return true;
   };
 
-  if (options.price !== undefined) act({ type: "setPrice", priceCents: options.price });
+  // A founder prices for the kind of business: a coaching client or a gym member pays more than an app user.
+  const price = options.price ?? (options.business && (options.business.model === 1 || options.business.model === 2) ? 9900 : undefined);
+  if (price !== undefined) act({ type: "setPrice", priceCents: price });
   act({ type: "raiseMoney" });
   const n = run.pub.segmentNames.length;
   for (let s = 0; s < n; s++) {
@@ -70,13 +76,14 @@ export function playValidator(seed: number, options: ValidatorOptions = {}): { r
     }
   }
   act({ type: "chargeTest", segment: best, channel: bestChannel });
-  act({ type: "setMarketing", channel: bestChannel, level: options.marketingLevel ?? 2 });
+  act({ type: "setMarketing", channel: bestChannel, level: options.marketingLevel ?? 2, ...(options.business ? { target: best } : {}) });
 
   while (run.pub.status === "running" && run.pub.productProgressPct < 100) {
     const kind = run.pub.productProgressPct <= 60 ? "prototype" : "concierge";
     if (!act({ type: "buildTest", kind })) break;
   }
   while (run.pub.status === "running" && run.pub.week < maxWeeks) {
+    if (options.business && options.hireOps && run.pub.capacity !== null && run.pub.payingCustomers >= run.pub.capacity * 0.8 && run.pub.team.ops < 2) act({ type: "hire", role: "ops" });
     if (!act({ type: "wait" })) break;
   }
   return { run, actions };

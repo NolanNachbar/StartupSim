@@ -2,7 +2,8 @@
 // GAME-DESIGN.md targets. The normal unit run only does a 20-seed smoke so the gates stay fast.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { INDUSTRY_LIST } from "../../src/sim";
+import { BUSINESS_LIST, BUSINESS_MODELS, INDUSTRY_LIST } from "../../src/sim";
+import { playValidator } from "./helpers/validator";
 import { BOTS, SEEDS_20, SEEDS_200, tally } from "./helpers/bots";
 
 const FULL = process.env.BALANCE === "1";
@@ -42,6 +43,41 @@ describe("balance bots", () => {
     });
     process.stdout.write(`\n${lines.join("\n")}\n`);
   });
+
+  // Every kind of business must be winnable by good play, or choosing one at setup would be a trap. A gym needs far
+  // more customers than an app, a service needs a higher price, and a place has a limit on how many it can serve.
+  const landedWith = (industry: number, model: number, seeds: number): number => {
+    let landed = 0;
+    for (let seed = 1000; seed < 1000 + seeds; seed++) {
+      const r = playValidator(seed, { industry, business: { model, idea: BUSINESS_LIST[industry]![model]!.examples[0]! }, hireOps: true });
+      if (r.run.pub.status === "landed") landed += 1;
+    }
+    return landed;
+  };
+
+  it("every business model is winnable in a spread of industries (a quick check)", () => {
+    for (let model = 0; model < BUSINESS_MODELS.length; model++) {
+      let landed = 0;
+      for (const industry of [0, 3, 6, 7]) landed += landedWith(industry, model, 40);
+      const pct = (landed * 100) / 160;
+      expect(pct, `${BUSINESS_MODELS[model]!.name}: good play should land often enough to be worth trying`).toBeGreaterThanOrEqual(12);
+      expect(pct, `${BUSINESS_MODELS[model]!.name}: and not almost always`).toBeLessThanOrEqual(60);
+    }
+  }, 120_000);
+
+  it.runIf(FULL)("every industry and business model keeps a winnable band (the full table)", () => {
+    const lines: string[] = [];
+    INDUSTRY_LIST.forEach((ind, i) => {
+      const cells = BUSINESS_MODELS.map((m, mi) => {
+        const landed = landedWith(i, mi, 100);
+        expect(landed, `${ind.name} / ${m.name}`).toBeGreaterThanOrEqual(2);
+        expect(landed, `${ind.name} / ${m.name}`).toBeLessThanOrEqual(70);
+        return `${m.id}:${landed}`;
+      });
+      lines.push(`${ind.name.padEnd(26)} ${cells.join("  ")}`);
+    });
+    process.stdout.write(`\n${lines.join("\n")}\n`);
+  }, 600_000);
 
   it("smoke: every industry finishes 20 seeds with the good-play bot", () => {
     INDUSTRY_LIST.forEach((_, i) => {

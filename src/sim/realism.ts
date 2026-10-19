@@ -23,13 +23,16 @@ export const RND_LEVELS_CENTS: readonly number[] = [0, 30_000, 100_000, 250_000]
 export const RND_GAIN: readonly number[] = [0, 1, 3, 6];
 
 /** What the business costs to run each week before anyone is hired, by kind of business (cents). */
-export const BURN_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 150_000, service: 120_000, location: 280_000, product: 180_000 };
+export const BURN_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 150_000, service: 80_000, location: 220_000, product: 150_000 };
+
+/** What customers will pay, as a percent of the industry's usual: a coaching client pays far more than an app user. */
+export const WTP_PCT_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 100, service: 400, location: 100, product: 100 };
 
 /** How many customers the business can serve with no team, and how many more each operations hire adds. */
 export const CAPACITY_BY_MODEL: Readonly<Record<ModelId, { readonly base: number; readonly perOps: number }>> = {
   software: { base: 100_000, perOps: 100_000 },
-  service: { base: 20, perOps: 20 },
-  location: { base: 60, perOps: 60 },
+  service: { base: 15, perOps: 15 },
+  location: { base: 120, perOps: 120 },
   product: { base: 300, perOps: 300 },
 };
 

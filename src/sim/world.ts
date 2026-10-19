@@ -2,6 +2,7 @@
 import { randChance, randInt, randPick } from "./rng";
 import { LATE_PAYER_DELAY_WEEKS, LATE_PAYER_PCT } from "./runway";
 import { businessFor, type BusinessChoice } from "./business";
+import { WTP_PCT_BY_MODEL } from "./realism";
 import type { Channel, LateWindow, Secret, Segment, Weather } from "./types";
 
 export const PROBLEMS = [
@@ -119,7 +120,8 @@ export function generateWorld(seed: number, industryIndex: number | null = null,
   const segments = Array.from({ length: segmentCount }, (_, i) => {
     const seg = generateSegment(seed, i, industry);
     const name = business?.segmentNames[i];
-    return name ? { ...seg, name } : seg;
+    const named = name ? { ...seg, name } : seg;
+    return business ? { ...named, willingnessToPayCents: clamp(Math.floor((named.willingnessToPayCents * WTP_PCT_BY_MODEL[business.model.id]) / 100), 500, 59_900) } : named;
   });
   const channels: Channel[] = CHANNELS.map((c, ci) => ({
     name: c.name,
