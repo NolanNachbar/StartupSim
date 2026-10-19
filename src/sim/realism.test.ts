@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { QUESTION_BANK } from "./actions";
-import { CAPACITY_BY_MODEL, RND_LEVELS_CENTS, capacityOf } from "./realism";
+import { CAPACITY_BY_MODEL, HIRE_SEARCH_WEEKS, RND_LEVELS_CENTS, capacityOf } from "./realism";
 import { newRun, step, view } from "./index";
 import type { Action } from "./types";
 
@@ -24,13 +24,13 @@ describe("a chosen business has its own costs and limits", () => {
 });
 
 describe("hiring a team", () => {
-  it("needs a role, takes a week, costs a salary, and is limited per role", () => {
+  it("needs a role, takes weeks to find, costs a salary, and is limited per role", () => {
     const run = newRun(5, 3, gym);
     expect(step(run, { type: "hire" }).ok).toBe(false);
     const hired = play(run, { type: "hire", role: "ops" });
     const v = view(hired);
     expect(v.team).toEqual({ builder: 0, seller: 0, ops: 1 });
-    expect(v.week).toBe(1);
+    expect(v.week).toBe(HIRE_SEARCH_WEEKS);
     expect(v.weeklyBurnCents).toBeGreaterThan(view(run).weeklyBurnCents);
     expect(v.capacity).toBe(capacityOf("location", 1));
     const two = play(hired, { type: "hire", role: "ops" });

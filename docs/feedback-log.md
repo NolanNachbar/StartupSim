@@ -16,5 +16,6 @@ problem twice.
 | 2026-10-18 | All interview questions seemed to ask the same thing | Question wording was checked, not variety | question-bank variety tests (below) |
 | 2026-10-18 | (Realism auditor) Over capacity the game evicted existing customers; quality stopped helping churn once the product was finished | Economics audit checked break-even, not behaviour at the limits | Capacity now stops new sales only; quality trims churn at any progress; test "a full business" in `realism.test.ts` |
 | 2026-10-18 | (Realism auditor, open) No cost of goods, no start capex or per-kind start cash, no founder pay or hours budget, flat subscription revenue for every kind, one price ladder, 1 week hires, loan APR about 200 percent | Same | Open: tracked in `docs/user-comments.md` and ROADMAP as realism pass 2 |
+| 2026-10-19 | Simulator run: the HUD vans overlapped Cash at two-digit pivots; the overview named a different stage than the tracker | Layout was only measured at default cash; two stage vocabularies | `polish.spec.ts` financials test (no vans at 10+ pivots); one `stageInfo` for every screen |
 
 Guards marked "(below)" are written in the same change as the fix.

@@ -220,7 +220,7 @@ describe("predatory loan offer", () => {
     const taken = ok(shown, { type: "respondOffer", accept: true });
     expect(taken.pub.cashCents).toBe(shown.pub.cashCents + 4_000_000);
     expect(taken.pub.offer).toBeNull();
-    expect(taken.pub.loan).toEqual({ weeklyRepaymentCents: 280_000, weeksLeft: 20 });
+    expect(taken.pub.loan).toEqual({ weeklyRepaymentCents: 280_000, weeklyPrincipalCents: 200_000, weeksLeft: 20 });
     // No product and no customers, so revenue is zero and only burn and repayment move cash.
     let run: InternalRun = unsafeRunForTest(0, { ...taken.pub, cashCents: 100_000_000, pivotsRemaining: 100, week: 10 }, taken.secret);
     for (let i = 0; i < 20; i++) {
@@ -244,7 +244,7 @@ describe("predatory loan offer", () => {
   });
 
   it("does not count loan repayment as an operating cost for the profit streak", () => {
-    const run = unsafeRunForTest(0, { ...world({ payingCustomers: 1000 }).pub, loan: { weeklyRepaymentCents: 280_000, weeksLeft: 5 }, cashCents: 5_000_000 }, secretFor());
+    const run = unsafeRunForTest(0, { ...world({ payingCustomers: 1000 }).pub, loan: { weeklyRepaymentCents: 280_000, weeklyPrincipalCents: 0, weeksLeft: 5 }, cashCents: 5_000_000 }, secretFor());
     const pub = wait(run).pub;
     expect(pub.profitableStreakWeeks).toBe(1);
     expect(pub.cashCents).toBe(5_000_000 + 1_113_807 - 150_000 - 280_000);

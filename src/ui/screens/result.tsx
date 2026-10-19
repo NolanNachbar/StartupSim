@@ -1,9 +1,9 @@
 import type { Evidence, PublicState } from "../../sim";
 import { CATALOG } from "../../sim";
-import { stageOf } from "../business";
+import { STAGE_COUNT, stageInfo } from "../stage";
 import { money, questionLabel, tagExplain, tagLabel } from "../format";
 import { Panel } from "../panel";
-import { askedWording, currentBusiness, go, last } from "../store";
+import { askedWording, currentBusiness, go, last, openBooks } from "../store";
 
 function Interview({ e, asked }: { e: Extract<Evidence, { kind: "interview" }>; asked: string | undefined }) {
   const who = e.customer === "friend" ? "A friend of yours" : e.customer === "stranger" ? "A stranger" : "No one";
@@ -71,9 +71,11 @@ export function Result() {
   if (!l) return null;
   const { before, after, action, step: d } = l;
   const marketing = after.marketing.channel === null ? 0 : (CATALOG.budgetLevelsCents[after.marketing.level] ?? 0);
-  const weeklyCosts = after.weeklyBurnCents + marketing;
+  const goods = Math.floor((after.weeklyRevenueCents * after.cogsPct) / 100);
+  const rnd = CATALOG.rndLevelsCents[after.rndLevel] ?? 0;
+  const weeklyCosts = after.weeklyBurnCents + marketing + goods + rnd;
   const b = currentBusiness();
-  const stageAfter = stageOf(b, after.productProgressPct, after.landingPageBuilt);
+  const stageNow = stageInfo(after, b);
   const launched = before.productProgressPct < 100 && after.productProgressPct >= 100;
   const interviews = d.evidence.filter((e) => e.kind === "interview");
   return (
@@ -86,16 +88,16 @@ export function Result() {
         </p>
         {launched ? (
           <div class="launch" role="status">
-            <p class="launch__title">{stageAfter.label}</p>
-            <p class="launch__text">{`${stageAfter.detail} Fewer customers leave now than while it was half ready.`}</p>
+            <p class="launch__title">{stageNow.name}</p>
+            <p class="launch__text">{`${stageNow.what} Fewer customers leave now than while it was half ready.`}</p>
           </div>
         ) : null}
         <h2 class="board__sub">This week in numbers</h2>
         <dl class="overview">
           <dt>Cash</dt><dd>{`${money(before.cashCents)} to ${money(after.cashCents)} (${d.cashDeltaCents >= 0 ? "+" : "-"}${money(Math.abs(d.cashDeltaCents))})`}</dd>
           <dt>Money in</dt><dd>{`${money(after.weeklyRevenueCents)} a week from ${after.payingCustomers} paying ${after.payingCustomers === 1 ? "customer" : "customers"} (${signed(after.payingCustomers - before.payingCustomers)})`}</dd>
-          <dt>Money out</dt><dd>{`${money(weeklyCosts)} a week (${money(after.weeklyBurnCents)} to run the company${marketing > 0 ? `, ${money(marketing)} on marketing` : ""})`}</dd>
-          <dt>Stage</dt><dd>{`${stageAfter.label}. ${stageAfter.detail}`}</dd>
+          <dt>Money out</dt><dd>{`${money(weeklyCosts)} a week (${money(after.weeklyBurnCents)} to run the company${marketing > 0 ? `, ${money(marketing)} on marketing` : ""}${rnd > 0 ? `, ${money(rnd)} on R&D` : ""}${goods > 0 ? `, ${money(goods)} for the goods you sold` : ""})`}</dd>
+          <dt>Stage</dt><dd>{`${stageNow.index + 1} of ${STAGE_COUNT}: ${stageNow.name}. ${stageNow.short}`}</dd>
           <dt>Pivots left</dt><dd>{String(after.pivotsRemaining)}</dd>
         </dl>
         {d.evidence.length > 0 ? (
@@ -118,6 +120,7 @@ export function Result() {
       <Panel />
       <footer class="actions">
         <button type="button" class="button button--primary" onClick={() => go({ name: "week" })}>Continue</button>
+        <button type="button" class="button" onClick={openBooks}>Financials</button>
       </footer>
     </>
   );

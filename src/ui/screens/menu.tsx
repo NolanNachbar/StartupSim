@@ -1,4 +1,4 @@
-import { back, confirmingStartOver, openHelp, openNotes, settings, startOver, storageBlocked, updateSettings } from "../store";
+import { back, confirmingStartOver, openBooks, openHelp, openNotes, run, settings, startOver, storageBlocked, updateSettings } from "../store";
 
 export function Menu() {
   const st = settings.value;
@@ -9,6 +9,7 @@ export function Menu() {
         <div class="field field--two">
           <button type="button" class="button" onClick={openHelp}>How to play</button>
           <button type="button" class="button" onClick={openNotes}>Field notes</button>
+          {run.value ? <button type="button" class="button" onClick={openBooks}>Financials</button> : null}
         </div>
         <h2 class="board__sub">Settings</h2>
         <div class="field">

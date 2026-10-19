@@ -23,6 +23,7 @@ import {
 } from "./runway";
 import type { Action, IllegalReason, LoadError, PublicState, Report, Save } from "./types";
 import { buildHistory, buildReport } from "./report";
+import { statementsOf, type Line, type Statements } from "./statements";
 import { view as viewInternal } from "./view";
 import { INDUSTRIES } from "./world";
 
@@ -52,6 +53,7 @@ export type {
   Save,
   ChannelTestEvidence,
 } from "./types";
+export type { Line, Statements };
 export type StepResult = { ok: true; run: Run } | { ok: false; reason: IllegalReason };
 export type LoadResult = { ok: true; run: Run } | { ok: false; reason: LoadError; atAction?: number };
 
@@ -148,4 +150,9 @@ export function report(run: Run): Report | null {
   const internal = inside(run);
   if (internal.pub.status === "running") return null;
   return buildReport(buildHistory(internal.seed, internal.actions, internal.industry, internal.business));
+}
+
+/** The income statement, cash flow statement and balance sheet for the run so far. */
+export function statements(run: Run): Statements {
+  return statementsOf(inside(run).pub);
 }

@@ -6,8 +6,8 @@
 //
 // A tick: marketing wins customers, churn takes some, the market ceiling caps them, revenue accrues,
 // late payers delay some cash, costs and loan repayments go out, the week advances, then end checks.
-import { hasKnownType, isBuildKind, isQuestionTriple, PRICE_LADDER_CENTS, RESERVED_ACTION_TYPES, topicsMatch } from "./actions";
-import { MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
+import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, topicsMatch } from "./actions";
+import { BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
@@ -153,11 +153,15 @@ function tick(run: InternalRun): InternalRun {
 
   // Loan repayment drains cash but is not an operating cost.
   const repayment = pub.loan ? pub.loan.weeklyRepaymentCents : 0;
+  const outstanding = pub.books.loanReceivedCents - pub.books.principalRepaidCents;
+  const principal = pub.loan ? (pub.loan.weeksLeft <= 1 ? outstanding : Math.min(outstanding, pub.loan.weeklyPrincipalCents)) : 0;
   const loan = pub.loan && pub.loan.weeksLeft > 1 ? { ...pub.loan, weeksLeft: pub.loan.weeksLeft - 1 } : null;
 
-  const cashCents = pub.cashCents + (weeklyRevenueCents - late) + collected - pub.weeklyBurnCents - marketingSpend - rndSpend - repayment;
+  // Cost of goods comes out of every sale (food, materials, hosting).
+  const cogs = Math.floor((weeklyRevenueCents * pub.cogsPct) / 100);
+  const cashCents = pub.cashCents + (weeklyRevenueCents - late) + collected - cogs - pub.weeklyBurnCents - marketingSpend - rndSpend - repayment;
   const profitableStreakWeeks =
-    weeklyRevenueCents >= pub.weeklyBurnCents + marketingSpend + rndSpend ? pub.profitableStreakWeeks + 1 : 0;
+    weeklyRevenueCents >= cogs + pub.weeklyBurnCents + marketingSpend + rndSpend ? pub.profitableStreakWeeks + 1 : 0;
 
   let status: RunStatus = "running";
   let endReason: EndReason | null = null;
@@ -194,7 +198,7 @@ function tick(run: InternalRun): InternalRun {
   if (status === "running" && !offer && offersShown === 0 && week >= LOAN_OFFER_MIN_WEEK && runway <= 1) {
     offer = {
       amountCents: LOAN_AMOUNT_CENTS,
-      weeklyRepaymentCents: LOAN_WEEKLY_REPAYMENT_CENTS,
+      weeklyRepaymentCents: secret.business ? BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS : LOAN_WEEKLY_REPAYMENT_CENTS,
       weeks: LOAN_WEEKS,
       expiresWeek: week + LOAN_OFFER_LIFETIME_WEEKS,
     };
@@ -216,6 +220,16 @@ function tick(run: InternalRun): InternalRun {
       weeklyRevenueCents,
       profitableStreakWeeks,
       pivotsRemaining: runway,
+      books: {
+        ...pub.books,
+        salesCashCents: pub.books.salesCashCents + (weeklyRevenueCents - late) + collected,
+        cogsCents: pub.books.cogsCents + cogs,
+        operatingCents: pub.books.operatingCents + pub.weeklyBurnCents,
+        marketingCents: pub.books.marketingCents + marketingSpend,
+        rndCents: pub.books.rndCents + rndSpend,
+        principalRepaidCents: pub.books.principalRepaidCents + principal,
+        interestCents: pub.books.interestCents + (repayment - principal),
+      },
       ledger: {
         ...pub.ledger,
         revenueCents: pub.ledger.revenueCents + weeklyRevenueCents,
@@ -250,7 +264,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
 
     case "setPrice": {
       const price = action.priceCents;
-      if (!PRICE_LADDER_CENTS.includes(price) || price === run.pub.priceCents) {
+      if (!run.pub.priceLadderCents.includes(price) || price === run.pub.priceCents) {
         return fail("invalid-price");
       }
       return ok(recorded(withPub(run, { priceCents: price }), action));
@@ -271,6 +285,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         recorded(
           withPub(after, {
             cashCents,
+            books: { ...after.pub.books, equityRaisedCents: after.pub.books.equityRaisedCents + RAISE_AMOUNT_CENTS },
             pivotsRemaining: pivotsRemaining(cashCents, after.pub.pivotCostCents),
             equityGivenPct: after.pub.equityGivenPct + (RAISE_EQUITY_PCTS[after.pub.raisesUsed] ?? 20),
             raisesUsed: after.pub.raisesUsed + 1,
@@ -301,6 +316,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       const answered = round.filter((e) => e.outcome === "completed").length;
       const paid = withPub(run, {
         cashCents: run.pub.cashCents - INTERVIEW_ROUND_CASH_CENTS,
+        books: { ...run.pub.books, learningCents: run.pub.books.learningCents + INTERVIEW_ROUND_CASH_CENTS },
         ...withEvidence(run.pub, round),
         log: withLog(run.pub, `Interview round: ${answered} of ${round.length} answered.`),
       });
@@ -318,6 +334,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       const after = advance(
         withPub(run, {
           cashCents: run.pub.cashCents - spec.cashCents,
+          books: { ...run.pub.books, learningCents: run.pub.books.learningCents + spec.cashCents },
           ledger: { ...run.pub.ledger, buildCents: run.pub.ledger.buildCents + spec.cashCents },
         }),
         weeks,
@@ -356,6 +373,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         changes = {
           // Payments are real money; only payers in the focus segment become ongoing customers.
           cashCents: run.pub.cashCents - CHANNEL_TEST_BUDGET_CENTS + test.payments * run.pub.priceCents,
+          books: { ...run.pub.books, learningCents: run.pub.books.learningCents + CHANNEL_TEST_BUDGET_CENTS, testSalesCents: run.pub.books.testSalesCents + test.payments * run.pub.priceCents },
           payingCustomers: segment === run.pub.focusSegment ? run.pub.payingCustomers + test.payments : run.pub.payingCustomers,
           firstPaymentWeek: run.pub.firstPaymentWeek ?? (test.payments > 0 ? run.pub.week : null),
           ...withEvidence(run.pub, [test]),
@@ -365,6 +383,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         const test = runChannelTest({ ...base, index: countOf(run, "pickChannel") });
         changes = {
           cashCents: run.pub.cashCents - CHANNEL_TEST_BUDGET_CENTS,
+          books: { ...run.pub.books, learningCents: run.pub.books.learningCents + CHANNEL_TEST_BUDGET_CENTS },
           ...withEvidence(run.pub, [test]),
           log: withLog(run.pub, `Channel test: ${test.interested} of ${test.leads} interested.`),
         };
@@ -396,10 +415,10 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         if (!role || !(ROLES as readonly string[]).includes(role)) return fail("invalid-role");
         if (run.pub.hires >= MAX_TEAM) return fail("hire-limit");
         if (run.pub.team[role] >= ROLE_CAP) return fail("role-limit");
-        const salary = run.pub.weeklyBurnCents + HIRE_WEEKLY_CENTS;
+        const salary = run.pub.weeklyBurnCents + HIRE_LOADED_WEEKLY_CENTS;
         if (run.pub.cashCents < salary) return fail("insufficient-cash");
-        // Finding the right person takes a week of the founder's time.
-        const hired = advance(run, 1);
+        // Finding the right person takes weeks of the founder's time.
+        const hired = advance(run, HIRE_SEARCH_WEEKS);
         if (hired.pub.status !== "running") return ok(recorded(hired, action));
         const team = { ...hired.pub.team, [role]: hired.pub.team[role] + 1 };
         return ok(
@@ -407,7 +426,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
             withPub(hired, {
               hires: hired.pub.hires + 1,
               team,
-              weeklyBurnCents: hired.pub.weeklyBurnCents + HIRE_WEEKLY_CENTS,
+              weeklyBurnCents: hired.pub.weeklyBurnCents + HIRE_LOADED_WEEKLY_CENTS,
               capacity: capacityOf(hired.secret.business?.model.id ?? "software", team.ops),
               log: withLog(hired.pub, `Hired a ${role === "builder" ? "builder" : role === "seller" ? "salesperson" : "operations person"}.`),
             }),
@@ -445,7 +464,8 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
             offer: null,
             cashCents,
             pivotsRemaining: pivotsRemaining(cashCents, run.pub.pivotCostCents),
-            loan: { weeklyRepaymentCents: offer.weeklyRepaymentCents, weeksLeft: offer.weeks },
+            books: { ...run.pub.books, loanReceivedCents: run.pub.books.loanReceivedCents + offer.amountCents },
+            loan: { weeklyRepaymentCents: offer.weeklyRepaymentCents, weeklyPrincipalCents: Math.floor(offer.amountCents / offer.weeks), weeksLeft: offer.weeks },
             log: withLog(run.pub, "Took the cash offer. Repayments start this week."),
           }),
           action,

@@ -7,6 +7,7 @@ import { Board } from "./ui/screens/board";
 import { FormScreen } from "./ui/screens/form";
 import { Menu } from "./ui/screens/menu";
 import { Help } from "./ui/screens/help";
+import { Books } from "./ui/screens/books";
 import { Notes } from "./ui/screens/notes";
 import { ReportScreen } from "./ui/screens/report";
 import { Result } from "./ui/screens/result";
@@ -29,6 +30,7 @@ function Current() {
     case "report": return <ReportScreen />;
     case "menu": return <Menu />;
     case "notes": return <Notes />;
+    case "books": return <Books />;
     case "help": return <Help />;
   }
 }

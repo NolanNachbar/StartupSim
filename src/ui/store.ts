@@ -23,6 +23,7 @@ export type Screen =
   | { name: "result" }
   | { name: "report" }
   | { name: "notes"; from: Screen }
+  | { name: "books"; from: Screen }
   | { name: "help"; from: Screen }
   | { name: "menu"; from: Screen };
 
@@ -354,6 +355,7 @@ export function back(): void {
     case "result": go({ name: "week" }); break;
     case "menu": go(s.from); break;
     case "notes": go(s.from); break;
+    case "books": go(s.from); break;
     case "help": go(s.from); break;
     default: break;
   }
@@ -402,6 +404,12 @@ export function openMenu(): void {
   const s = screen.value;
   if (s.name === "menu") return;
   go({ name: "menu", from: s });
+}
+
+export function openBooks(): void {
+  const s = screen.value;
+  if (s.name === "books") return;
+  go({ name: "books", from: s });
 }
 
 export function openNotes(): void {

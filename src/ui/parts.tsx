@@ -22,7 +22,8 @@ export function Instrument({ caption, value }: { caption: string; value: string 
 
 /** Pivots remaining: the largest number, with one little delivery van per pivot. */
 export function Pivots({ count, max }: { count: number; max: number }) {
-  const shown = Math.min(Math.max(max, count), 6);
+  // A two-digit number leaves no room for vans: the number carries the count, so the HUD never runs them into the cash figure.
+  const shown = count >= 10 ? 0 : Math.min(Math.max(max, count), 6);
   return (
     <div class="pivots">
       <span class="instrument__caption">Pivots remaining</span>
@@ -171,19 +172,25 @@ export function CashChange() {
   );
 }
 
-/** The five stages as a bar, the one you are in named, and what that stage means. */
+/** The five stages: the one you are in named large, every stage numbered and labelled, and what the stage means. */
 export function StageBar({ s, compact = false }: { s: PublicState; compact?: boolean }) {
   const info = stageInfo(s, currentBusiness());
+  const next = info.names[info.index + 1];
   return (
     <div class="stage">
+      <p class="stage__now">
+        <span class="stage__count">{`Stage ${info.index + 1} of ${STAGE_COUNT}`}</span>
+        <span class="stage__title">{info.name}</span>
+      </p>
       <ol class="stage__bar" aria-label="Stages of your business">
         {info.names.map((n, i) => (
           <li key={n} class={i < info.index ? "stage__step stage__step--done" : i === info.index ? "stage__step stage__step--now" : "stage__step"} aria-current={i === info.index ? "step" : undefined}>
+            <span class="stage__dot" aria-hidden="true">{i < info.index ? "\u2713" : String(i + 1)}</span>
             <span class="stage__name">{n}</span>
           </li>
         ))}
       </ol>
-      <p class="stage__what"><strong>{`Stage ${info.index + 1} of ${STAGE_COUNT}: ${info.name}.`}</strong>{` ${compact ? info.short : info.what}`}</p>
+      <p class="stage__what">{`${compact ? info.short : info.what}${next ? ` Next stage: ${next}.` : ""}`}</p>
     </div>
   );
 }

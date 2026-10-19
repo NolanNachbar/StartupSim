@@ -3,8 +3,8 @@
 // whether a hire pays for itself. Run with REPORT=1 to write the table to .verify/economics.md for a human to read.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { BUSINESS_MODELS, CATALOG, newRun, view } from "../../src/sim";
-import { CAPACITY_BY_MODEL, BURN_BY_MODEL, START_PRICE_BY_MODEL, ROLES, type Role } from "../../src/sim/realism";
+import { BUSINESS_MODELS, newRun, view } from "../../src/sim";
+import { CAPACITY_BY_MODEL, BURN_BY_MODEL, COGS_PCT_BY_MODEL, HIRE_LOADED_WEEKLY_CENTS, PRICE_LADDER_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, ROLES, type Role } from "../../src/sim/realism";
 
 const weeklyPerCustomer = (priceCents: number): number => Math.floor((priceCents * 12) / 52);
 
@@ -13,11 +13,12 @@ describe("the economics of each kind of business", () => {
     const id = m.id;
     const price = START_PRICE_BY_MODEL[id];
     const burn = BURN_BY_MODEL[id];
-    const perCustomer = weeklyPerCustomer(price);
+    // What is left of a customer's weekly payment after cost of goods.
+    const perCustomer = Math.floor((weeklyPerCustomer(price) * (100 - COGS_PCT_BY_MODEL[id])) / 100);
     const breakEven = Math.ceil(burn / perCustomer);
     const cap = CAPACITY_BY_MODEL[id];
-    const withHire = Math.ceil((burn + CATALOG.hireWeeklyCents) / perCustomer);
-    return { i, id, name: m.name, price, burn, perCustomer, breakEven, capBase: cap.base, capOne: cap.base + cap.perOps, withHire, runwayWeeks: Math.floor(3_000_000 / burn) };
+    const withHire = Math.ceil((burn + HIRE_LOADED_WEEKLY_CENTS) / perCustomer);
+    return { i, id, name: m.name, price, burn, perCustomer, breakEven, capBase: cap.base, capOne: cap.base + cap.perOps, withHire, runwayWeeks: Math.floor(START_CASH_BY_MODEL[id] / burn) };
   });
 
   it("can reach break-even before it hits its customer limit, at the price it starts at", () => {
@@ -58,6 +59,16 @@ describe("the economics of each kind of business", () => {
     }
   });
 
+  it("physical kinds pay for goods, a place needs the most money to open, and each kind sells at its own prices", () => {
+    expect(COGS_PCT_BY_MODEL.location).toBeGreaterThanOrEqual(25);
+    expect(COGS_PCT_BY_MODEL.product).toBeGreaterThanOrEqual(25);
+    expect(COGS_PCT_BY_MODEL.service).toBe(0);
+    expect(START_CASH_BY_MODEL.location).toBeGreaterThan(START_CASH_BY_MODEL.product);
+    expect(START_CASH_BY_MODEL.product).toBeGreaterThan(START_CASH_BY_MODEL.software);
+    for (const m of BUSINESS_MODELS) expect(PRICE_LADDER_BY_MODEL[m.id], m.name).toContain(START_PRICE_BY_MODEL[m.id]);
+    expect(Math.min(...PRICE_LADDER_BY_MODEL.service)).toBeGreaterThanOrEqual(9900);
+  });
+
   it("every role exists, and a new company starts with nobody on the team and no R&D", () => {
     expect(ROLES).toEqual(["builder", "seller", "ops"] as Role[]);
     const s = view(newRun(3, 3, { model: 2, idea: "a small strength-training gym" }));
@@ -67,7 +78,7 @@ describe("the economics of each kind of business", () => {
   });
 
   it.runIf(process.env.REPORT === "1")("writes the economics table", () => {
-    const lines = ["# Economics by kind of business", "", "| Kind | Start price a month | Costs a week | Earns per customer a week | Break-even customers | Can serve | With one hire: need / can serve | Weeks the starting cash lasts |", "|---|---|---|---|---|---|---|---|"];
+    const lines = ["# Economics by kind of business", "", "| Kind | Start price a month | Costs a week | Earns per customer a week after cost of goods | Break-even customers | Can serve | With one hire: need / can serve | Weeks the starting cash lasts |", "|---|---|---|---|---|---|---|---|"];
     for (const r of rows) lines.push(`| ${r.name} | $${r.price / 100} | $${r.burn / 100} | $${(r.perCustomer / 100).toFixed(2)} | ${r.breakEven} | ${r.capBase >= 100_000 ? "no limit" : r.capBase} | ${r.capBase >= 100_000 ? "n/a" : `${r.withHire} / ${r.capOne}`} | ${r.runwayWeeks} |`);
     mkdirSync(".verify", { recursive: true });
     writeFileSync(".verify/economics.md", lines.join("\n") + "\n");

@@ -61,7 +61,7 @@ describe("a run with a chosen business", () => {
     const a = view(newRun(11, h, { model: 0, idea: "a reminder app" }));
     const b = view(newRun(11, h, gym));
     expect(a.segmentNames.length).toBe(b.segmentNames.length);
-    expect(a.cashCents).toBe(b.cashCents);
+    expect(b.cashCents).toBeGreaterThan(a.cashCents); // a place needs far more money than an app
     expect(a.focusSegment).toBe(b.focusSegment);
   });
 

@@ -349,12 +349,19 @@
 .button--example[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
 
 /* Stage bar, group actions and the cash change on the HUD. */
-.stage { display: grid; gap: var(--s-2); }
-.stage__bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s-1); margin: 0; padding: 0; list-style: none; }
-.stage__step { position: relative; height: 8px; border-radius: 4px; background: var(--line); min-width: 0; }
-.stage__step--done { background: var(--primary); }
-.stage__step--now { background: var(--primary); outline: 2px solid var(--primary); outline-offset: 2px; }
-.stage__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.stage { display: grid; gap: var(--s-2); padding: var(--s-3); border: 1px solid var(--line); border-radius: 12px; }
+.stage__now { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-2); }
+.stage__count { font-size: 1rem; color: var(--ink-soft); }
+.stage__title { font-size: 1.25rem; font-weight: 700; }
+.stage__bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s-1); margin: 0; padding: 0; list-style: none; position: relative; }
+.stage__step { display: grid; justify-items: center; gap: var(--s-1); min-width: 0; border-top: 4px solid var(--line); padding-top: var(--s-1); }
+.stage__step--done { border-top-color: var(--primary); }
+.stage__step--now { border-top-color: var(--primary); }
+.stage__dot { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); font-size: 1rem; line-height: 1; background: var(--surface); }
+.stage__step--done .stage__dot { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.stage__step--now .stage__dot { border-color: var(--primary); color: var(--primary); font-weight: 700; }
+.stage__name { display: none; font-size: 1rem; text-align: center; }
+@media (min-width: 720px) { .stage__name { display: block; } }
 .stage__what { margin: 0; line-height: 1.35; }
 .group { display: grid; gap: var(--s-2); padding: var(--s-3); background: var(--surface-raised); border-radius: var(--radius-chip); }
 .group__title { margin: 0; font-size: var(--t-lg); font-weight: 800; }
@@ -367,3 +374,11 @@
 /* The idea under the heading stays on one line. */
 .plate__company { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
 .plate__head { min-width: 0; }
+
+/* The financial statements: three short tables, figures aligned right. */
+.books { display: grid; gap: var(--s-2); }
+.books table { width: 100%; border-collapse: collapse; }
+.books th { text-align: left; font-weight: 400; padding: var(--s-1) 0; }
+.books td { text-align: right; font-weight: 700; padding: var(--s-1) 0; white-space: nowrap; }
+.books tr + tr th, .books tr + tr td { border-top: 1px solid var(--line); }
+.books__total th { font-weight: 700; }

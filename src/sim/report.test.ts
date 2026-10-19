@@ -216,7 +216,7 @@ const FIXTURES: Record<PatternId, Fixture> = {
     control: history([], { status: "crashed", endReason: "stalled", week: 104, raisesUsed: 0, cashCents: 5_000_000 }),
   },
   M5: {
-    fires: history([{ action: { type: "respondOffer", accept: true }, before: { week: 10 }, after: { week: 10, loan: { weeklyRepaymentCents: 280_000, weeksLeft: 20 } } }], crashed()),
+    fires: history([{ action: { type: "respondOffer", accept: true }, before: { week: 10 }, after: { week: 10, loan: { weeklyRepaymentCents: 280_000, weeklyPrincipalCents: 0, weeksLeft: 20 } } }], crashed()),
     control: history([{ action: { type: "respondOffer", accept: false }, before: { week: 10 }, after: { week: 10 } }], crashed()),
   },
   M6: {

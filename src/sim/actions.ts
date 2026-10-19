@@ -108,7 +108,7 @@ export function legalActions(run: InternalRun): readonly Action[] {
   const pub = run.pub;
   if (pub.status !== "running") return [];
   const actions: Action[] = [{ type: "wait" }];
-  for (const priceCents of PRICE_LADDER_CENTS) {
+  for (const priceCents of pub.priceLadderCents) {
     if (priceCents !== pub.priceCents) actions.push({ type: "setPrice", priceCents });
   }
   const hasProof = pub.hypotheses.some((h) => h.state === "verified");

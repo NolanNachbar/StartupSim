@@ -39,11 +39,14 @@ Status: done (built and tested), partial (built, with a stated gap), open (not b
 | Overview after Wait a week | done | weekly overview |
 | Launch is unclear | done | stage names per business and a Launched card |
 | How you make money; what marketing and hiring mean | done | explained where you act and in Help |
-| Realistic: time, hiring people, interviewing, R&D | partial | team roles (build, sell, serve), R&D, capacity, per-business costs, hiring takes a week; a weekly founder-hours budget is NOT built |
+| Realistic: time, hiring people, interviewing, R&D | done | team roles, R&D, capacity, per-kind start cash, cost of goods, per-kind price ladders, hiring takes 3 weeks and costs payroll tax; time is paid in weeks (interview 1, build 1 to 3, hire 3); no separate founder-hours meter, by design |
 | Hiring options | done | three roles, two of each |
 
 ## Process
 | Comment | Status | Notes |
 |---|---|---|
 | The loop and harness should catch these | done | player walkthrough checker, consistency test, feedback log |
-| Make an auditor that critiques realism | open | writing it now |
+| Make an auditor that critiques realism | done | `docs/specs/realism-audit.md`; first run fixed capacity eviction and churn, rest in ROADMAP pass 2 |
+| Stage should be clearly shown | done | numbered five-step tracker with the stage named large, on the map and action screens; overview and panel use the same stage names |
+| Test in the simulator | done | played a gym through the real UI on a phone viewport; found and fixed the HUD van overlap and stale overview stage text |
+| Show cash flow in/out, cash flow statement, balance sheet | done | Financials screen (income statement, cash flow, balance sheet) from the Menu and the weekly overview; balance identity is a property test |

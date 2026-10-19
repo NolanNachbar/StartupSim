@@ -64,6 +64,8 @@ export interface LoanOffer {
 
 export interface Loan {
   readonly weeklyRepaymentCents: Cents;
+  /** The part of each repayment that pays the loan down (the rest is interest). */
+  readonly weeklyPrincipalCents: Cents;
   readonly weeksLeft: number;
 }
 
@@ -73,6 +75,26 @@ export interface Ledger {
   readonly marketingCents: Cents;
   readonly buildCents: Cents;
   readonly payrollCents: Cents;
+}
+
+/** Every cash movement, added up since week 0. The three statements are written from these. */
+export interface Books {
+  readonly startCashCents: Cents;
+  readonly equityRaisedCents: Cents;
+  readonly loanReceivedCents: Cents;
+  readonly principalRepaidCents: Cents;
+  readonly interestCents: Cents;
+  /** Cash that arrived from customers (revenue earned, less what is still owed, plus what came in late). */
+  readonly salesCashCents: Cents;
+  /** Payments taken in paid tests. */
+  readonly testSalesCents: Cents;
+  readonly cogsCents: Cents;
+  /** Rent, tools, pay and the team: the weekly cost of running the company. */
+  readonly operatingCents: Cents;
+  readonly marketingCents: Cents;
+  readonly rndCents: Cents;
+  /** Interviews, channel tests, paid tests and builds. */
+  readonly learningCents: Cents;
 }
 
 export interface Marketing {
@@ -110,6 +132,10 @@ export interface PublicState {
   readonly raisesUsed: number;
   readonly equityGivenPct: number;
   readonly productProgressPct: number;
+  /** Cost of goods as a percent of revenue (0 for the original worlds and for services). */
+  readonly cogsPct: number;
+  /** The prices the founder can set. */
+  readonly priceLadderCents: readonly number[];
   readonly payingCustomers: number;
   readonly weeklyRevenueCents: Cents;
   readonly profitableStreakWeeks: number;
@@ -119,6 +145,7 @@ export interface PublicState {
   readonly log: readonly LogEntry[];
   readonly landingPageBuilt: boolean;
   readonly ledger: Ledger;
+  readonly books: Books;
   /** The week of the first paid test that produced a payment. */
   readonly firstPaymentWeek: number | null;
   /** Weeks spent raising money. */

@@ -39,6 +39,27 @@ export const CAPACITY_BY_MODEL: Readonly<Record<ModelId, { readonly base: number
   product: { base: 300, perOps: 300 },
 };
 
+/** What a founder starts with: a place needs a lease deposit and a build-out, an app needs little. */
+export const START_CASH_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 3_000_000, service: 2_000_000, location: 10_000_000, product: 5_000_000 };
+
+/** Cost of goods as a percent of revenue: hosting, nothing for your own time, food and supplies, materials and shipping. */
+export const COGS_PCT_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 10, service: 0, location: 30, product: 30 };
+
+/** The prices a founder can try, centred where each kind of business really sells (cents a month). */
+export const PRICE_LADDER_BY_MODEL: Readonly<Record<ModelId, readonly number[]>> = {
+  software: [900, 1900, 4900, 9900, 19900, 49900, 99900],
+  service: [9900, 14900, 19900, 29900, 49900, 99900],
+  location: [2900, 4900, 7900, 9900, 14900, 19900, 29900],
+  product: [900, 1900, 2900, 4900, 7900, 9900, 14900],
+};
+
+/** Hiring a person takes a few weeks of searching, and costs salary plus payroll tax and benefits. */
+export const HIRE_SEARCH_WEEKS = 3;
+export const HIRE_LOADED_WEEKLY_CENTS = 120_000;
+
+/** A loan for a business costs about half a year of interest over its term, not more than the loan itself. */
+export const BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS = 240_000;
+
 export const capacityOf = (model: ModelId, ops: number): number => CAPACITY_BY_MODEL[model].base + CAPACITY_BY_MODEL[model].perOps * ops;
 
 export interface WeekResult {

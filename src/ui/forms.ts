@@ -152,7 +152,7 @@ export const FORMS: readonly FormDef[] = [
         id: "price",
         label: "Monthly price",
         kind: "radio",
-        options: CATALOG.priceLadderCents.map((c) => ({ value: String(c), label: `${money(c)} a month` })),
+        options: s.priceLadderCents.map((c) => ({ value: String(c), label: `${money(c)} a month` })),
         initial: String(s.priceCents),
       },
     ],

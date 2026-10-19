@@ -98,22 +98,6 @@ export const hireRole = (b: Business | null): string => b?.hire ?? "a contractor
 export const costsOf = (b: Business | null): string =>
   b?.model.id === "location" ? "rent, supplies and your own pay" : b?.model.id === "product" ? "materials, storage and your own pay" : b?.model.id === "service" ? "tools, travel and your own pay" : "tools, hosting and your own pay";
 
-/** Where the business is, in its own words. */
-export function stageOf(b: Business | null, progressPct: number, landingPageBuilt: boolean): { label: string; detail: string } {
-  const m = b?.model.id ?? "software";
-  const words = {
-    software: { idea: "Idea", mid: "Building", done: "Launched", doneText: "The product is finished and customers can use it.", unit: "product" },
-    service: { idea: "Idea", mid: "Offering", done: "Running", doneText: "The service is set up and you can take clients.", unit: "service" },
-    location: { idea: "Idea", mid: "Setting up", done: "Open for business", doneText: "The doors are open and people can come in.", unit: "place" },
-    product: { idea: "Idea", mid: "Making it", done: "On sale", doneText: "The product is made and people can buy it.", unit: "product" },
-  }[m];
-  if (progressPct >= 100) return { label: words.done, detail: words.doneText };
-  if (landingPageBuilt || progressPct > 0) {
-    return { label: words.mid, detail: landingPageBuilt && progressPct === 0 ? `You can ask people to pay in tests. The ${words.unit} itself is not ready.` : `The ${words.unit} is ${progressPct} percent ready. At 100 percent it is ${words.done.toLowerCase()}.` };
-  }
-  return { label: words.idea, detail: `Nothing is ready yet. ${m === "location" ? "A trial pass" : "A first page"} lets you ask people to pay in tests.` };
-}
-
 export type Role = "builder" | "seller" | "ops";
 
 /** Who each role is in this kind of business, and what they do for it. */

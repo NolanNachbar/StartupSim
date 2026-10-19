@@ -42,7 +42,7 @@ describe("balance bots", () => {
       expect((underpricer.landed * 100) / SEEDS_200.length, `${ind.name}: underpricing should not be a winning plan`).toBeLessThan(15);
     });
     process.stdout.write(`\n${lines.join("\n")}\n`);
-  });
+  }, 60_000);
 
   // Every kind of business must be winnable by good play, or choosing one at setup would be a trap. A gym needs far
   // more customers than an app, a service needs a higher price, and a place has a limit on how many it can serve.

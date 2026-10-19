@@ -202,7 +202,9 @@ test("the week screen shows the stage of the business, and the action screen say
   const bar = page.getByRole("list", { name: "Stages of your business" });
   await expect(bar).toBeVisible();
   await expect(bar.getByRole("listitem")).toHaveCount(5);
-  await expect(page.getByText(/Stage 1 of 5: Idea\./)).toBeVisible();
+  await expect(page.getByText("Stage 1 of 5").first()).toBeVisible();
+  await expect(page.locator(".stage__title").first()).toHaveText("Idea");
+  await expect(bar.locator(".stage__dot").first()).toBeVisible();
   await page.getByRole("button", { name: "Choose an action" }).click();
   await expect(page.getByRole("heading", { name: "What you can do in this stage" })).toBeVisible();
   await expect(page.getByText(/no proof yet that anyone wants it/)).toBeVisible();
@@ -229,4 +231,26 @@ test("tapping a customer group shows what you can do with that group", async ({ 
   await expect(page.getByRole("radio", { checked: true }).first()).toBeVisible();
   const picked = await page.getByRole("radio", { checked: true }).first().evaluate((e) => (e.closest("label")?.textContent ?? "").trim());
   expect(picked).toContain(chipName);
+});
+
+test("the financials show an income statement, a cash flow statement and a balance sheet that agree with the HUD, and a big pivot count never crowds the cash", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
+  await page.goto("/?seed=3");
+  await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("radio").nth(2).check();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("radio").nth(2).check(); // a physical location starts with a lot of cash
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Start the company" }).click();
+  await expect(page.locator(".van-icon")).toHaveCount(0); // two digits of pivots: the number alone carries the count
+  await page.getByRole("button", { name: "Wait a week" }).click();
+  await page.getByRole("button", { name: "Financials" }).click();
+  for (const name of ["Income statement", "Cash flow statement", "Balance sheet"]) await expect(page.getByRole("heading", { name })).toBeVisible();
+  const cash = (await page.locator(".strip .instrument").first().innerText()).match(/\$[\d,]+/)?.[0] ?? "";
+  const nowRow = page.locator(".books__total", { hasText: "Cash now" });
+  await expect(nowRow).toContainText(cash);
+  await expect(page.locator(".books__total", { hasText: "What you own" })).toBeVisible();
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(page.getByRole("heading", { name: "Week 1" })).toBeVisible();
 });
