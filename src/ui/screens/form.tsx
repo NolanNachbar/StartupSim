@@ -2,7 +2,8 @@ import { useState } from "preact/hooks";
 import { CalloutHost } from "../parts";
 import { formById, type Field, type FormId } from "../forms";
 import { Panel } from "../panel";
-import { act, back, formError, state } from "../store";
+import { act, askedWording, back, currentBusiness, formError, state } from "../store";
+import { questionTextFor } from "../business";
 
 function FieldView({ field, value, onChange }: { field: Field; value: string; onChange: (v: string) => void }) {
   if (field.kind === "select") {
@@ -53,7 +54,13 @@ export function FormScreen({ id }: { id: FormId }) {
       </main>
       <Panel />
       <footer class="actions">
-        <button type="button" class="button button--primary" onClick={() => act(def.build(values, s))}>{def.submit}</button>
+        <button type="button" class="button button--primary" onClick={() => {
+          if (id === "interview") {
+            const b = currentBusiness();
+            askedWording.value = [values.q1, values.q2, values.q3].map((v) => questionTextFor(b, v ?? "past-behavior#0"));
+          }
+          act(def.build(values, s));
+        }}>{def.submit}</button>
         <button type="button" class="button" onClick={back}>Back</button>
       </footer>
     </>

@@ -1,8 +1,9 @@
 // The side panel: business readout, the log, and the selected hypothesis.
 import { CATALOG } from "../sim";
 import { hypothesisLabel, money } from "./format";
+import { stageOf } from "./business";
 import { Section } from "./parts";
-import { selected, sheetOpen, state } from "./store";
+import { currentBusiness, selected, sheetOpen, state } from "./store";
 
 export function Panel({ idle }: { idle?: boolean }) {
   const s = state.value;
@@ -29,7 +30,7 @@ export function Panel({ idle }: { idle?: boolean }) {
           <dt>Paying customers</dt><dd>{String(s.payingCustomers)}</dd>
           <dt>Revenue</dt><dd>{`${money(s.weeklyRevenueCents)} a week`}</dd>
           <dt>Costs</dt><dd>{`${money(s.weeklyBurnCents + (CATALOG.budgetLevelsCents[s.marketing.level] ?? 0))} a week`}</dd>
-          <dt>Product</dt><dd>{`${s.productProgressPct} percent built`}</dd>
+          <dt>Stage</dt><dd>{`${stageOf(currentBusiness(), s.productProgressPct, s.landingPageBuilt).label}, ${s.productProgressPct} percent ready`}</dd>
         </dl>
       </Section>
       <Section title="Log" id="log-h">

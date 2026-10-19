@@ -1,7 +1,11 @@
 // The action forms. Each form is data: its fields and how to turn the chosen values into a sim action.
 // Rules live in the sim; a form never decides whether an action is legal, it only builds the action.
-import { CATALOG, type Action, type BuildKind, type PublicState, type QuestionType } from "../sim";
-import { money, questionLabel } from "./format";
+import { CATALOG, type Action, type BuildKind, type PublicState } from "../sim";
+import { buildCopy, channelCopy, costsOf, hireRole, ideaOf, questionOptions, questionType } from "./business";
+import { money } from "./format";
+import { currentBusiness } from "./store";
+
+const biz = currentBusiness;
 
 export type FormId =
   | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer";
@@ -46,15 +50,12 @@ const channelField = (s: PublicState): Field => ({
   id: "channel",
   label: "Channel",
   kind: "radio",
-  options: s.channels.map((c, i) => ({ value: String(i), label: c.name, hint: `${money(c.costPerLeadCents)} a lead` })),
+  options: s.channels.map((c, i) => {
+    const copy = channelCopy(biz(), c.name);
+    return { value: String(i), label: copy.label, hint: `${copy.hint} ${money(c.costPerLeadCents)} a lead.` };
+  }),
   initial: "0",
 });
-
-const BUILD_NAMES: Record<BuildKind, string> = {
-  "landing-page": "Landing page",
-  concierge: "Concierge version",
-  prototype: "Prototype",
-};
 
 const LEVEL_NAMES = ["Off", "Light", "Steady", "Heavy"];
 
@@ -65,8 +66,8 @@ export const FORMS: readonly FormDef[] = [
     id: "interview",
     title: "Interview a customer",
     blurb: "Talk to people in one group and hear what they say.",
-    intro: () =>
-      `Three calls with people in one group. A round costs ${money(CATALOG.interviewCashCents)} and takes ${CATALOG.roundWeeks} weeks. What you ask changes what you learn.`,
+    intro: (s) =>
+      `Three calls with people in one customer group, for ${s.problemName.toLowerCase()}. A round costs ${money(CATALOG.interviewCashCents)} and takes ${CATALOG.roundWeeks} weeks. Each call gets one question, and what you ask changes what you learn.`,
     fields: (s) => [
       segmentField(s),
       ...[1, 2, 3].map(
@@ -74,8 +75,8 @@ export const FORMS: readonly FormDef[] = [
           id: `q${n}`,
           label: `Question ${n}`,
           kind: "select",
-          options: CATALOG.questionTypes.map((q) => ({ value: q, label: questionLabel(q) })),
-          initial: "past-behavior",
+          options: questionOptions(biz()).map((o) => ({ value: o.value, label: o.text })),
+          initial: "past-behavior#0",
         }),
       ),
     ],
@@ -83,7 +84,7 @@ export const FORMS: readonly FormDef[] = [
     build: (v, s) => ({
       type: "interview",
       segment: Number.isNaN(num(v, "segment")) ? s.focusSegment : num(v, "segment"),
-      questions: [v.q1, v.q2, v.q3].map((q) => (q ?? "past-behavior") as QuestionType),
+      questions: [v.q1, v.q2, v.q3].map((q) => questionType(q ?? "past-behavior#0")),
     }),
     listed: () => true,
   },
@@ -91,7 +92,8 @@ export const FORMS: readonly FormDef[] = [
     id: "build",
     title: "Build a test",
     blurb: "Make something customers can react to.",
-    intro: () => "Build something small enough to put in front of people. A landing page costs the least and takes the least time.",
+    intro: (s) =>
+      `Make something customers can react to. A landing page is what lets you ask people to pay in a test. Prototypes and concierge versions add to the product itself, which is ${s.productProgressPct} percent built now; at 100 percent it is launched and customers can really use it.`,
     fields: () => [
       {
         id: "kind",
@@ -99,8 +101,8 @@ export const FORMS: readonly FormDef[] = [
         kind: "radio",
         options: (Object.keys(CATALOG.builds) as BuildKind[]).map((k) => ({
           value: k,
-          label: BUILD_NAMES[k],
-          hint: `${money(CATALOG.builds[k].cashCents)}, ${CATALOG.builds[k].weeks} ${CATALOG.builds[k].weeks === 1 ? "week" : "weeks"}`,
+          label: buildCopy(biz())[k].label,
+          hint: `${buildCopy(biz())[k].hint} ${money(CATALOG.builds[k].cashCents)} and ${CATALOG.builds[k].weeks} ${CATALOG.builds[k].weeks === 1 ? "week" : "weeks"}; adds ${CATALOG.builds[k].progressPct} percent to the product.`,
         })),
         initial: "landing-page",
       },
@@ -113,7 +115,7 @@ export const FORMS: readonly FormDef[] = [
     id: "test-channel",
     title: "Test a channel",
     blurb: "Spend a little to see whether a way of reaching people works.",
-    intro: () => `Spend ${money(CATALOG.channelTestBudgetCents)} to reach people through one channel and see how many are interested. Interest is weak evidence.`,
+    intro: () => `Spend ${money(CATALOG.channelTestBudgetCents)} to put ${ideaOf(biz())} in front of one customer group through one channel and count who is interested. Interest is weak evidence: people say yes more easily than they pay.`,
     fields: (s) => [segmentField(s), channelField(s)],
     submit: "Test the channel",
     build: (v) => ({ type: "pickChannel", segment: num(v, "segment"), channel: num(v, "channel") }),
@@ -124,7 +126,7 @@ export const FORMS: readonly FormDef[] = [
     title: "Charge for a test",
     blurb: "Ask for real money and see who pays.",
     intro: (s) =>
-      `Ask real leads to pay ${money(s.priceCents)} a month. It needs a landing page. Payments are the strongest evidence there is.`,
+      `Ask real leads from one group to pay ${money(s.priceCents)} a month for ${ideaOf(biz())}. It needs a landing page. Anyone who pays counts as real evidence; the money is not kept as revenue.`,
     fields: (s) => [segmentField(s), channelField(s)],
     submit: "Charge for a test",
     build: (v) => ({ type: "chargeTest", segment: num(v, "segment"), channel: num(v, "channel") }),
@@ -134,7 +136,7 @@ export const FORMS: readonly FormDef[] = [
     id: "price",
     title: "Set price",
     blurb: "Change what customers are charged.",
-    intro: (s) => `You charge ${money(s.priceCents)} a month now. A price that is too low starves your cash; one that is too high shrinks the market.`,
+    intro: (s) => `This is how you make money: every paying customer pays your price each month, so weekly revenue is customers times price. You charge ${money(s.priceCents)} a month now and have ${s.payingCustomers} paying ${s.payingCustomers === 1 ? "customer" : "customers"}. A price that is too low starves your cash; one that is too high means fewer people buy.`,
     fields: (s) => [
       {
         id: "price",
@@ -152,7 +154,8 @@ export const FORMS: readonly FormDef[] = [
     id: "marketing",
     title: "Set marketing",
     blurb: "Choose how hard to push a channel each week.",
-    intro: () => "Pay for a steady flow of leads on one channel. The spend comes out of cash every week until you turn it off.",
+    intro: (s) =>
+      `Marketing is how customers find you after the tests. It buys leads on one channel, every week, for ${s.segmentNames[s.focusSegment] ?? "your current group"}, the group you are focused on. People buy more often the more finished the product is (${s.productProgressPct} percent built now) and when the price suits them, and customers leave faster while the product is unfinished. The spend comes out of cash every week until you turn it off.`,
     fields: (s) => [
       {
         id: "channel",
@@ -180,8 +183,8 @@ export const FORMS: readonly FormDef[] = [
     id: "hire",
     title: "Hire someone",
     blurb: "Add a person to the team. They cost money every week.",
-    intro: () =>
-      `A contractor costs ${money(CATALOG.hireWeeklyCents)} a week, shortens every build by a week and adds 25 percent to the leads your marketing reaches. You can hire up to ${CATALOG.maxHires}.`,
+    intro: (s) =>
+      `You hire ${hireRole(biz())} who helps build and sell ${ideaOf(biz())}. They cost ${money(CATALOG.hireWeeklyCents)} every week, shorten every build by a week, and add 25 percent to the leads your marketing reaches. Your weekly costs (${costsOf(biz())}) would go from ${money(s.weeklyBurnCents)} to ${money(s.weeklyBurnCents + CATALOG.hireWeeklyCents)} before marketing. You have hired ${s.hires} of ${CATALOG.maxHires} you can.`,
     fields: () => [],
     submit: "Hire",
     build: () => ({ type: "hire" }),

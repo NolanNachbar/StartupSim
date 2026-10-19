@@ -218,6 +218,8 @@
 .pick:has(input:checked) { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
 .pick:has(input:focus-visible) { outline: 3px solid var(--primary); outline-offset: 2px; }
 .pick:has(input:disabled) { opacity: 0.6; cursor: default; }
+.kinds { display: grid; gap: var(--s-2); }
+.pick--wide { min-height: 84px; gap: var(--s-1); }
 .pick__title { font-weight: 700; line-height: 1.2; }
 .pick__where { color: var(--ink-soft); }
 .pick-detail { margin: 0; padding: var(--s-3); color: var(--ink); background: var(--surface-raised); border-radius: var(--radius-chip); }
@@ -327,3 +329,16 @@
 @media (max-width: 599px) and (max-height: 800px) {
   .plate__how { display: none; }
 }
+
+/* The weekly overview: a short table of what changed, and the one-off Launched card. */
+.overview { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--s-2) var(--s-4); margin: 0; padding: var(--s-3) var(--s-4); background: var(--surface-raised); border-radius: var(--radius-chip); }
+.overview dt { color: var(--ink-soft); }
+.overview dd { margin: 0; font-weight: 700; }
+.launch { padding: var(--s-3) var(--s-4); background: color-mix(in srgb, var(--verified) 12%, var(--surface)); border: 2px solid var(--verified); border-radius: var(--radius-chip); }
+.launch__title { margin: 0; font-size: var(--t-lg); font-weight: 800; color: var(--verified); }
+.launch__text { margin: 0; }
+
+/* Example ideas on the idea page: full-width, wrapping, one per row. */
+.examples { display: grid; gap: var(--s-2); }
+.button--example { width: 100%; height: auto; min-height: var(--tap); padding: var(--s-2) var(--s-4); text-align: left; white-space: normal; }
+.button--example[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }

@@ -44,6 +44,8 @@ export interface Secret {
   readonly weather: Weather | null;
   readonly lateWindow: LateWindow | null;
   readonly startFocus: number;
+  /** The business the player chose (public words used to write what customers say), or null for the generic world. */
+  readonly business: import("./business").Business | null;
 }
 
 export interface Receivable {
@@ -237,6 +239,10 @@ export interface Save {
   seed: number;
   /** The market (an index into CATALOG.industries). Absent for the original generic world. */
   industry?: number;
+  /** The business model (an index into MODELS). Absent when none was chosen. */
+  model?: number;
+  /** The player's idea in their own words. Present with a model. */
+  idea?: string;
   actions: Action[];
 }
 

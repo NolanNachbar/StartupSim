@@ -1,6 +1,7 @@
 // The accident report. It rebuilds a run's history by replaying its seed and actions, applies explicit
 // rules over that history, and writes text from numbers in the history alone. It explains a run from
 // what the player could see: it never reads the hidden parts of the world.
+import type { BusinessChoice } from "./business";
 import { INTERVIEW_ROUND_CASH_CENTS, MAX_WEEKS } from "./runway";
 import { step } from "./reducer";
 import { initialRun } from "./state";
@@ -39,8 +40,8 @@ export function usd(cents: number): string {
 }
 
 /** Replay a run and keep the public state before and after every action. */
-export function buildHistory(seed: number, actions: readonly Action[], industry: number | null = null): History {
-  let run = initialRun(seed, industry);
+export function buildHistory(seed: number, actions: readonly Action[], industry: number | null = null, business: BusinessChoice | null = null): History {
+  let run = initialRun(seed, industry, business);
   const steps: HistoryStep[] = [];
   for (const action of actions) {
     const result = step(run, action);

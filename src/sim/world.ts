@@ -1,6 +1,7 @@
 // The hidden world, generated from the seed. Every draw names its key (see rng.ts).
 import { randChance, randInt, randPick } from "./rng";
 import { LATE_PAYER_DELAY_WEEKS, LATE_PAYER_PCT } from "./runway";
+import { businessFor, type BusinessChoice } from "./business";
 import type { Channel, LateWindow, Secret, Segment, Weather } from "./types";
 
 export const PROBLEMS = [
@@ -102,10 +103,16 @@ function generateLateWindow(seed: number): LateWindow | null {
 }
 
 /** Build the hidden world for a seed. Pure: equal seeds give deep-equal worlds. */
-export function generateWorld(seed: number, industryIndex: number | null = null): Secret {
+export function generateWorld(seed: number, industryIndex: number | null = null, choice: BusinessChoice | null = null): Secret {
   const industry = industryIndex === null ? null : (INDUSTRIES[industryIndex] ?? null);
+  const business = businessFor(industryIndex, choice);
   const segmentCount = randInt(seed, 3, 5, "world", "segmentCount");
-  const segments = Array.from({ length: segmentCount }, (_, i) => generateSegment(seed, i, industry));
+  // The chosen business renames the customer groups; it never changes a draw, so the numbers stay those of the industry.
+  const segments = Array.from({ length: segmentCount }, (_, i) => {
+    const seg = generateSegment(seed, i, industry);
+    const name = business?.segmentNames[i];
+    return name ? { ...seg, name } : seg;
+  });
   const channels: Channel[] = CHANNELS.map((c, ci) => ({
     name: c.name,
     costPerLeadCents: c.costPerLeadCents,
@@ -113,12 +120,13 @@ export function generateWorld(seed: number, industryIndex: number | null = null)
   }));
   return {
     seed,
-    problemName: randPick(seed, industry ? industry.problems : PROBLEMS, "world", "problem"),
+    problemName: business ? business.idea : randPick(seed, industry ? industry.problems : PROBLEMS, "world", "problem"),
     segments,
     channels,
     weather: generateWeather(seed),
     lateWindow: generateLateWindow(seed),
     startFocus: randInt(seed, 0, segmentCount - 1, "world", "focus"),
+    business,
   };
 }
 

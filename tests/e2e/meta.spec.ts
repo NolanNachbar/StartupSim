@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
-import { newRun, step, view } from "../../src/sim";
+import { BUSINESS_LIST, newRun, step, view } from "../../src/sim";
 import { money } from "../../src/ui/format";
 import { auditScreen } from "./audit";
 
@@ -26,6 +26,8 @@ test("field notes and run history fill in after a run", async ({ page }, info) =
 
   await page.getByRole("button", { name: "Start a run" }).click();
   await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   await finishRun(page);
   await page.getByRole("button", { name: "Menu" }).click();
@@ -46,13 +48,15 @@ test("a challenge link starts the same world", async ({ page }) => {
   await expect(page.getByText("A shared run is waiting")).toBeVisible();
   await page.getByRole("button", { name: "Start the shared run" }).click();
   await expect(page.getByText("This is a shared run")).toBeVisible();
-  await page.getByRole("button", { name: "Next" }).click(); // no industry in this link: the player picks one first
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Next" }).click(); // no industry in this link: the player picks one first
   await page.getByRole("button", { name: "Start the company" }).click();
   await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
   const shared = await page.locator(".route-row").allInnerTexts();
   await page.evaluate(() => localStorage.clear());
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   expect(await page.locator(".route-row").allInnerTexts()).toEqual(shared);
@@ -62,6 +66,8 @@ test("the report offers a challenge link and a share card PNG", async ({ page })
   test.setTimeout(120_000);
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   await finishRun(page);
@@ -81,7 +87,8 @@ test("the report offers a challenge link and a share card PNG", async ({ page })
 
 test("the same seed and actions give the same numbers in every browser engine", async ({ page }) => {
   // Expected values come from the sim running in Node; the page must agree after the same actions.
-  let run = newRun(3);
+  // the setup defaults: the first industry, the first business model and its first example idea
+  let run = newRun(3, 0, { model: 0, idea: BUSINESS_LIST[0]![0]!.examples[0]! });
   const focus = view(run).focusSegment;
   const acts = [
     { type: "interview", segment: focus, questions: ["past-behavior", "past-behavior", "past-behavior"] },
@@ -97,6 +104,8 @@ test("the same seed and actions give the same numbers in every browser engine", 
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
   await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   await page.getByRole("button", { name: "Choose an action" }).click();
   await page.getByRole("button", { name: "Interview a customer" }).click();
@@ -104,11 +113,9 @@ test("the same seed and actions give the same numbers in every browser engine", 
   await page.getByRole("button", { name: "Hold the interviews" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
   for (let i = 0; i < 8; i++) {
-    const wait = page.getByRole("button", { name: "Wait a week" });
-    if (await wait.count()) await wait.click();
-    else await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Wait a week" }).click();
+    await page.getByRole("button", { name: "Continue" }).click(); // every week now ends on its overview
   }
-  if (await page.getByRole("button", { name: "Continue" }).count()) await page.getByRole("button", { name: "Continue" }).click();
 
   const strip = page.locator(".strip");
   await expect(strip).toContainText(money(expected.cashCents));

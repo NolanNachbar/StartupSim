@@ -2,7 +2,7 @@
 // this file only calls `step` and `view` and remembers what to show.
 import { computed, signal } from "@preact/signals";
 import {
-  INDUSTRY_LIST, newRun, report as reportFor, step, toSave, view,
+  BUSINESS_LIST, INDUSTRY_LIST, cleanIdea, newRun, report as reportFor, step, toSave, view,
   type Action, type PublicState, type Report, type Run,
 } from "../sim";
 import { describeStep, reasonText, type StepDescription } from "./format";
@@ -56,12 +56,16 @@ export const storageBlocked = signal(false);
 export const challengeSeed = signal<number | null>(null);
 export const currentSeed = signal(0);
 export const challengeIndustry = signal<number | null>(null);
+/** A shared link can name the business model and idea too. */
+export const challengeBusiness = signal<{ model: number; idea: string } | null>(null);
 /** The company being run: its name and market. */
-export const company = signal({ name: "", industry: 0 });
+export const company = signal({ name: "", industry: 0, model: 0, idea: "" });
 /** The setup form. */
-export const draft = signal({ name: "", industry: 0 });
-/** Which of the two setup pages is showing: 1 industry, 2 name. */
-export const setupStep = signal<1 | 2>(1);
+export const draft = signal({ name: "", industry: 0, model: 0, idea: "" });
+/** Which of the four setup pages is showing: 1 industry, 2 business model, 3 idea, 4 name. */
+export const setupStep = signal<1 | 2 | 3 | 4>(1);
+/** The wording of the questions asked in the interview round just held, in order (shown on the result). */
+export const askedWording = signal<readonly string[]>([]);
 export const shareNotice = signal<string | null>(null);
 export const notes = signal<Note[]>([]);
 export const flights = signal<Flight[]>([]);
@@ -100,7 +104,13 @@ export function init(search: string): void {
   if (Number.isInteger(playSeed) && playSeed >= 0 && playSeed <= 0xffffffff) challengeSeed.value = playSeed;
   const ind = new URLSearchParams(search).get("industry");
   const indNum = ind === null ? NaN : Number.parseInt(ind, 10);
-  if (Number.isInteger(indNum) && indNum >= 0 && indNum < INDUSTRY_LIST.length) challengeIndustry.value = indNum;
+  if (Number.isInteger(indNum) && indNum >= 0 && indNum < INDUSTRY_LIST.length) {
+    challengeIndustry.value = indNum;
+    const params = new URLSearchParams(search);
+    const modelNum = Number.parseInt(params.get("model") ?? "", 10);
+    const idea = cleanIdea(params.get("idea") ?? "");
+    if (Number.isInteger(modelNum) && modelNum >= 0 && modelNum < (BUSINESS_LIST[indNum]?.length ?? 0) && idea) challengeBusiness.value = { model: modelNum, idea };
+  }
   notes.value = loadNotes(storage);
   flights.value = loadFlights(storage);
 
@@ -110,7 +120,7 @@ export function init(search: string): void {
     const meta = storage.getJson("runway.company");
     const saveIndustry = toSave(loaded.run).industry ?? 0;
     const savedName = meta && typeof meta === "object" && typeof (meta as { name?: unknown }).name === "string" ? cleanName((meta as { name: string }).name) : null;
-    company.value = { name: savedName ?? suggestName(toSave(loaded.run).seed), industry: saveIndustry };
+    company.value = { name: savedName ?? suggestName(toSave(loaded.run).seed), industry: saveIndustry, model: toSave(loaded.run).model ?? 0, idea: toSave(loaded.run).idea ?? "" };
     currentSeed.value = toSave(loaded.run).seed;
   }
   if (loaded.kind === "corrupt") {
@@ -166,8 +176,9 @@ export function startOver(): void {
   flights.value = [];
   challengeSeed.value = null;
   challengeIndustry.value = null;
-  company.value = { name: "", industry: 0 };
-  draft.value = { name: "", industry: 0 };
+  challengeBusiness.value = null;
+  company.value = { name: "", industry: 0, model: 0, idea: "" };
+  draft.value = { name: "", industry: 0, model: 0, idea: "" };
   currentSeed.value = 0;
   baseSeed.value = randomSeed() % 0xfffffffd;
   confirmingStartOver.value = false;
@@ -189,8 +200,11 @@ export function go(next: Screen): void {
 
 export function openSetup(): void {
   const seed = challengeSeed.value ?? baseSeed.value;
-  draft.value = { name: suggestName(seed), industry: challengeIndustry.value ?? draft.value.industry };
-  setupStep.value = 1;
+  const industry = challengeIndustry.value ?? draft.value.industry;
+  const chosen = challengeBusiness.value;
+  draft.value = { name: suggestName(seed), industry, model: chosen?.model ?? draft.value.model, idea: chosen?.idea ?? exampleIdea(industry, draft.value.model) };
+  // a shared link that names the industry (and the business) skips the pages it already answers
+  setupStep.value = challengeIndustry.value === null ? 1 : chosen === null ? 2 : 4;
   go({ name: "setup" });
 }
 
@@ -201,6 +215,13 @@ export function flyAgain(): void {
   openSetup();
 }
 
+import { businessOf } from "./business";
+/** The business the company now running is, as the words use it. */
+export const currentBusiness = () => businessOf(company.value.industry, company.value.idea ? { model: company.value.model, idea: company.value.idea } : null);
+
+/** The first example idea for an industry and model: the starting text of the idea page. */
+export const exampleIdea = (industry: number, model: number): string => BUSINESS_LIST[industry]?.[model]?.examples[0] ?? "my business";
+
 export function suggestAnotherName(): void {
   draft.value = { ...draft.value, name: suggestName(randomSeed()) };
 }
@@ -209,14 +230,15 @@ export function suggestAnotherName(): void {
 export function startCompany(): void {
   const seed = challengeSeed.value ?? baseSeed.value;
   const name = cleanName(draft.value.name) ?? suggestName(seed);
-  takeOff(seed, draft.value.industry, name);
+  const idea = cleanIdea(draft.value.idea) ?? exampleIdea(draft.value.industry, draft.value.model);
+  takeOff(seed, draft.value.industry, draft.value.model, idea, name);
 }
 
-export function takeOff(seed: number, industry: number, name: string): void {
-  const next = newRun(seed, industry);
+export function takeOff(seed: number, industry: number, model: number, idea: string, name: string): void {
+  const next = newRun(seed, industry, { model, idea });
   run.value = next;
   currentSeed.value = seed;
-  company.value = { name, industry };
+  company.value = { name, industry, model, idea };
   storage.setJson("runway.company", { name });
   shareNotice.value = null;
   savedRun.value = null;
@@ -237,7 +259,7 @@ export function continueFlight(): void {
   run.value = saved;
   savedRun.value = null;
   const origin = toSave(saved);
-  startPivots.value = view(newRun(origin.seed, origin.industry)).pivotsRemaining;
+  startPivots.value = view(newRun(origin.seed, origin.industry, origin.model !== undefined && origin.idea ? { model: origin.model, idea: origin.idea } : undefined)).pivotsRemaining;
   notice.value = null;
   go({ name: "week" });
 }
@@ -290,7 +312,7 @@ export function act(action: Action): boolean {
     }
     shareNotice.value = null;
     screen.value = { name: "report" };
-  } else if (described.newLog.length > 0 || described.evidence.length > 0) {
+  } else if (described.weeksPassed > 0 || described.newLog.length > 0 || described.evidence.length > 0) {
     screen.value = { name: "result" };
   } else {
     screen.value = { name: "week" };
@@ -305,7 +327,9 @@ export function back(): void {
     case "form": go({ name: "actions" }); break;
     case "actions": go({ name: "week" }); break;
     case "setup":
-      if (setupStep.value === 2 && challengeIndustry.value === null) setupStep.value = 1;
+      if (setupStep.value === 4 && challengeBusiness.value === null) setupStep.value = 3;
+      else if (setupStep.value === 3) setupStep.value = 2;
+      else if (setupStep.value === 2 && challengeIndustry.value === null) setupStep.value = 1;
       else go({ name: "board" });
       break;
     case "result": go({ name: "week" }); break;
@@ -367,12 +391,12 @@ export function openNotes(): void {
 }
 
 /** A link that starts anyone in the same world. */
-export function challengeLink(seed: number, industry: number): string {
-  return `${location.origin}${location.pathname}?play=${seed}&industry=${industry}`;
+export function challengeLink(seed: number, industry: number, model: number, idea: string): string {
+  return `${location.origin}${location.pathname}?play=${seed}&industry=${industry}&model=${model}&idea=${encodeURIComponent(idea)}`;
 }
 
 export async function copyChallengeLink(): Promise<void> {
-  const link = challengeLink(currentSeed.value, company.value.industry);
+  const link = challengeLink(currentSeed.value, company.value.industry, company.value.model, company.value.idea);
   try {
     await navigator.clipboard.writeText(link);
     shareNotice.value = `Link copied: ${link}`;

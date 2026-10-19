@@ -38,15 +38,20 @@ export function Help() {
         </section>
 
         <section class="help__section">
+          <h2>How your business makes money</h2>
+          <p>Each paying customer pays your price every month, so what comes in each week is customers times price. What goes out is the cost of running the company (rent or tools, supplies and your own pay), any marketing, and any hires. Customers come from marketing, and more of them buy and stay once what you are making is ready. When your business is ready, the stage on the Business panel changes: a software product launches, a service starts running, a place opens its doors, a product goes on sale. Each week ends on a short overview of what changed.</p>
+        </section>
+
+        <section class="help__section">
           <h2>What you can do</h2>
           <ul class="help__list">
             <li><strong>Interview a customer:</strong> hold three conversations. What you ask changes what you learn.</li>
-            <li><strong>Build a test:</strong> make something small enough to show people.</li>
+            <li><strong>Build a test:</strong> get something small in front of people: a landing page, a trial pass, a hand-made batch or a prototype, depending on your business.</li>
             <li><strong>Test a channel:</strong> pay a little to reach people through one channel and see who responds.</li>
             <li><strong>Charge for a test:</strong> ask real leads to pay.</li>
             <li><strong>Set price:</strong> what you charge each month.</li>
             <li><strong>Set marketing:</strong> pay for a steady flow of leads on one channel.</li>
-            <li><strong>Hire someone:</strong> builds finish faster and marketing reaches more people, for a weekly cost.</li>
+            <li><strong>Hire someone:</strong> one person who helps build and sell, such as a developer, a trainer or a packer depending on your business. Builds finish faster and marketing reaches more people, for a weekly cost.</li>
             <li><strong>Raise money:</strong> more cash, a share of the company, and several weeks of your time.</li>
             <li><strong>Pivot:</strong> switch to a different group of customers.</li>
             <li><strong>Wait a week:</strong> let time pass and see what changes.</li>

@@ -1,4 +1,5 @@
 // Internal run state. Nothing outside src/sim imports this: the public API wraps it as an opaque Run.
+import type { BusinessChoice } from "./business";
 import { PIVOT_COST_CENTS, START_CASH_CENTS, WEEKLY_BURN_CENTS, pivotsRemaining } from "./runway";
 import { hypothesesFrom } from "./hypotheses";
 import type { Action, PublicState, Secret } from "./types";
@@ -8,6 +9,8 @@ export interface InternalRun {
   readonly seed: number;
   /** The market, or null for the original generic world. */
   readonly industry: number | null;
+  /** The business model and idea the player chose, or null. */
+  readonly business: BusinessChoice | null;
   /** Accepted actions, in order. Together with the seed they reproduce the run. */
   readonly actions: readonly Action[];
   readonly secret: Secret;
@@ -16,8 +19,8 @@ export interface InternalRun {
 
 export const START_PRICE_CENTS = 4_900;
 
-export function initialRun(seed: number, industry: number | null = null): InternalRun {
-  const secret = generateWorld(seed, industry);
+export function initialRun(seed: number, industry: number | null = null, business: BusinessChoice | null = null): InternalRun {
+  const secret = generateWorld(seed, industry, business);
   const pub: PublicState = {
     week: 0,
     status: "running",
@@ -52,7 +55,7 @@ export function initialRun(seed: number, industry: number | null = null): Intern
     evidence: [],
     hypotheses: hypothesesFrom([], secret.segments.length),
   };
-  return { seed, industry, actions: [], secret, pub };
+  return { seed, industry, business, actions: [], secret, pub };
 }
 
 /**

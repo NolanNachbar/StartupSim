@@ -15,7 +15,7 @@ export function Board() {
           {challengeSeed.value !== null ? <p class="notice" role="status">A shared run is waiting: the same world, your decisions.</p> : null}
           {saved ? (
             <p class="board__empty">
-              Saved run: {company.value.name || "your company"}, {INDUSTRY_LIST[company.value.industry]?.name ?? "your market"}, week {view(saved).week}.
+              Saved run: {company.value.name || "your company"}, {company.value.idea || INDUSTRY_LIST[company.value.industry]?.name || "your market"}, week {view(saved).week}.
             </p>
           ) : (
             <p class="board__empty">Name your company, pick a market, and find who to build for.</p>

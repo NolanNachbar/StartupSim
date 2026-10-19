@@ -21,6 +21,8 @@ test("focus follows the screen and is never lost after leaving the menu", async 
   await page.getByRole("button", { name: "Start a run" }).click();
   await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeFocused();
   await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   await expect(page.getByRole("heading", { name: "Your customers" })).toBeFocused();
   await page.getByRole("button", { name: "Menu" }).click();
@@ -32,6 +34,8 @@ test("focus follows the screen and is never lost after leaving the menu", async 
 test("tab order follows the reading order: banner controls, then content, then actions", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   // Nothing uses a positive tabindex, so tab order is DOM order.
@@ -54,6 +58,8 @@ test.describe("reduced motion", () => {
     test.setTimeout(120_000);
     await page.goto("/?seed=3");
     await page.getByRole("button", { name: "Start a run" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
     await page.getByRole("button", { name: "Next" }).click();
     await page.getByRole("button", { name: "Start the company" }).click();
     for (let i = 0; i < 160 && (await page.getByRole("article").count()) === 0; i++) {
@@ -113,6 +119,8 @@ test.describe("city art budget", () => {
     await page.getByRole("button", { name: "Start a run" }).click();
     await page.getByRole("radio", { name: /Health and wellness/ }).check(); // the suburban map, the heaviest
     await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
     await page.getByRole("button", { name: "Start the company" }).click();
     await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
     await page.waitForLoadState("networkidle");
@@ -128,6 +136,8 @@ test.describe("name plates on the map", () => {
       await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
       await page.goto(`/?play=${seed}&industry=${industry}`);
       await page.getByRole("button", { name: "Start the shared run" }).click();
+      await page.getByRole("button", { name: "Next" }).click();
+      await page.getByRole("button", { name: "Next" }).click();
       await page.getByRole("button", { name: "Start the company" }).click();
       await expect(page.locator(".world__canvas--ready")).toBeAttached({ timeout: 25_000 });
       await expect(page.locator(".way__name").first()).toBeVisible();
@@ -156,6 +166,8 @@ test("a double click on Wait a week counts once", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
   await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   await page.getByRole("button", { name: "Wait a week" }).dblclick();
   await expect(page.getByText("Week 1", { exact: false }).first()).toBeVisible();
@@ -183,6 +195,8 @@ test("help explains the game without telling the player what to do", async ({ pa
 test("the week screen shows the path to default alive as milestones", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   const bar = page.getByRole("list", { name: "Your path to default alive" });

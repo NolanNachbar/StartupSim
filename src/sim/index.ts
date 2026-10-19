@@ -1,4 +1,5 @@
 // Public API of the simulation. src/ui may import only from here (enforced by ESLint).
+import { COMBOS, MAX_IDEA, MODELS, cleanIdea, type Business, type BusinessChoice, type Combo, type ModelInfo } from "./business";
 // `Run` is opaque: it carries the hidden world, but the type gives the UI no way to read it.
 import { legalActions as legalActionsInternal } from "./actions";
 import { step as stepInternal } from "./reducer";
@@ -76,6 +77,13 @@ export const CATALOG = {
 const inside = (run: Run): InternalRun => run as unknown as InternalRun;
 const outside = (run: InternalRun): Run => run as unknown as Run;
 
+/** What is specific to each industry and business model (by industry index, then model index): customers and their words. */
+export const BUSINESS_LIST: readonly (readonly Combo[])[] = COMBOS;
+export const BUSINESS_MODELS: readonly ModelInfo[] = MODELS;
+export const MAX_IDEA_LENGTH = MAX_IDEA;
+export { cleanIdea };
+export type { Business, BusinessChoice, Combo, ModelInfo };
+
 /** The markets a company can start in: public descriptions only. The numbers behind them stay hidden. */
 export const INDUSTRY_LIST: readonly { readonly name: string; readonly blurb: string }[] = INDUSTRIES.map((i) => ({ name: i.name, blurb: i.blurb }));
 
@@ -83,14 +91,17 @@ export const INDUSTRY_LIST: readonly { readonly name: string; readonly blurb: st
  * Start a run. The seed must be an integer in [0, 0xFFFFFFFF], otherwise RangeError. `industry` is an index into
  * INDUSTRY_LIST; leave it out for the original generic world.
  */
-export function newRun(seed: number, industry?: number): Run {
+export function newRun(seed: number, industry?: number, business?: BusinessChoice): Run {
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
     throw new RangeError(`seed must be an integer in [0, 0xFFFFFFFF], got ${String(seed)}`);
   }
   if (industry !== undefined && (!Number.isInteger(industry) || industry < 0 || industry >= INDUSTRIES.length)) {
     throw new RangeError(`industry must be an integer in [0, ${INDUSTRIES.length - 1}], got ${String(industry)}`);
   }
-  return outside(initialRun(seed, industry ?? null));
+  if (business !== undefined && (industry === undefined || !Number.isInteger(business.model) || !COMBOS[industry]?.[business.model] || cleanIdea(business.idea) === null)) {
+    throw new RangeError("business needs an industry, a model index and an idea of at least three characters");
+  }
+  return outside(initialRun(seed, industry ?? null, business ? { model: business.model, idea: cleanIdea(business.idea) as string } : null));
 }
 
 export function legalActions(run: Run): readonly Action[] {
@@ -124,5 +135,5 @@ export function fromSave(input: unknown): LoadResult {
 export function report(run: Run): Report | null {
   const internal = inside(run);
   if (internal.pub.status === "running") return null;
-  return buildReport(buildHistory(internal.seed, internal.actions, internal.industry));
+  return buildReport(buildHistory(internal.seed, internal.actions, internal.industry, internal.business));
 }

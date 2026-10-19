@@ -1,13 +1,15 @@
 import type { Evidence, PublicState } from "../../sim";
+import { CATALOG } from "../../sim";
+import { stageOf } from "../business";
 import { money, questionLabel, tagExplain, tagLabel } from "../format";
 import { Panel } from "../panel";
-import { go, last } from "../store";
+import { askedWording, currentBusiness, go, last } from "../store";
 
-function Interview({ e }: { e: Extract<Evidence, { kind: "interview" }> }) {
+function Interview({ e, asked }: { e: Extract<Evidence, { kind: "interview" }>; asked: string | undefined }) {
   const who = e.customer === "friend" ? "A friend of yours" : e.customer === "stranger" ? "A stranger" : "No one";
   return (
     <li class={`entry${e.tag ? ` entry--${e.tag}` : ""}`}>
-      <p class="entry__head">{`${who}, asked: ${questionLabel(e.question)}`}</p>
+      <p class="entry__head">{`${who}, asked: ${asked ?? questionLabel(e.question)}`}</p>
       <p class="entry__quote">{e.quote}</p>
       {e.outcome === "completed" && e.tag ? (
         <p class="entry__debrief"><span class={`tag tag--${e.tag}`}>{tagLabel(e.tag)}</span>{` ${tagExplain(e.tag)}`}</p>
@@ -45,27 +47,72 @@ function Other({ e, after }: { e: Evidence; after: PublicState }) {
   return null;
 }
 
+/** What the player just did, in a sentence. */
+function didWhat(action: { type: string }, hire?: string): string {
+  switch (action.type) {
+    case "wait": return "You waited a week.";
+    case "interview": return "You held a round of customer interviews.";
+    case "buildTest": return "You worked on getting ready.";
+    case "pickChannel": return "You tested a channel.";
+    case "chargeTest": return "You ran a paid test.";
+    case "setPrice": return "You changed your price.";
+    case "setMarketing": return "You changed your marketing.";
+    case "hire": return `You hired ${hire ?? "a contractor"}.`;
+    case "raiseMoney": return "You raised money.";
+    case "pivot": return "You pivoted to a new customer group.";
+    default: return "Time passed.";
+  }
+}
+
+const signed = (n: number): string => `${n > 0 ? "+" : ""}${n}`;
+
 export function Result() {
   const l = last.value;
   if (!l) return null;
-  const { step: d, after } = l;
+  const { before, after, action, step: d } = l;
+  const marketing = after.marketing.channel === null ? 0 : (CATALOG.budgetLevelsCents[after.marketing.level] ?? 0);
+  const weeklyCosts = after.weeklyBurnCents + marketing;
+  const b = currentBusiness();
+  const stageAfter = stageOf(b, after.productProgressPct, after.landingPageBuilt);
+  const launched = before.productProgressPct < 100 && after.productProgressPct >= 100;
+  const interviews = d.evidence.filter((e) => e.kind === "interview");
   return (
     <>
       <main class="board">
-        <h1 class="board__title" tabIndex={-1}>What happened</h1>
+        <h1 class="board__title" tabIndex={-1}>{`Week ${after.week}`}</h1>
         <p class="board__lede">
-          {d.weeksPassed > 0 ? `${d.weeksPassed} ${d.weeksPassed === 1 ? "week" : "weeks"} passed. ` : ""}
-          {`Cash changed by ${money(d.cashDeltaCents)}.`}
+          {didWhat(action, b?.hire)}
+          {d.weeksPassed > 1 ? ` ${d.weeksPassed} weeks passed.` : ""}
         </p>
+        {launched ? (
+          <div class="launch" role="status">
+            <p class="launch__title">{stageAfter.label}</p>
+            <p class="launch__text">{`${stageAfter.detail} Fewer customers leave now than while it was half ready.`}</p>
+          </div>
+        ) : null}
+        <h2 class="board__sub">This week in numbers</h2>
+        <dl class="overview">
+          <dt>Cash</dt><dd>{`${money(before.cashCents)} to ${money(after.cashCents)} (${d.cashDeltaCents >= 0 ? "+" : "-"}${money(Math.abs(d.cashDeltaCents))})`}</dd>
+          <dt>Money in</dt><dd>{`${money(after.weeklyRevenueCents)} a week from ${after.payingCustomers} paying ${after.payingCustomers === 1 ? "customer" : "customers"} (${signed(after.payingCustomers - before.payingCustomers)})`}</dd>
+          <dt>Money out</dt><dd>{`${money(weeklyCosts)} a week (${money(after.weeklyBurnCents)} to run the company${marketing > 0 ? `, ${money(marketing)} on marketing` : ""})`}</dd>
+          <dt>Stage</dt><dd>{`${stageAfter.label}. ${stageAfter.detail}`}</dd>
+          <dt>Pivots left</dt><dd>{String(after.pivotsRemaining)}</dd>
+        </dl>
         {d.evidence.length > 0 ? (
-          <ol class="entries">
-            {d.evidence.map((e, i) => (e.kind === "interview" ? <Interview key={i} e={e} /> : <Other key={i} e={e} after={after} />))}
-          </ol>
+          <>
+            <h2 class="board__sub">What you learned</h2>
+            <ol class="entries">
+              {d.evidence.map((e, i) => (e.kind === "interview" ? <Interview key={i} e={e} asked={askedWording.value[interviews.indexOf(e)]} /> : <Other key={i} e={e} after={after} />))}
+            </ol>
+          </>
         ) : null}
         {d.newLog.length > 0 ? (
-          <ul class="log">
-            {d.newLog.map((e, i) => (<li key={i}>{`Week ${e.week}: ${e.text}`}</li>))}
-          </ul>
+          <>
+            <h2 class="board__sub">What happened</h2>
+            <ul class="log">
+              {d.newLog.map((e, i) => (<li key={i}>{`Week ${e.week}: ${e.text}`}</li>))}
+            </ul>
+          </>
         ) : null}
       </main>
       <Panel />

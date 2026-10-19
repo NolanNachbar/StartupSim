@@ -32,6 +32,7 @@ export function ReportScreen() {
           <dl class="report__fields">
             <dt>Company</dt><dd>{company.value.name}</dd>
             <dt>Market</dt><dd>{INDUSTRY_LIST[company.value.industry]?.name ?? ""}</dd>
+            {company.value.idea ? <><dt>Idea</dt><dd>{company.value.idea}</dd></> : null}
             <dt>World</dt><dd>{String(currentSeed.value)}</dd>
             <dt>Weeks run</dt><dd>{String(state.value?.week ?? 0)}</dd>
             <dt>Outcome</dt><dd>{landed ? "Landed" : r.outcome === "stalled" ? "Stalled" : "Crashed"}</dd>

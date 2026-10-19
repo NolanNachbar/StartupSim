@@ -8,6 +8,8 @@ async function startRun(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Start a run" }).click();
   await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeVisible();
   await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
 }
@@ -31,6 +33,8 @@ for (const colorScheme of ["light"] as const) {
       await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeVisible();
       await expect(page.getByRole("radio")).toHaveCount(6);
       await auditScreen(page, "setup-industry", info, colorScheme, { panelOnWide: false });
+      await page.getByRole("button", { name: "Next" }).click();
+      await page.getByRole("button", { name: "Next" }).click();
       await page.getByRole("button", { name: "Next" }).click();
       await expect(page.getByRole("heading", { name: "Name your company" })).toBeVisible();
       await expect(page.getByLabel("Company name")).not.toHaveValue("");
@@ -136,6 +140,8 @@ test.describe("saving, keyboard and the reveal", () => {
     await page.goto("/");
     await expect(page.getByText("Progress will not be saved in this browser. You can keep playing.")).toBeVisible();
     await page.getByRole("button", { name: "Start a run" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
     await page.getByRole("button", { name: "Next" }).click();
     await page.getByRole("button", { name: "Start the company" }).click();
     await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
