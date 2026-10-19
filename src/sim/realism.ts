@@ -60,6 +60,14 @@ export const HIRE_LOADED_WEEKLY_CENTS = 120_000;
 /** A loan for a business costs about half a year of interest over its term, not more than the loan itself. */
 export const BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS = 240_000;
 
+/** What each build is called in each kind of business, for the log. */
+export const BUILD_LABEL_BY_MODEL: Readonly<Record<ModelId, Readonly<Record<string, string>>>> = {
+  software: { "landing-page": "a landing page", concierge: "a hand-run version", prototype: "a prototype" },
+  service: { "landing-page": "an offer page", concierge: "a first batch of clients served by hand", prototype: "a repeatable package" },
+  location: { "landing-page": "a trial pass and sign-up page", concierge: "a small first run", prototype: "the fitted-out space" },
+  product: { "landing-page": "a pre-order page", concierge: "a hand-made batch", prototype: "a small production run" },
+};
+
 export const capacityOf = (model: ModelId, ops: number): number => CAPACITY_BY_MODEL[model].base + CAPACITY_BY_MODEL[model].perOps * ops;
 
 export interface WeekResult {

@@ -7,7 +7,7 @@
 // A tick: marketing wins customers, churn takes some, the market ceiling caps them, revenue accrues,
 // late payers delay some cash, costs and loan repayments go out, the week advances, then end checks.
 import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, topicsMatch } from "./actions";
-import { BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
+import { BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
@@ -346,7 +346,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
           withPub(after, {
             productProgressPct: Math.min(100, after.pub.productProgressPct + spec.progressPct),
             landingPageBuilt: after.pub.landingPageBuilt || action.kind === "landing-page",
-            log: withLog(after.pub, `Built a ${action.kind.replace("-", " ")}.`),
+            log: withLog(after.pub, `Built ${after.secret.business ? (BUILD_LABEL_BY_MODEL[after.secret.business.model.id][action.kind] ?? action.kind) : `a ${action.kind.replace("-", " ")}`}.`),
           }),
           action,
         ),

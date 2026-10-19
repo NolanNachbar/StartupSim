@@ -10,7 +10,7 @@ export interface Callout {
 
 export const CALLOUTS: readonly Callout[] = [
   { id: "dotted", text: "A dotted line is something you believe but have not tested. Turning a dotted line into a solid one means getting real evidence from that group." },
-  { id: "pivots", text: "Pivots remaining is how many times you can change course before the money ends. It counts changes of direction, not months." },
+  { id: "pivots", text: "Pivots remaining is how many times you can change course before the money ends. Each pivot costs about three weeks of running costs plus a round of tests, so it falls as cash is spent and rises when you raise money or take a loan." },
   { id: "interview", text: "Different questions get different answers. What you ask changes what you learn." },
   { id: "verified", text: "A solid blue line means real people paid or did something costly. Compliments and promises never turn a line solid." },
   { id: "crash", text: "The report names the probable cause of this crash. Read it, then run again: every run teaches a different failure." },
