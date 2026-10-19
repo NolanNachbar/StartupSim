@@ -21,7 +21,7 @@ for (const colorScheme of ["light"] as const) {
       if (info.project.name !== "phone") {
         const panel = page.getByRole("complementary", { name: "Log and details" });
         await expect(panel).toContainText("No tests yet");
-        await expect(panel).toContainText("Select a point on the route");
+        await expect(panel).toContainText("Tap a customer group");
       }
       expect(errors).toEqual([]);
     });

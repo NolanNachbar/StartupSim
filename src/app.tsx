@@ -8,7 +8,6 @@ import { FormScreen } from "./ui/screens/form";
 import { Menu } from "./ui/screens/menu";
 import { Help } from "./ui/screens/help";
 import { Notes } from "./ui/screens/notes";
-import { pathProgress } from "./ui/guide";
 import { ReportScreen } from "./ui/screens/report";
 import { Result } from "./ui/screens/result";
 import { Setup } from "./ui/screens/setup";
@@ -72,11 +71,12 @@ export function App() {
         focus={inRun ? st.focusSegment : -1}
         seed={inRun ? currentSeed.value : baseSeed.value}
         theme={themeFor(inRun ? company.value.industry : screen.value.name === "setup" ? draft.value.industry : null)}
-        progress={inRun ? pathProgress(st).fraction : 0}
+        vanAt={inRun && (st.week > 0 || st.hypotheses.some((x) => x.interviews > 0)) ? st.focusSegment : null}
+        home={inRun ? company.value.name : ""}
         selected={inRun ? selected.value : null}
         w={vp.w}
         h={vp.h}
-        labels={open}
+        labels={screen.value.name === "week"}
         animate={open && !settings.value.reduceMotion && !prefersReducedMotion()}
         onSelect={(i) => (selected.value = i)}
       />

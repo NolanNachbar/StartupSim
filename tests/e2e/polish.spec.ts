@@ -21,11 +21,11 @@ test("focus follows the screen and is never lost after leaving the menu", async 
   await page.getByRole("button", { name: "Start a run" }).click();
   await expect(page.getByRole("heading", { name: "Found your company" })).toBeFocused();
   await page.getByRole("button", { name: "Start the company" }).click();
-  await expect(page.getByRole("heading", { name: "Your route" })).toBeFocused();
+  await expect(page.getByRole("heading", { name: "Your customers" })).toBeFocused();
   await page.getByRole("button", { name: "Menu" }).click();
   await expect(page.getByRole("heading", { name: "Menu" })).toBeFocused();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("heading", { name: "Your route" })).toBeFocused();
+  await expect(page.getByRole("heading", { name: "Your customers" })).toBeFocused();
 });
 
 test("tab order follows the reading order: banner controls, then content, then actions", async ({ page }) => {
@@ -39,10 +39,10 @@ test("tab order follows the reading order: banner controls, then content, then a
   );
   const at = (needle: RegExp) => order.findIndex((t) => needle.test(t));
   expect(at(/^Menu/)).toBeGreaterThanOrEqual(0);
-  expect(at(/^Menu/)).toBeLessThan(at(/^1\./));
-  // The callout sits above the route plate, so it comes first in the reading order.
-  expect(at(/^Got it/)).toBeLessThan(at(/^1\./));
-  expect(at(/^1\./)).toBeLessThan(at(/Choose an action/));
+  expect(at(/^Menu/)).toBeLessThan(at(/Untested$/));
+  // The callout sits in the customers plate, so it comes first in the reading order.
+  expect(at(/^Got it/)).toBeLessThan(at(/Untested$/));
+  expect(at(/Untested$/)).toBeLessThan(at(/Choose an action/));
   expect(at(/Choose an action/)).toBeLessThan(at(/Wait a week/));
 });
 
@@ -110,7 +110,7 @@ test.describe("city art budget", () => {
     await page.getByRole("button", { name: "Start a run" }).click();
     await page.getByRole("radio", { name: /Health and wellness/ }).check(); // the suburban map, the heaviest
     await page.getByRole("button", { name: "Start the company" }).click();
-    await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
     await page.waitForLoadState("networkidle");
     expect(bytes, `front door plus week screen: ${files} files`).toBeLessThan(1_500_000);
   });

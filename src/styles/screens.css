@@ -45,6 +45,8 @@
 .way--hq .way__stem { background: var(--verified); }
 .way--on .way__stem, .way--focus .way__stem { background: var(--primary); }
 .way__pin { width: 0; height: 0; border: 7px solid transparent; border-top-color: var(--surface); border-bottom-width: 0; margin-top: -1px; }
+.way--below { transform: translate(-50%, 0); }
+.way--below .way__pin { order: -1; border-top-width: 0; border-bottom-width: 7px; border-top-color: transparent; border-bottom-color: var(--verified); margin: 0 0 -1px; }
 .way--hq .way__name { background: var(--verified); color: #ffffff; }
 .way--hq .way__pin { border-top-color: var(--verified); }
 .way--on .way__name, .way--focus .way__name { background: var(--primary); color: var(--on-primary); }
@@ -116,6 +118,7 @@
 .plate .board__lede { margin: 0; }
 .plate__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 var(--s-3); }
 .plate__head .board__title { margin: 0; }
+.plate__how { margin: 0; color: var(--ink); font-size: 1rem; line-height: 1.35; }
 
 /* Every other screen is a scrolling card over the dimmed campus. */
 .shell:not([data-screen="week"]):not([data-screen="board"]) > .board {
@@ -295,6 +298,11 @@
 .strip__buttons { display: grid; grid-template-columns: 1fr auto; gap: var(--s-2); }
 .button--help { width: var(--tap); min-height: var(--tap); padding: 0; font-size: 1.25rem; }
 
+/* Phone labels keep the 16 px type but trim their side padding, so a crowded map fits them all. */
+@media (max-width: 599px) {
+  .way__name { padding: var(--s-1) var(--s-2); }
+}
+
 /* Narrow phones (320 px): the van icons would run into the cash figure, so the number carries the count alone. */
 @media (max-width: 379px) {
   .pivots__vans { display: none; }
@@ -309,7 +317,12 @@
   .pivots__vans { display: none; }
   .strip__side { grid-template-columns: repeat(3, auto); align-items: center; justify-content: end; min-width: 0; gap: var(--s-4); }
   .strip__buttons { order: 3; }
-  .plate .routes, .plate .path__label { display: none; }
+  .plate .routes, .plate .path__label, .plate__how { display: none; }
   .way__name { min-width: 32px; padding: 2px var(--s-2); }
   .plate__head .board__title { font-size: var(--t-md); line-height: 22px; }
+}
+
+/* Short phones: the one-line explanation gives its room to the map, so every road can carry its label. */
+@media (max-width: 599px) and (max-height: 800px) {
+  .plate__how { display: none; }
 }

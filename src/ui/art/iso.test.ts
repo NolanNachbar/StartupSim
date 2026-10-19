@@ -37,67 +37,79 @@ describe("isometric projection", () => {
 
 const onStreet = (c: Cell) => (c.gx - 3) % 6 === 0 || (c.gy - 3) % 6 === 0;
 
-describe("the route", () => {
-  const route = buildRoute(3, 11, 40);
-  it("is a connected road that climbs the screen", () => {
-    for (let i = 1; i < route.cells.length; i++) {
-      const a = route.cells[i - 1]!;
-      const b = route.cells[i]!;
-      expect(Math.abs(a.gx - b.gx) + Math.abs(a.gy - b.gy)).toBe(1);
-      expect(b.gx + b.gy).toBeLessThan(a.gx + a.gy);
-    }
-  });
+describe("the map: one home and a road to each customer group", () => {
+  const route = buildRoute(4, 11, 40);
 
-  it("follows the street grid and turns only at intersections", () => {
-    for (const c of route.cells) expect(onStreet(c)).toBe(true);
-    for (let i = 1; i < route.cells.length - 1; i++) {
-      const a = route.cells[i - 1]!;
-      const b = route.cells[i]!;
-      const c = route.cells[i + 1]!;
-      const turns = b.gx - a.gx !== c.gx - b.gx || b.gy - a.gy !== c.gy - b.gy;
-      if (turns) expect((b.gx - 3) % 6 === 0 && (b.gy - 3) % 6 === 0).toBe(true);
-    }
-  });
-
-  it("makes three straight runs, so it reads as a plan and not a wander", () => {
-    let turns = 0;
-    for (let i = 1; i < route.cells.length - 1; i++) {
-      const a = route.cells[i - 1]!;
-      const b = route.cells[i]!;
-      const c = route.cells[i + 1]!;
-      if (b.gx - a.gx !== c.gx - b.gx || b.gy - a.gy !== c.gy - b.gy) turns += 1;
-    }
-    expect(turns).toBe(2);
-  });
-
-  it("stays inside the grid and never doubles back", () => {
-    const seen = new Set<string>();
-    for (const c of route.cells) {
-      expect(c.gx).toBeGreaterThanOrEqual(3);
-      expect(c.gy).toBeGreaterThanOrEqual(3);
-      expect(c.gx).toBeLessThan(37);
-      expect(c.gy).toBeLessThan(37);
-      expect(seen.has(key(c))).toBe(false);
-      seen.add(key(c));
-    }
-  });
-
-  it("has one waypoint per hypothesis, in order along the road, away from both ends", () => {
+  it("has one road per customer group, all leaving the same home", () => {
     for (const n of [3, 4, 5]) {
       const r = buildRoute(n, 11, 40);
-      expect(r.waypoints.length).toBe(n);
-      const idx = r.waypoints.map((w) => w.at);
-      expect([...idx].sort((x, y) => x - y)).toEqual(idx);
-      expect(idx[0]).toBeGreaterThan(1);
-      expect(idx[n - 1]).toBeLessThan(r.cells.length - 2);
-      expect(new Set(idx).size).toBe(n);
+      expect(r.spokes.length).toBe(n);
+      for (const sp of r.spokes) expect(sp.cells[0]).toEqual(r.hub);
     }
   });
 
-  it("is the same for the same seed and can differ for another", () => {
+  it("sends each road a different way, so the choices look like choices", () => {
+    const r = buildRoute(4, 11, 40);
+    const ends = new Set(r.spokes.map((s) => key(s.dest)));
+    expect(ends.size).toBe(4);
+    const firsts = new Set(r.spokes.map((s) => `${s.cells[1]!.gx - r.hub.gx},${s.cells[1]!.gy - r.hub.gy}`));
+    expect(firsts.size).toBe(4); // four different directions out of the home
+    const five = buildRoute(5, 11, 40);
+    expect(new Set(five.spokes.map((s) => key(s.dest))).size).toBe(5);
+  });
+
+  it("follows the street grid: every road is a connected line of street cells, turning only at crossings", () => {
+    for (const n of [3, 5]) {
+      for (const sp of buildRoute(n, 11, 40).spokes) {
+        for (const c of sp.cells) expect(onStreet(c)).toBe(true);
+        for (let i = 1; i < sp.cells.length; i++) expect(Math.abs(sp.cells[i]!.gx - sp.cells[i - 1]!.gx) + Math.abs(sp.cells[i]!.gy - sp.cells[i - 1]!.gy)).toBe(1);
+        for (let i = 1; i < sp.cells.length - 1; i++) {
+          const a = sp.cells[i - 1]!;
+          const b = sp.cells[i]!;
+          const c = sp.cells[i + 1]!;
+          if (b.gx - a.gx !== c.gx - b.gx || b.gy - a.gy !== c.gy - b.gy) expect((b.gx - 3) % 6 === 0 && (b.gy - 3) % 6 === 0).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("paints its evidence only on the stretch next to the destination, so roads that share a start never share a line", () => {
+    for (const n of [4, 5]) {
+      const r = buildRoute(n, 11, 40);
+      const painted = new Map<string, number>();
+      r.spokes.forEach((sp, i) => {
+        expect(key(sp.line[sp.line.length - 1]!)).toBe(key(sp.dest));
+        for (const c of sp.line) painted.set(key(c), (painted.get(key(c)) ?? 0) + 1);
+        expect(painted.get(key(r.hub))).toBeUndefined();
+        void i;
+      });
+      for (const count of painted.values()) expect(count).toBe(1);
+    }
+  });
+
+  it("sits near the middle of the city and inside the grid", () => {
+    for (const size of [40, 108, 142]) {
+      const r = buildRoute(5, 7, size);
+      expect(Math.abs(r.hub.gx - size / 2)).toBeLessThanOrEqual(6);
+      for (const c of r.cells) {
+        expect(c.gx).toBeGreaterThanOrEqual(3);
+        expect(c.gy).toBeGreaterThanOrEqual(3);
+        expect(c.gx).toBeLessThan(size - 3);
+        expect(c.gy).toBeLessThan(size - 3);
+      }
+    }
+    expect(route.cells.length).toBeGreaterThan(20);
+  });
+
+  it("lists each road cell once", () => {
+    const r = buildRoute(5, 3, 40);
+    expect(new Set(r.cells.map(key)).size).toBe(r.cells.length);
+  });
+
+  it("is the same for the same seed and the order of directions changes with the seed", () => {
     expect(buildRoute(3, 11, 40)).toEqual(buildRoute(3, 11, 40));
-    const starts = new Set([1, 2, 3, 4, 5, 6].map((sd) => buildRoute(3, sd, 40).cells[1]!.gx - buildRoute(3, sd, 40).cells[0]!.gx));
-    expect(starts.size).toBe(2);
+    const orders = new Set([1, 2, 3, 4, 5, 6, 7, 8].map((sd) => buildRoute(4, sd, 40).spokes.map((s) => key(s.dest)).join("|")));
+    expect(orders.size).toBeGreaterThan(1);
   });
 });
 
@@ -157,13 +169,13 @@ describe("the route stays readable", () => {
     }
   });
 
-  it("puts every landmark on the far side of the road", () => {
+  it("puts every landmark at the end of its own road", () => {
     for (const seed of [1, 2, 3, 7, 11]) {
       const route = buildRoute(5, seed, 40);
       const city = buildCity(seed, route, 40);
       for (const l of city.landmarks) {
-        const c = route.cells[l.beside]!;
-        expect(l.gx + l.gy).toBeLessThan(c.gx + c.gy);
+        const sp = route.spokes[l.beside]!;
+        expect(Math.abs(l.gx - sp.dest.gx) + Math.abs(l.gy - sp.dest.gy)).toBeLessThanOrEqual(2); // on the corner block at the end of its road
       }
     }
   });
@@ -312,7 +324,7 @@ describe("themes", () => {
 
   it("runs the streets past the edges of any screen: the route sits near the middle of a big grid", () => {
     const route = buildRoute(4, 9, 108);
-    const mid = route.cells[Math.floor(route.cells.length / 2)]!;
+    const mid = route.hub;
     expect(mid.gx).toBeGreaterThan(40);
     expect(mid.gx).toBeLessThan(68);
     expect(mid.gy).toBeGreaterThan(40);
@@ -386,7 +398,7 @@ describe("the city is big enough for the screen", () => {
     const tw = 58;
     const size = gridFor(w, h, tw);
     const route = buildRoute(4, 3, size);
-    const mid = route.cells[Math.floor(route.cells.length / 2)]!;
+    const mid = route.hub;
     const origin = { x: w / 2 - project(mid, tw, { x: 0, y: 0 }).x, y: h / 2 - project(mid, tw, { x: 0, y: 0 }).y };
     for (const corner of [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: 0, y: h }, { x: w, y: h }]) {
       const c = unproject(corner, tw, origin);
@@ -435,12 +447,10 @@ describe("traffic", () => {
       const route = buildRoute(4, 9, size);
       const city = buildCity(9, route, size, theme);
       const routeLines = new Set<string>();
-      for (let i = 1; i < route.cells.length; i++) {
-        const a = route.cells[i - 1]!;
-        const b = route.cells[i]!;
-        routeLines.add(a.gx !== b.gx ? `x:${b.gy}` : `y:${b.gx}`);
+      for (const c of route.cells) {
+        if ((c.gy - 3) % 6 === 0) routeLines.add(`x:${c.gy}`);
+        if ((c.gx - 3) % 6 === 0) routeLines.add(`y:${c.gx}`);
       }
-      for (const end of [route.cells[0]!, route.cells[route.cells.length - 1]!]) routeLines.add(`x:${end.gy}`).add(`y:${end.gx}`);
 
       it("is deterministic and only uses car sprites that exist", () => {
         expect(buildCity(9, route, size, theme).traffic).toEqual(city.traffic);

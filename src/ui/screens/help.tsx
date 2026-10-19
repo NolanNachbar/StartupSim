@@ -28,13 +28,13 @@ export function Help() {
 
         <section class="help__section">
           <h2>The map</h2>
-          <p>Each tower is a group of people who might have the problem you are trying to solve. The road is your route to default alive. The van moves along it as you reach milestones, not as the weeks pass.</p>
+          <p>Your company is the building in the middle of the map. Each road leading away from it ends at one group of people who might have the problem you are trying to solve. The van drives down the road of the group you are working on, and drives back and out another road when you pivot.</p>
           <ul class="help__list">
-            <li>A dotted line is something you believe but have not tested.</li>
+            <li>On each road, a dotted line is something you believe but have not tested.</li>
             <li>A dashed line is weak evidence: some signs, nothing that cost anyone anything.</li>
             <li>A solid green line is verified: real people paid, or did something that cost them.</li>
           </ul>
-          <p>The bar under "Your route" shows five milestones. It tells you how far along you are. It does not tell you what to do.</p>
+          <p>The bar under "Your customers" shows five milestones on the way to default alive. It tells you how far along you are. It does not tell you what to do.</p>
         </section>
 
         <section class="help__section">

@@ -8,7 +8,7 @@ async function startRun(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Start a run" }).click();
   await expect(page.getByRole("heading", { name: "Found your company" })).toBeVisible();
   await page.getByRole("button", { name: "Start the company" }).click();
-  await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
 }
 
 async function openAction(page: Page, name: string): Promise<void> {
@@ -34,7 +34,7 @@ for (const colorScheme of ["light"] as const) {
       await page.getByRole("button", { name: "Start the company" }).click();
 
       // Week screen, with the first callout (the dotted line).
-      await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
       await expect(page.getByRole("note")).toContainText("dotted line");
       await expect(page.getByText("Untested").first()).toBeVisible();
       await auditScreen(page, "week", info, colorScheme);
@@ -46,7 +46,7 @@ for (const colorScheme of ["light"] as const) {
       await expect(page.getByRole("heading", { name: "Choose an action" })).toBeVisible();
       await auditScreen(page, "actions", info, colorScheme, { filledButtons: 0, panelOnWide: false });
       await page.getByRole("button", { name: "Back" }).click();
-      await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
 
       // Interview: three questions about the last time.
       await openAction(page, "Interview a customer");
@@ -61,7 +61,7 @@ for (const colorScheme of ["light"] as const) {
       await expect(page.getByText(/Fact|Fluff|Compliment|No reply|ended the call/).first()).toBeVisible();
       await auditScreen(page, "result", info, colorScheme);
       await page.getByRole("button", { name: "Continue" }).click();
-      await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
 
       // An action that cannot happen explains why instead of failing silently.
       await openAction(page, "Charge for a test");
@@ -114,7 +114,7 @@ test.describe("saving, keyboard and the reveal", () => {
     await page.reload();
     await expect(page.getByRole("button", { name: "Continue run" })).toBeVisible();
     await page.getByRole("button", { name: "Continue run" }).click();
-    await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
     expect(await page.locator(".strip").innerText()).toBe(weekBefore);
   });
 
@@ -133,7 +133,7 @@ test.describe("saving, keyboard and the reveal", () => {
     await expect(page.getByText("Progress will not be saved in this browser. You can keep playing.")).toBeVisible();
     await page.getByRole("button", { name: "Start a run" }).click();
     await page.getByRole("button", { name: "Start the company" }).click();
-    await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
   });
 
   test("keys: 1 opens the first action, Escape goes back", async ({ page }) => {
@@ -144,7 +144,7 @@ test.describe("saving, keyboard and the reveal", () => {
     await page.keyboard.press("Escape");
     await expect(page.getByRole("heading", { name: "Choose an action" })).toBeVisible();
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
   });
 
   test("arrow keys move between hypotheses and Enter selects one", async ({ page }) => {

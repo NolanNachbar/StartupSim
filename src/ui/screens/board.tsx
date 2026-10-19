@@ -18,7 +18,7 @@ export function Board() {
               Saved run: {company.value.name || "your company"}, {INDUSTRY_LIST[company.value.industry]?.name ?? "your market"}, week {view(saved).week}.
             </p>
           ) : (
-            <p class="board__empty">Name your company, pick a market, and build your route.</p>
+            <p class="board__empty">Name your company, pick a market, and find who to build for.</p>
           )}
         </div>
       </main>

@@ -91,7 +91,7 @@ export function HypothesisList({ hypotheses, names, focus }: { hypotheses: reado
       {hypotheses.map((h, i) => (
         <li key={i}>
           <button type="button" class="route-row" data-state={h.state} data-focus={i === focus} aria-pressed={selected.value === i} onClick={() => (selected.value = i)}>
-            <span class="route-row__name">{`${i + 1}. ${names[i] ?? "Group"}`}</span>
+            <span class="route-row__name">{names[i] ?? "Group"}</span>
             <span class="route-row__state">{hypothesisLabel(h.state)}</span>
           </button>
         </li>

@@ -27,13 +27,23 @@ export function unproject(p: Pt, tileW: number, origin: Pt): Cell {
   return { gx: Math.round((a + b) / 2), gy: Math.round((b - a) / 2) };
 }
 
-export interface Waypoint {
-  /** Index into the route's cells. */
-  readonly at: number;
-}
-export interface Route {
+/** One road out of the company's home to a group of customers. */
+export interface Spoke {
+  /** From the home plaza to the destination, in order (the home cell is first). */
   readonly cells: readonly Cell[];
-  readonly waypoints: readonly Waypoint[];
+  /** The stretch next to the destination that is painted with how much the player knows about that group. */
+  readonly line: readonly Cell[];
+  readonly dest: Cell;
+}
+/**
+ * The map: one home and a road in a different direction for each customer group. The groups are choices to pick
+ * between, not stages along one road.
+ */
+export interface Route {
+  /** Every road cell of every spoke (the stretches they share are listed once). */
+  readonly cells: readonly Cell[];
+  readonly hub: Cell;
+  readonly spokes: readonly Spoke[];
 }
 
 const k = (gx: number, gy: number): string => `${gx},${gy}`;
@@ -45,35 +55,41 @@ export const isStreet = (gx: number, gy: number, size: number): boolean =>
   gx >= STREET_OFFSET && gy >= STREET_OFFSET && gx <= size - 4 && gy <= size - 4 && ((gx - STREET_OFFSET) % STREET === 0 || (gy - STREET_OFFSET) % STREET === 0);
 const isCrossing = (gx: number, gy: number): boolean => (gx - STREET_OFFSET) % STREET === 0 && (gy - STREET_OFFSET) % STREET === 0;
 
+const COMPASS: readonly (readonly [number, number])[] = [[-1, 0], [0, -1], [1, 0], [0, 1]]; // up-left, up-right, down-right, down-left
+
 /**
- * The route follows the street grid in three straight runs, turning only at intersections, and climbs the screen
- * to the HQ at the last intersection. The seed picks which way the first run goes.
+ * The home sits at a street crossing near the middle of the city. Each customer group gets its own road: one block
+ * along a street in one of the four directions (the seed picks the order). A fifth group's road leaves down-right and
+ * turns down-left, so it still ends at its own crossing. Only the last block of a road carries the evidence line.
  */
 export function buildRoute(n: number, seed: number, size: number): Route {
   const rng = makeRng(seed + 101);
-  // Start on the street nearest the middle of the grid (plus a few cells, as the route climbs), so the city
-  // continues in every direction around it and no road runs out inside the picture.
-  const start = STREET_OFFSET + STREET * Math.round((size / 2 + 5 - STREET_OFFSET) / STREET);
-  const firstAlongX = rng() < 0.5;
-  const cells: Cell[] = [{ gx: start, gy: start }];
-  let gx = start;
-  let gy = start;
-  for (let run = 0; run < 3; run++) {
-    const alongX = (run % 2 === 0) === firstAlongX;
-    for (let i = 0; i < STREET; i++) {
-      if (alongX) gx -= 1;
-      else gy -= 1;
-      cells.push({ gx, gy });
-    }
+  const h = STREET_OFFSET + STREET * Math.round((size / 2 - STREET_OFFSET) / STREET);
+  const hub: Cell = { gx: h, gy: h };
+  const order = [...COMPASS];
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [order[i], order[j]] = [order[j] as readonly [number, number], order[i] as readonly [number, number]];
   }
-  const last = cells.length - 1;
-  const waypoints: Waypoint[] = [];
-  for (let i = 0; i < n; i++) {
-    let at = Math.round(((i + 1) * last) / (n + 1));
-    if (at % STREET === 0) at += 1; // not on a turn
-    waypoints.push({ at });
+  const walk = (from: Cell, d: readonly [number, number], steps: number): Cell[] => Array.from({ length: steps }, (_, i) => ({ gx: from.gx + d[0] * (i + 1), gy: from.gy + d[1] * (i + 1) }));
+  const spokes: Spoke[] = [];
+  for (let i = 0; i < Math.min(n, 4); i++) {
+    const d = order[i] as readonly [number, number];
+    const out = walk(hub, d, STREET);
+    spokes.push({ cells: [hub, ...out], line: out, dest: out[out.length - 1] as Cell });
   }
-  return { cells, waypoints };
+  if (n >= 5) {
+    const first = walk(hub, [1, 0], STREET);
+    const turn = walk(first[first.length - 1] as Cell, [0, 1], STREET);
+    spokes.push({ cells: [hub, ...first, ...turn], line: turn, dest: turn[turn.length - 1] as Cell });
+  }
+  const seen = new Set<string>();
+  const cells: Cell[] = [];
+  for (const sp of spokes) for (const c of sp.cells) if (!seen.has(k(c.gx, c.gy))) {
+    seen.add(k(c.gx, c.gy));
+    cells.push(c);
+  }
+  return { cells, hub, spokes };
 }
 
 /** Which neighbours of a road cell are roads too, as a DIR bitmask. */
@@ -95,7 +111,7 @@ export interface Prop {
 }
 export interface Landmark extends Cell {
   readonly sprite: string;
-  /** The route cell this building sits beside. */
+  /** Which road (spoke) this building ends. */
   readonly beside: number;
   /** A standing sign with an abstract mark, next to the building. */
   readonly sign: Prop;
@@ -243,7 +259,7 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
   const pick = <T,>(list: readonly T[]): T => list[Math.floor(rng() * list.length)] as T;
   const roads = new Map<string, number>();
   for (let gx = STREET_OFFSET; gx <= size - 4; gx++) for (let gy = STREET_OFFSET; gy <= size - 4; gy++) if (isStreet(gx, gy, size)) roads.set(k(gx, gy), -1);
-  route.cells.forEach((c, i) => roads.set(k(c.gx, c.gy), i));
+  route.cells.forEach((c, i) => roads.set(k(c.gx, c.gy), i)); // the spokes' own cells get their index (0 or more); other streets are -1
   const taken = new Set<string>(roads.keys());
   const look = LOOK[theme];
   const view = (base: string): string => `${base}${pick(/^sub-[a-u]-(brick|slate)$/.test(base) ? VIEWS_OPPOSITE : twoViews(base) ? VIEWS2 : VIEWS4)}`;
@@ -251,17 +267,21 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
   // Landmarks beside the road, each with a different building and sign.
   const landmarks: Landmark[] = [];
   const offset = Math.floor(rng() * 5);
-  route.waypoints.forEach((wp, i) => {
-    const c = route.cells[wp.at] as Cell;
-    const prev = route.cells[wp.at - 1] as Cell;
-    const alongX = prev.gx !== c.gx;
-    // Landmarks stand on the far side of the road (up the screen), so they never hide the road behind them.
-    const sideSign = -1;
-    const side: Cell = alongX ? { gx: c.gx, gy: c.gy + sideSign } : { gx: c.gx + sideSign, gy: c.gy };
-    const other: Cell = alongX ? { gx: c.gx, gy: c.gy - sideSign } : { gx: c.gx - sideSign, gy: c.gy };
-    const home = taken.has(k(side.gx, side.gy)) ? other : side;
+  route.spokes.forEach((spoke, i) => {
+    const e = spoke.dest;
+    const hubSum = route.hub.gx + route.hub.gy;
+    // The building stands just beyond the end of its road, to the side (off the street), on the side away from the home
+    // and so never in front of its own road.
+    // A road ends at a crossing, so the building takes one of the four corner blocks next to it: the one farthest
+    // from home, and on the far side of the road in the screen sense (up-screen for roads that lead up, so it never
+    // stands in front of its own road).
+    const sides: Cell[] = [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([dx, dy]) => ({ gx: e.gx + (dx as number), gy: e.gy + (dy as number) })).filter((c) => !taken.has(k(c.gx, c.gy)));
+    const up = e.gx + e.gy <= hubSum;
+    const away = (c: Cell) => Math.abs(c.gx - route.hub.gx) + Math.abs(c.gy - route.hub.gy);
+    sides.sort((p, q) => away(q) - away(p) || (up ? p.gx + p.gy - (q.gx + q.gy) : q.gx + q.gy - (p.gx + p.gy)));
+    const home = (sides[0] ?? e) as Cell;
     taken.add(k(home.gx, home.gy));
-    const along = alongX ? [[1, 0], [-1, 0]] : [[0, 1], [0, -1]];
+    const along = [[home.gx - e.gx, 0], [0, home.gy - e.gy]];
     let signCell: Cell | null = null;
     for (const [dx, dy] of along as [number, number][]) {
       const cand = { gx: home.gx + dx, gy: home.gy + dy };
@@ -270,13 +290,13 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
         break;
       }
     }
-    const sc = signCell ?? { gx: home.gx + (alongX ? 0 : 1), gy: home.gy + (alongX ? 1 : 0) };
+    const sc = signCell ?? { gx: home.gx + 1, gy: home.gy + 1 };
     taken.add(k(sc.gx, sc.gy));
     landmarks.push({
       gx: home.gx,
       gy: home.gy,
       sprite: view(look.landmarks[(i + offset) % look.landmarks.length] as string),
-      beside: wp.at,
+      beside: i,
       sign: { gx: sc.gx, gy: sc.gy, sprite: SIGNS[(i + offset) % SIGNS.length] as string },
     });
   });
@@ -435,7 +455,7 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
   };
 
   // Districts: a core of density placed a few blocks from the middle of the route, so the road crosses several.
-  const midCell = route.cells[Math.floor(route.cells.length / 2)] as Cell;
+  const midCell = route.hub;
   const midBx = (midCell.gx - STREET_OFFSET) / STREET;
   const midBy = (midCell.gy - STREET_OFFSET) / STREET;
   const angle = rng() * Math.PI * 2;
@@ -458,13 +478,10 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
   // Traffic: in each of the two lanes of every cross street, cars with gaps between them, all at the lane's speed.
   // A street the route runs along is left empty, so the delivery van has its road to itself.
   const routeLines = new Set<string>();
-  for (let i = 1; i < route.cells.length; i++) {
-    const a = route.cells[i - 1] as Cell;
-    const b = route.cells[i] as Cell;
-    routeLines.add(a.gx !== b.gx ? `x:${b.gy}` : `y:${b.gx}`);
+  for (const c of route.cells) {
+    if ((c.gy - STREET_OFFSET) % STREET === 0) routeLines.add(`x:${c.gy}`);
+    if ((c.gx - STREET_OFFSET) % STREET === 0) routeLines.add(`y:${c.gx}`);
   }
-  // The van waits at the start and the HQ stands at the end: no traffic on the streets that cross them either.
-  for (const end of [route.cells[0] as Cell, route.cells[route.cells.length - 1] as Cell]) routeLines.add(`x:${end.gy}`).add(`y:${end.gx}`);
   const traffic: Vehicle[] = [];
   const gapMean = 2 / Math.max(look.carRate, 0.001);
   for (const axis of ["x", "y"] as const) {
@@ -490,7 +507,7 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
     if (idx === -1 && isCrossing(gx, gy) && routeDist(gx, gy) > 3 && rng() < 0.14) circles.push({ gx, gy });
   }
 
-  const hq = route.cells[route.cells.length - 1] as Cell;
+  const hq = route.hub;
   return { theme, roads, props, cars, traffic, pads, circles, landmarks, hq, hqSprite: look.hq };
 }
 
@@ -501,6 +518,10 @@ export interface Plate {
   readonly name: string;
   readonly x: number;
   readonly top: number;
+  /** The plate's measured width in px, when known (otherwise it is estimated from the text length). */
+  readonly width?: number;
+  /** A plate that hangs below its anchor (pointing up at it) instead of standing above it. It never moves. */
+  readonly below?: boolean;
 }
 /**
  * Lay out the name plates so none covers another plate or another plate's pointer, and none rides up under the HUD.
@@ -511,15 +532,16 @@ export interface Plate {
  */
 export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 0, compact = false): (Plate & { dx: number; dy: number })[] {
   // measured: bold 16 px type with 24 px of side padding (16 in the compact screen, whose badges are smaller)
-  const widthOf = (p: Plate): number => Math.max(compact ? 32 : 40, p.name.length * 8.4 + (compact ? 16 : 24));
+  const widthOf = (p: Plate): number => p.width ?? Math.max(compact ? 32 : 40, p.name.length * 8.6 + (compact ? 16 : 24));
   const height = compact ? 26 : 30; // 22 px of line plus the padding above and below
   const pin = 7;
   // A building so near the HUD that its plate would rise under it: the pointer lands lower, on the roof.
-  const plates = items.map((item) => ({ ...item, top: Math.max(item.top, minTop + height + pin) }));
+  const plates = items.map((item) => (item.below ? item : { ...item, top: Math.max(item.top, minTop + height + pin) }));
   const pos = plates.map(() => ({ dx: 0, dy: 0 }));
   const box = (i: number, dx: number, dy: number) => {
     const p = plates[i] as Plate;
     const half = widthOf(p) / 2;
+    if (p.below) return { l: p.x - half, r: p.x + half, t: p.top + pin, b: p.top + pin + height, px: p.x, anchor: p.top };
     const bottom = p.top - pin - dy;
     return { l: p.x + dx - half, r: p.x + dx + half, t: bottom - height, b: bottom, px: p.x, anchor: p.top };
   };
@@ -531,10 +553,12 @@ export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 
     plates.forEach((_, j) => {
       if (j === i) return;
       const q = box(j, (pos[j] as { dx: number }).dx, (pos[j] as { dy: number }).dy);
-      const plateHitsPlate = me.r + 6 > q.l && me.l - 6 < q.r && me.t - 4 < q.b && me.b + 4 > q.t;
+      const plateHitsPlate = me.r + 4 > q.l && me.l - 4 < q.r && me.t - 2 < q.b && me.b + 2 > q.t;
       const plateHitsLine = q.px > me.l - 4 && q.px < me.r + 4 && q.anchor > me.t - 2 && q.b < me.b + 2;
       const lineHitsPlate = me.px > q.l - 4 && me.px < q.r + 4 && me.anchor > q.t - 2 && me.b < q.b + 2;
-      if (plateHitsPlate || plateHitsLine || lineHitsPlate) hits++;
+      // two plates on top of each other is the worst; a pointer crossing a plate is bad but readable
+      if (plateHitsPlate) hits += 20;
+      else if (plateHitsLine || lineHitsPlate) hits++;
     });
     return hits * 10000 + Math.abs(dx) + dy * 1.4;
   };
@@ -543,12 +567,13 @@ export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 
   for (let pass = 0; pass < 6; pass++) {
     let moved = false;
     for (const i of order) {
+      if ((plates[i] as Plate).below) continue; // fixed in place
       let best = { dx: (pos[i] as { dx: number }).dx, dy: (pos[i] as { dy: number }).dy, cost: costAt(i, (pos[i] as { dx: number }).dx, (pos[i] as { dy: number }).dy) };
-      for (let lift = 0; lift < 5; lift++) {
-        const dy = lift * (height + 8);
-        for (let step = 0; step < 30; step++) {
+      for (let lift = 0; lift < 7; lift++) {
+        const dy = lift * (height + 4);
+        for (let step = 0; step < 48; step++) {
           for (const sign of step === 0 ? [1] : [1, -1]) {
-            const dx = sign * step * 12;
+            const dx = sign * step * 8;
             const c = costAt(i, dx, dy);
             if (c < best.cost - 0.001) best = { dx, dy, cost: c };
           }

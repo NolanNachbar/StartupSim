@@ -46,7 +46,7 @@ test("a challenge link starts the same world", async ({ page }) => {
   await page.getByRole("button", { name: "Start the shared run" }).click();
   await expect(page.getByText("This is a shared run")).toBeVisible();
   await page.getByRole("button", { name: "Start the company" }).click();
-  await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
   const shared = await page.locator(".route-row").allInnerTexts();
   await page.evaluate(() => localStorage.clear());
   await page.goto("/?seed=3");

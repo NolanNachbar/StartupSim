@@ -13,7 +13,7 @@ export function Panel({ idle }: { idle?: boolean }) {
           <p class="panel__text">No tests yet.</p>
         </Section>
         <Section title="Selected" id="sel-h">
-          <p class="panel__text">Select a point on the route to see what you know about it.</p>
+          <p class="panel__text">Tap a customer group to see what you know about it.</p>
         </Section>
       </aside>
     );
@@ -54,7 +54,7 @@ export function Panel({ idle }: { idle?: boolean }) {
             {h.failedPaidTests > 0 ? (<><dt>Tests with no payment</dt><dd>{String(h.failedPaidTests)}</dd></>) : null}
           </dl>
         ) : (
-          <p class="panel__text">Select a point on the route to see what you know about it.</p>
+          <p class="panel__text">Tap a customer group to see what you know about it.</p>
         )}
       </Section>
     </aside>

@@ -38,8 +38,10 @@ interface Props {
   readonly focus: number;
   readonly seed: number;
   readonly theme: Theme;
-  /** How far along the flight, 0 to 1. */
-  readonly progress: number;
+  /** The customer group whose road the van is on, or null while it waits at home. */
+  readonly vanAt: number | null;
+  /** The company's name, on the home building. */
+  readonly home: string;
   readonly selected: number | null;
   readonly w: number;
   readonly h: number;
@@ -49,7 +51,7 @@ interface Props {
   readonly onSelect?: (i: number) => void;
 }
 
-export const tileWidth = (cssWidth: number): number => (cssWidth < 900 ? 38 : 58);
+export const tileWidth = (cssWidth: number): number => (cssWidth < 900 ? 46 : 62);
 
 const GRASS_A = "#7f9f5c";
 const GRASS_B = "#7a9a58";
@@ -95,7 +97,7 @@ export function useLayout(w: number, h: number, seed: number, n: number, theme: 
     // the bottom of the map is the real top of the route panel when it is known, so nothing is drawn under it
     const fallbackBottom = compact ? h - 112 : wide ? h * 0.72 : h * 0.54;
     const bandBottom = panelTop === null ? fallbackBottom : Math.max(bandTop + 120, panelTop - 6);
-    const headroom = compact ? 140 : 150;
+    const headroom = compact ? 120 : 105; // room above the top road for the tallest building and its label
     const base = tileWidth(w);
     const span = (tw: number) => {
       const ys = route.cells.map((c) => project(c, tw, { x: 0, y: 0 }).y);
@@ -108,38 +110,31 @@ export function useLayout(w: number, h: number, seed: number, n: number, theme: 
     const { top: routeTop, bottom: routeBottom } = span(tw);
     const bandH = bandBottom - bandTop;
     const top = bandTop + Math.max(0, (bandH - (routeBottom - routeTop)) / 2);
-    const mid = route.cells[Math.floor(route.cells.length / 2)] as Cell;
-    const p0 = project(mid, tw, { x: 0, y: 0 });
+    const p0 = project(route.hub, tw, { x: 0, y: 0 });
     const target: Pt = { x: wide ? (w - 336) * 0.46 : w / 2, y: 0 };
     const origin: Pt = { x: target.x - p0.x, y: top - routeTop };
     return { tw, route, city, origin, size };
   }, [w, h, seed, n, theme, panelTop]);
 }
 
-/** A point partway along the route, in screen space, and the grid direction it is travelling. */
-/** A fractional grid cell a fraction of the way along the route, and the way the van faces there. */
-export function cellAlongRoute(cells: readonly Cell[], t: number): { cell: Cell; dir: "UL" | "UR" } {
+/**
+ * Where the van is a fraction `t` of the way along a road, and which way its sprite faces (the van sprite names are
+ * the way they point on screen: 270 up-left, 180 up-right, 90 down-right, 0 down-left). `back` is driving home.
+ */
+export function vanFrame(cells: readonly Cell[], t: number, back: boolean): { cell: Cell; heading: "0" | "90" | "180" | "270" } {
   const last = cells.length - 1;
   const f = Math.min(Math.max(t, 0), 1) * last;
   const i = Math.min(Math.floor(f), last - 1);
   const a = cells[i] as Cell;
   const b = cells[i + 1] as Cell;
   const u = f - i;
-  return { cell: { gx: a.gx + (b.gx - a.gx) * u, gy: a.gy + (b.gy - a.gy) * u }, dir: b.gx !== a.gx ? "UL" : "UR" };
+  const sign = back ? -1 : 1;
+  const dx = (b.gx - a.gx) * sign;
+  const dy = (b.gy - a.gy) * sign;
+  return { cell: { gx: a.gx + (b.gx - a.gx) * u, gy: a.gy + (b.gy - a.gy) * u }, heading: dx < 0 ? "270" : dy < 0 ? "180" : dx > 0 ? "90" : "0" };
 }
 
-export function pointAlongRoute(cells: readonly Cell[], tw: number, origin: Pt, t: number): { p: Pt; dir: "UL" | "UR" } {
-  const last = cells.length - 1;
-  const f = Math.min(Math.max(t, 0), 1) * last;
-  const i = Math.min(Math.floor(f), last - 1);
-  const a = project(cells[i] as Cell, tw, origin);
-  const b = project(cells[i + 1] as Cell, tw, origin);
-  const u = f - i;
-  const stepGx = (cells[i + 1] as Cell).gx - (cells[i] as Cell).gx;
-  return { p: { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u }, dir: stepGx !== 0 ? "UL" : "UR" };
-}
-
-export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, selected, w, h, labels, animate = false, onSelect }: Props) {
+export function IsoWorld({ hypotheses, names, focus, seed, theme, vanAt, home, selected, w, h, labels, animate = false, onSelect }: Props) {
   const n = Math.max(hypotheses.length, 1);
   // Where the route panel really starts, measured from the page: it changes with long names, a first-run note, text size.
   const [panelTop, setPanelTop] = useState<number | null>(null);
@@ -181,7 +176,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
   const needed = useMemo(() => {
     const { gx0, gx1, gy0, gy1 } = visibleCells(w, h, tw, origin);
     const seen = (p: { gx: number; gy: number }) => p.gx >= gx0 && p.gx <= gx1 && p.gy >= gy0 && p.gy <= gy1;
-    const names = new Set<string>(["car-van-180", "car-van-270", "road-roundabout", "road-square", city.hqSprite, ...ROAD_SPRITES, ...CAR_SPRITES]);
+    const names = new Set<string>(["car-van-0", "car-van-90", "car-van-180", "car-van-270", "road-roundabout", "road-square", city.hqSprite, ...ROAD_SPRITES, ...CAR_SPRITES]);
     for (const p of city.props) if (seen(p)) names.add(p.sprite);
     for (const p of city.cars) if (seen(p)) names.add(p.sprite);
     for (const l of city.landmarks) {
@@ -277,7 +272,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
   // stands on the ground (so a building in front of a street hides the cars behind it).
   const baseRef = useRef<HTMLCanvasElement | null>(null);
   const paintRef = useRef<(seconds: number) => void>(() => undefined);
-  const vanT = useRef(progress);
+  const vanState = useRef<{ seg: number | null; t: number; back: boolean }>({ seg: vanAt, t: vanAt === null ? 0 : 1, back: false });
   const clock = useRef(typeof performance === "undefined" ? 0 : performance.now());
   useEffect(() => {
     const canvas = ref.current;
@@ -290,10 +285,12 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
     if (!ctx || !b) return;
     b.drawImage(layers.ground, 0, 0);
     // Evidence lines painted on the road, leg by leg, each with a dark casing so it reads on grey roads.
-    const pts = route.cells.map((c) => ({ x: project(c, tw, origin).x * dpr, y: project(c, tw, origin).y * dpr }));
-    const cuts = [0, ...route.waypoints.map((wp) => wp.at), route.cells.length - 1];
-    for (let leg = 0; leg < cuts.length - 1; leg++) {
-      const state: HypothesisState = leg < route.waypoints.length ? (hypotheses[leg]?.state ?? "untested") : "untested";
+    for (let leg = 0; leg < route.spokes.length; leg++) {
+      const spoke = route.spokes[leg] as (typeof route.spokes)[number];
+      // the painted stretch starts from the cell before it, so it joins the road it leaves
+      const run = [spoke.cells[spoke.cells.length - spoke.line.length - 1] as Cell, ...spoke.line];
+      const pts = run.map((c) => ({ x: project(c, tw, origin).x * dpr, y: project(c, tw, origin).y * dpr }));
+      const state: HypothesisState = hypotheses[leg]?.state ?? "untested";
       const style = LINE[state];
       const stroke = (color: string, width: number, alpha: number) => {
         b.save();
@@ -304,11 +301,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
         b.setLineDash(style.dash.map((d) => d * (dpr / 2) * (tw / 64)));
         b.globalAlpha = alpha;
         b.beginPath();
-        for (let i = cuts[leg] as number; i <= (cuts[leg + 1] as number); i++) {
-          const p = pts[i] as Pt;
-          if (i === cuts[leg]) b.moveTo(p.x, p.y);
-          else b.lineTo(p.x, p.y);
-        }
+        pts.forEach((p, i) => (i === 0 ? b.moveTo(p.x, p.y) : b.lineTo(p.x, p.y)));
         b.stroke();
         b.restore();
       };
@@ -333,8 +326,9 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
       }
       // The delivery van is painted here too, in the same order as everything else, so it goes behind the buildings in
       // front of it like any car.
-      const along = cellAlongRoute(route.cells, vanT.current);
-      const vanSprite = along.dir === "UL" ? "car-van-270" : "car-van-180";
+      const spoke = vanState.current.seg === null ? null : route.spokes[vanState.current.seg];
+      const along = spoke ? vanFrame(spoke.cells, vanState.current.t, vanState.current.back) : { cell: route.hub, heading: "0" as const };
+      const vanSprite = `car-van-${along.heading}`;
       const vm = sprites.meta[vanSprite];
       const vimg = sprites.img.get(vanSprite);
       const vat = project(along.cell, tw, origin);
@@ -376,25 +370,40 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
     paintRef.current(animate ? (performance.now() - clock.current) / 1000 : 0);
   }, [layers, sprites, route, origin, tw, hypotheses, dpr, scale, city, size, w, h, animate]);
 
-  // The van eases to its new place along the route when a milestone is reached (at once under reduced motion).
+  // The van goes where the player points it: from home out along the chosen road, or back home first and then out
+  // along another road. Under reduced motion it is simply there.
   useEffect(() => {
     if (!layers) return;
-    const from = vanT.current;
-    const started = performance.now();
-    if (!animate || Math.abs(progress - from) < 0.0005) {
-      vanT.current = progress;
-      paintRef.current((performance.now() - clock.current) / 1000);
+    const v = vanState.current;
+    const settle = () => paintRef.current((performance.now() - clock.current) / 1000);
+    if (v.seg === vanAt) return;
+    if (!animate) {
+      vanState.current = { seg: vanAt, t: vanAt === null ? 0 : 1, back: false };
+      settle();
       return;
     }
     let raf = 0;
-    const step = (now: number) => {
-      const u = Math.min(1, (now - started) / 700);
-      vanT.current = from + (progress - from) * (1 - (1 - u) * (1 - u));
-      if (u < 1) raf = requestAnimationFrame(step);
+    const leg = (seg: number | null, from: number, to: number, back: boolean, ms: number, done: () => void) => {
+      const started = performance.now();
+      const step = (now: number) => {
+        const u = Math.min(1, (now - started) / ms);
+        vanState.current = { seg, t: from + (to - from) * (u * (2 - u)), back };
+        if (u < 1) raf = requestAnimationFrame(step);
+        else done();
+      };
+      raf = requestAnimationFrame(step);
     };
-    raf = requestAnimationFrame(step); // the main loop below repaints every frame while animate is on
+    const out = () => (vanAt === null ? undefined : leg(vanAt, 0, 1, false, 900, () => undefined));
+    if (v.seg !== null && v.t > 0) leg(v.seg, v.t, 0, true, 700, () => {
+      vanState.current = { seg: vanAt, t: 0, back: false };
+      out();
+    });
+    else {
+      vanState.current = { seg: vanAt, t: 0, back: false };
+      out();
+    }
     return () => cancelAnimationFrame(raf);
-  }, [progress, layers, animate]);
+  }, [vanAt, layers, animate]);
 
   // The cars drive: about thirty frames a second, only while the screen shows the map and motion is welcome.
   useEffect(() => {
@@ -418,21 +427,28 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
     return () => cancelAnimationFrame(raf);
   }, [animate, layers]);
 
+  // Real plate widths: the text is measured in the loaded font, so the layout matches what the page draws.
+  const [fontTick, setFontTick] = useState(0);
+  useEffect(() => {
+    void document.fonts?.ready.then(() => setFontTick((t) => t + 1));
+  }, []);
   const plates = useMemo(() => {
+    const probe = document.createElement("canvas").getContext("2d");
+    const small = w < 600; // phone labels have 8 px of side padding (see screens.css)
+    if (probe) probe.font = '700 16px "Plus Jakarta Sans", system-ui, sans-serif';
+    const widthOf = (name: string): number | undefined => (probe ? Math.ceil(probe.measureText(name).width) + (small ? 16 : 24) : undefined);
     const topOf = (c: Cell, sprite: string): number => {
       const m = sprites?.meta[sprite];
       return project(c, tw, origin).y - (m ? (m.ay * tw) / RENDER_TILE_W : tw);
     };
     const raw = [
-      ...city.landmarks.map((l, i) => ({ key: `g${i}`, index: i as number | null, hq: false, name: selected === i ? `${i + 1}. ${names[i] ?? `Group ${i + 1}`}` : String(i + 1), x: project(l, tw, origin).x, top: topOf(l, l.sprite) })),
-      (() => {
-        const c = { gx: city.hq.gx - 1, gy: city.hq.gy - 1 };
-        return { key: "hq", index: null as number | null, hq: true, name: "Default alive", x: project(c, tw, origin).x, top: topOf(c, city.hqSprite) };
-      })(),
+      ...city.landmarks.map((l, i) => ({ key: `g${i}`, index: i as number | null, hq: false, name: names[i] ?? `Group ${i + 1}`, x: project(l, tw, origin).x, top: topOf(l, l.sprite), width: widthOf(names[i] ?? `Group ${i + 1}`) })),
+      // The company's label hangs just below the home plaza and points up at it, away from the crowd of group labels.
+      { key: "hq", index: null as number | null, hq: true, below: true, name: home || "Your company", x: project(city.hq, tw, origin).x, top: project(city.hq, tw, origin).y + tw / 8, width: widthOf(home || "Your company") },
     ];
     // a plate never rides up under the HUD
     return spreadPlates(raw, w, (h < 520 ? 72 : w >= 600 ? 150 : 154) + 6, h < 520);
-  }, [city, names, sprites, tw, origin, w, h, selected]);
+  }, [city, names, home, sprites, tw, origin, w, h, fontTick]);
   return (
     <div class="world" aria-hidden="false">
       <canvas ref={ref} class={`world__canvas${layers ? " world__canvas--ready" : ""}`} width={Math.round(w * dpr)} height={Math.round(h * dpr)} role="img" aria-label="Map of your route" style={{ width: `${w}px`, height: `${h}px` }} />
@@ -442,7 +458,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
           {plates.map((pl) => (
             <div
               key={pl.key}
-              class={`way${pl.hq ? " way--hq" : ""}${pl.index !== null && selected === pl.index ? " way--on" : ""}${pl.index !== null && focus === pl.index ? " way--focus" : ""}`}
+              class={`way${pl.hq ? " way--hq way--below" : ""}${pl.index !== null && selected === pl.index ? " way--on" : ""}${pl.index !== null && focus === pl.index ? " way--focus" : ""}`}
               style={{ left: `${pl.x}px`, top: `${pl.top}px`, zIndex: Math.round(pl.top), "--dx": `${pl.dx}px`, "--dy": `${pl.dy}px` }}
               onClick={pl.index !== null ? () => onSelect?.(pl.index as number) : undefined}
             >
