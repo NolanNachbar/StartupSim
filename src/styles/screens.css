@@ -49,7 +49,6 @@
 .way--hq .way__pin { border-top-color: var(--verified); }
 .way--on .way__name, .way--focus .way__name { background: var(--primary); color: var(--on-primary); }
 .way--on .way__pin, .way--focus .way__pin { border-top-color: var(--primary); }
-.van { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; transition: transform 700ms var(--ease-out); }
 
 .veil {
   position: fixed;

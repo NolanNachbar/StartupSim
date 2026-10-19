@@ -4,7 +4,7 @@
 // verified). A delivery van drives the route as weeks pass.
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { Hypothesis, HypothesisState } from "../../sim";
-import { drawSprite, loadSprites, RENDER_TILE_W, spriteUrl, styledImage, type Loaded } from "./city";
+import { drawSprite, loadSprites, RENDER_TILE_W, styledImage, type Loaded } from "./city";
 import { buildCity, buildRoute, CAR_SPRITES, gridFor, project, roadMask, roadSprite, ROAD_SPRITES, spreadPlates, unproject, vehicleCell, type Cell, type Pt, type Theme } from "./iso";
 
 
@@ -117,6 +117,17 @@ export function useLayout(w: number, h: number, seed: number, n: number, theme: 
 }
 
 /** A point partway along the route, in screen space, and the grid direction it is travelling. */
+/** A fractional grid cell a fraction of the way along the route, and the way the van faces there. */
+export function cellAlongRoute(cells: readonly Cell[], t: number): { cell: Cell; dir: "UL" | "UR" } {
+  const last = cells.length - 1;
+  const f = Math.min(Math.max(t, 0), 1) * last;
+  const i = Math.min(Math.floor(f), last - 1);
+  const a = cells[i] as Cell;
+  const b = cells[i + 1] as Cell;
+  const u = f - i;
+  return { cell: { gx: a.gx + (b.gx - a.gx) * u, gy: a.gy + (b.gy - a.gy) * u }, dir: b.gx !== a.gx ? "UL" : "UR" };
+}
+
 export function pointAlongRoute(cells: readonly Cell[], tw: number, origin: Pt, t: number): { p: Pt; dir: "UL" | "UR" } {
   const last = cells.length - 1;
   const f = Math.min(Math.max(t, 0), 1) * last;
@@ -266,6 +277,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
   // stands on the ground (so a building in front of a street hides the cars behind it).
   const baseRef = useRef<HTMLCanvasElement | null>(null);
   const paintRef = useRef<(seconds: number) => void>(() => undefined);
+  const vanT = useRef(progress);
   const clock = useRef(typeof performance === "undefined" ? 0 : performance.now());
   useEffect(() => {
     const canvas = ref.current;
@@ -319,12 +331,21 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
         const at = project(c, tw, origin);
         cars.push({ src: img, x: at.x * dpr - m.ax * scale, y: at.y * dpr - m.ay * scale, w: m.w * scale, h: m.h * scale, key: c.gx + c.gy, sub: c.gx });
       }
+      // The delivery van is painted here too, in the same order as everything else, so it goes behind the buildings in
+      // front of it like any car.
+      const along = cellAlongRoute(route.cells, vanT.current);
+      const vanSprite = along.dir === "UL" ? "car-van-270" : "car-van-180";
+      const vm = sprites.meta[vanSprite];
+      const vimg = sprites.img.get(vanSprite);
+      const vat = project(along.cell, tw, origin);
+      const van: Drawn | null = vm && vimg ? { src: vimg, x: vat.x * dpr - vm.ax * scale, y: vat.y * dpr - vm.ay * scale, w: vm.w * scale, h: vm.h * scale, key: along.cell.gx + along.cell.gy, sub: along.cell.gx } : null;
       // At most so many cars at once, the ones nearest the middle of the screen: the cost stays small and steady.
       if (cars.length > MAX_CARS) {
         const mx = canvas.width / 2;
         const my = canvas.height / 2;
         cars = cars.sort((p, q) => Math.hypot(p.x - mx, p.y - my) - Math.hypot(q.x - mx, q.y - my)).slice(0, MAX_CARS);
       }
+      if (van) cars.push(van);
       cars.sort((p, q) => p.key - q.key || p.sub - q.sub);
       // Each car repaints only its own patch of the picture: the background, then every sprite that touches the patch
       // (and any neighbouring car), back to front. A car drives between the buildings: one behind it is painted
@@ -354,6 +375,26 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
     };
     paintRef.current(animate ? (performance.now() - clock.current) / 1000 : 0);
   }, [layers, sprites, route, origin, tw, hypotheses, dpr, scale, city, size, w, h, animate]);
+
+  // The van eases to its new place along the route when a milestone is reached (at once under reduced motion).
+  useEffect(() => {
+    if (!layers) return;
+    const from = vanT.current;
+    const started = performance.now();
+    if (!animate || Math.abs(progress - from) < 0.0005) {
+      vanT.current = progress;
+      paintRef.current((performance.now() - clock.current) / 1000);
+      return;
+    }
+    let raf = 0;
+    const step = (now: number) => {
+      const u = Math.min(1, (now - started) / 700);
+      vanT.current = from + (progress - from) * (1 - (1 - u) * (1 - u));
+      if (u < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step); // the main loop below repaints every frame while animate is on
+    return () => cancelAnimationFrame(raf);
+  }, [progress, layers, animate]);
 
   // The cars drive: about thirty frames a second, only while the screen shows the map and motion is welcome.
   useEffect(() => {
@@ -392,9 +433,6 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
     // a plate never rides up under the HUD
     return spreadPlates(raw, w, (h < 520 ? 72 : w >= 600 ? 150 : 154) + 6, h < 520);
   }, [city, names, sprites, tw, origin, w, h, selected]);
-  const van = pointAlongRoute(route.cells, tw, origin, progress);
-  const vanName = van.dir === "UL" ? "car-van-270" : "car-van-180";
-  const vm = sprites?.meta[vanName];
   return (
     <div class="world" aria-hidden="false">
       <canvas ref={ref} class={`world__canvas${layers ? " world__canvas--ready" : ""}`} width={Math.round(w * dpr)} height={Math.round(h * dpr)} role="img" aria-label="Map of your route" style={{ width: `${w}px`, height: `${h}px` }} />
@@ -414,15 +452,6 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
             </div>
           ))}
         </div>
-      ) : null}
-      {vm && layers ? (
-        <img
-          class="van"
-          alt=""
-          aria-hidden="true"
-          src={spriteUrl(vanName)}
-          style={{ width: `${(vm.w * tw) / RENDER_TILE_W}px`, transform: `translate(${van.p.x - (vm.ax * tw) / RENDER_TILE_W}px, ${van.p.y - (vm.ay * tw) / RENDER_TILE_W}px)` }}
-        />
       ) : null}
     </div>
   );
