@@ -21,7 +21,7 @@ describe("cardText", () => {
   it("puts the headline, the cause and the seed on the card", () => {
     const t = cardText(base, 77);
     expect(t.headline).toBe("Cash lasted 20 weeks.");
-    expect(t.cause).toBe("Probable cause: M2. Money ran out before proof");
+    expect(t.cause).toBe("Probable cause: Money ran out before proof");
     expect(t.footer).toContain("Runway");
     expect(t.footer).toContain("77");
   });

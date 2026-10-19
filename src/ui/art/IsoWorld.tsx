@@ -4,9 +4,33 @@
 // verified). A delivery van drives the route as weeks pass.
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { Hypothesis, HypothesisState } from "../../sim";
-import { drawSprite, drawStyled, loadSprites, RENDER_TILE_W, spriteUrl, type Loaded } from "./city";
-import { buildCity, buildRoute, gridFor, project, roadMask, roadSprite, ROAD_SPRITES, spreadPlates, unproject, type Cell, type Pt, type Theme } from "./iso";
+import { drawSprite, loadSprites, RENDER_TILE_W, spriteUrl, styledImage, type Loaded } from "./city";
+import { buildCity, buildRoute, CAR_SPRITES, gridFor, project, roadMask, roadSprite, ROAD_SPRITES, spreadPlates, unproject, vehicleCell, type Cell, type Pt, type Theme } from "./iso";
 
+
+/** One sprite, ready to paint: its (tinted) image, where it goes, and its place in the back-to-front order. */
+interface Drawn {
+  readonly src: CanvasImageSource;
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+  readonly key: number;
+  readonly sub: number;
+}
+
+/** The grid cells (64 px) a rectangle touches: sprites are indexed by them, so a car finds what is under it quickly. */
+const CELL = 64;
+const MAX_CARS = 60;
+function cellsOf(r: { x: number; y: number; w: number; h: number }): number[] {
+  const out: number[] = [];
+  const cx0 = Math.floor(r.x / CELL);
+  const cx1 = Math.floor((r.x + r.w) / CELL);
+  const cy0 = Math.floor(r.y / CELL);
+  const cy1 = Math.floor((r.y + r.h) / CELL);
+  for (let cx = cx0; cx <= cx1; cx++) for (let cy = cy0; cy <= cy1; cy++) out.push(cx * 100000 + cy);
+  return out;
+}
 
 interface Props {
   readonly hypotheses: readonly Hypothesis[];
@@ -20,6 +44,8 @@ interface Props {
   readonly w: number;
   readonly h: number;
   readonly labels: boolean;
+  /** Let the cars drive (off for reduced motion, and while a menu covers the map). */
+  readonly animate?: boolean;
   readonly onSelect?: (i: number) => void;
 }
 
@@ -57,7 +83,7 @@ export function visibleCells(w: number, h: number, tw: number, origin: Pt): { gx
   };
 }
 
-export function useLayout(w: number, h: number, seed: number, n: number, theme: Theme) {
+export function useLayout(w: number, h: number, seed: number, n: number, theme: Theme, panelTop: number | null = null) {
   return useMemo(() => {
     const size = gridFor(w, h, h < 520 ? 22 : tileWidth(w)); // the smallest tile that can be chosen below
     const route = buildRoute(n, seed, size);
@@ -66,7 +92,9 @@ export function useLayout(w: number, h: number, seed: number, n: number, theme: 
     const wide = w >= 600;
     const compact = h < 520; // a landscape phone: a slim HUD and a slim plate
     const bandTop = compact ? 76 : wide ? 136 : 160;
-    const bandBottom = compact ? h - 112 : wide ? h * 0.72 : h * 0.54;
+    // the bottom of the map is the real top of the route panel when it is known, so nothing is drawn under it
+    const fallbackBottom = compact ? h - 112 : wide ? h * 0.72 : h * 0.54;
+    const bandBottom = panelTop === null ? fallbackBottom : Math.max(bandTop + 120, panelTop - 6);
     const headroom = compact ? 140 : 150;
     const base = tileWidth(w);
     const span = (tw: number) => {
@@ -84,8 +112,8 @@ export function useLayout(w: number, h: number, seed: number, n: number, theme: 
     const p0 = project(mid, tw, { x: 0, y: 0 });
     const target: Pt = { x: wide ? (w - 336) * 0.46 : w / 2, y: 0 };
     const origin: Pt = { x: target.x - p0.x, y: top - routeTop };
-    return { tw, route, city, origin };
-  }, [w, h, seed, n, theme]);
+    return { tw, route, city, origin, size };
+  }, [w, h, seed, n, theme, panelTop]);
 }
 
 /** A point partway along the route, in screen space, and the grid direction it is travelling. */
@@ -100,9 +128,40 @@ export function pointAlongRoute(cells: readonly Cell[], tw: number, origin: Pt, 
   return { p: { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u }, dir: stepGx !== 0 ? "UL" : "UR" };
 }
 
-export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, selected, w, h, labels, onSelect }: Props) {
+export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, selected, w, h, labels, animate = false, onSelect }: Props) {
   const n = Math.max(hypotheses.length, 1);
-  const { tw, route, city, origin } = useLayout(w, h, seed, n, theme);
+  // Where the route panel really starts, measured from the page: it changes with long names, a first-run note, text size.
+  const [panelTop, setPanelTop] = useState<number | null>(null);
+  useEffect(() => {
+    const shell = document.querySelector(".shell");
+    if (!shell) return;
+    const measure = () => {
+      const el = document.querySelector<HTMLElement>(".plate");
+      const top = el ? Math.round(el.getBoundingClientRect().top / 4) * 4 : null;
+      setPanelTop((p) => (p === top ? p : top));
+    };
+    let watched: Element | null = null;
+    const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    const attach = () => {
+      const el = document.querySelector(".plate");
+      if (el !== watched) {
+        if (watched) resize?.unobserve(watched);
+        if (el) resize?.observe(el);
+        watched = el;
+      }
+      measure();
+    };
+    const mutations = new MutationObserver(attach);
+    mutations.observe(shell, { childList: true, subtree: true });
+    window.addEventListener("resize", measure);
+    attach();
+    return () => {
+      mutations.disconnect();
+      resize?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+  const { tw, route, city, origin, size } = useLayout(w, h, seed, n, theme, panelTop);
   const ref = useRef<HTMLCanvasElement>(null);
   const [sprites, setSprites] = useState<Loaded | null>(null);
   const dpr = typeof devicePixelRatio === "number" ? Math.min(devicePixelRatio, 2) : 1;
@@ -111,7 +170,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
   const needed = useMemo(() => {
     const { gx0, gx1, gy0, gy1 } = visibleCells(w, h, tw, origin);
     const seen = (p: { gx: number; gy: number }) => p.gx >= gx0 && p.gx <= gx1 && p.gy >= gy0 && p.gy <= gy1;
-    const names = new Set<string>(["car-van-180", "car-van-270", "road-roundabout", "road-square", city.hqSprite, ...ROAD_SPRITES]);
+    const names = new Set<string>(["car-van-180", "car-van-270", "road-roundabout", "road-square", city.hqSprite, ...ROAD_SPRITES, ...CAR_SPRITES]);
     for (const p of city.props) if (seen(p)) names.add(p.sprite);
     for (const p of city.cars) if (seen(p)) names.add(p.sprite);
     for (const l of city.landmarks) {
@@ -133,7 +192,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
 
   // The city itself never changes during a run, so it is painted once into two layers (ground, and everything
   // that stands on it); only the evidence lines on the road are redrawn when the hypotheses change.
-  const [layers, setLayers] = useState<{ ground: HTMLCanvasElement; stand: HTMLCanvasElement } | null>(null);
+  const [layers, setLayers] = useState<{ ground: HTMLCanvasElement; stand: HTMLCanvasElement; items: Drawn[]; grid: Map<number, number[]> } | null>(null);
   useEffect(() => {
     if (!sprites) return;
     const cw = Math.round(w * dpr);
@@ -145,9 +204,9 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
       return [c, c.getContext("2d")];
     };
     const [ground, g] = make();
-    const [stand, ctx] = make();
-    if (!g || !ctx) return;
-    for (const x of [g, ctx]) {
+    const [stand, st] = make();
+    if (!g || !st) return;
+    for (const x of [g, st]) {
       x.imageSmoothingEnabled = true;
       x.imageSmoothingQuality = "high";
     }
@@ -187,62 +246,136 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
       { gx: city.hq.gx - 1, gy: city.hq.gy - 1, sprite: city.hqSprite },
     ];
     items.sort((a, b) => a.gx + a.gy - (b.gx + b.gy) || a.gx - b.gx);
+    const drawn: Drawn[] = [];
+    const grid = new Map<number, number[]>();
     for (const p of items) {
       if (p.gx < gx0 || p.gx > gx1 || p.gy < gy0 || p.gy > gy1) continue;
       const c = toCanvas(project(p, tw, origin));
       const m = sprites.meta[p.sprite];
       const img = sprites.img.get(p.sprite);
-      if (m && img) drawStyled(ctx, img, c.x - m.ax * scale, c.y - m.ay * scale, m.w * scale, m.h * scale, p.tint ?? 0);
+      if (!m || !img) continue;
+      const d: Drawn = { src: styledImage(img, p.tint ?? 0), x: c.x - m.ax * scale, y: c.y - m.ay * scale, w: m.w * scale, h: m.h * scale, key: p.gx + p.gy, sub: p.gx };
+      st.drawImage(d.src, d.x, d.y, d.w, d.h);
+      const index = drawn.push(d) - 1;
+      for (const cell of cellsOf(d)) (grid.get(cell) ?? grid.set(cell, []).get(cell))?.push(index);
     }
-    setLayers({ ground, stand });
+    setLayers({ ground, stand, items: drawn, grid });
   }, [sprites, city, route, origin, tw, dpr, scale, w, h]);
 
+  // What is painted each frame: the base (ground and the evidence lines), the cars driving, then everything that
+  // stands on the ground (so a building in front of a street hides the cars behind it).
+  const baseRef = useRef<HTMLCanvasElement | null>(null);
+  const paintRef = useRef<(seconds: number) => void>(() => undefined);
+  const clock = useRef(typeof performance === "undefined" ? 0 : performance.now());
   useEffect(() => {
     const canvas = ref.current;
-    if (!canvas || !layers) return;
+    if (!canvas || !layers || !sprites) return;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(layers.ground, 0, 0);
-    // Evidence lines painted on the road, leg by leg.
+    const base = document.createElement("canvas");
+    base.width = canvas.width;
+    base.height = canvas.height;
+    const b = base.getContext("2d");
+    if (!ctx || !b) return;
+    b.drawImage(layers.ground, 0, 0);
+    // Evidence lines painted on the road, leg by leg, each with a dark casing so it reads on grey roads.
     const pts = route.cells.map((c) => ({ x: project(c, tw, origin).x * dpr, y: project(c, tw, origin).y * dpr }));
     const cuts = [0, ...route.waypoints.map((wp) => wp.at), route.cells.length - 1];
     for (let leg = 0; leg < cuts.length - 1; leg++) {
       const state: HypothesisState = leg < route.waypoints.length ? (hypotheses[leg]?.state ?? "untested") : "untested";
       const style = LINE[state];
-      // A dark casing under the line, so it reads on grey roads and against buildings.
-      ctx.save();
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.strokeStyle = "rgba(38, 42, 68, 0.55)";
-      ctx.lineWidth = (style.width + 4) * (dpr / 2) * (tw / 64);
-      ctx.setLineDash(style.dash.map((d) => d * (dpr / 2) * (tw / 64)));
-      ctx.beginPath();
-      for (let i = cuts[leg] as number; i <= (cuts[leg + 1] as number); i++) {
-        const p = pts[i] as Pt;
-        if (i === cuts[leg]) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
-      }
-      ctx.stroke();
-      ctx.restore();
-      ctx.save();
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.strokeStyle = style.color;
-      ctx.lineWidth = style.width * (dpr / 2) * (tw / 64);
-      ctx.setLineDash(style.dash.map((d) => d * (dpr / 2) * (tw / 64)));
-      ctx.globalAlpha = state === "untested" ? 0.9 : 1;
-      ctx.beginPath();
-      for (let i = cuts[leg] as number; i <= (cuts[leg + 1] as number); i++) {
-        const p = pts[i] as Pt;
-        if (i === cuts[leg]) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
-      }
-      ctx.stroke();
-      ctx.restore();
+      const stroke = (color: string, width: number, alpha: number) => {
+        b.save();
+        b.lineCap = "round";
+        b.lineJoin = "round";
+        b.strokeStyle = color;
+        b.lineWidth = width * (dpr / 2) * (tw / 64);
+        b.setLineDash(style.dash.map((d) => d * (dpr / 2) * (tw / 64)));
+        b.globalAlpha = alpha;
+        b.beginPath();
+        for (let i = cuts[leg] as number; i <= (cuts[leg + 1] as number); i++) {
+          const p = pts[i] as Pt;
+          if (i === cuts[leg]) b.moveTo(p.x, p.y);
+          else b.lineTo(p.x, p.y);
+        }
+        b.stroke();
+        b.restore();
+      };
+      stroke("rgba(38, 42, 68, 0.55)", style.width + 4, 1);
+      stroke(style.color, style.width, state === "untested" ? 0.9 : 1);
     }
-    ctx.drawImage(layers.stand, 0, 0);
-  }, [layers, route, origin, tw, hypotheses, dpr]);
+    baseRef.current = base;
+    const { gx0, gx1, gy0, gy1 } = visibleCells(w, h, tw, origin);
+    paintRef.current = (seconds: number) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(base, 0, 0);
+      ctx.drawImage(layers.stand, 0, 0);
+      let cars: Drawn[] = [];
+      for (const v of city.traffic) {
+        const c = vehicleCell(v, seconds, size);
+        if (c.gx < gx0 || c.gx > gx1 || c.gy < gy0 || c.gy > gy1) continue;
+        const m = sprites.meta[v.sprite];
+        const img = sprites.img.get(v.sprite);
+        if (!m || !img) continue;
+        const at = project(c, tw, origin);
+        cars.push({ src: img, x: at.x * dpr - m.ax * scale, y: at.y * dpr - m.ay * scale, w: m.w * scale, h: m.h * scale, key: c.gx + c.gy, sub: c.gx });
+      }
+      // At most so many cars at once, the ones nearest the middle of the screen: the cost stays small and steady.
+      if (cars.length > MAX_CARS) {
+        const mx = canvas.width / 2;
+        const my = canvas.height / 2;
+        cars = cars.sort((p, q) => Math.hypot(p.x - mx, p.y - my) - Math.hypot(q.x - mx, q.y - my)).slice(0, MAX_CARS);
+      }
+      cars.sort((p, q) => p.key - q.key || p.sub - q.sub);
+      // Each car repaints only its own patch of the picture: the background, then every sprite that touches the patch
+      // (and any neighbouring car), back to front. A car drives between the buildings: one behind it is painted
+      // before it, one in front after it, so it passes behind whatever stands in front of the road.
+      for (const car of cars) {
+        const x0 = Math.floor(car.x) - 1;
+        const y0 = Math.floor(car.y) - 1;
+        const x1 = Math.ceil(car.x + car.w) + 1;
+        const y1 = Math.ceil(car.y + car.h) + 1;
+        const touching = new Set<number>();
+        for (const cell of cellsOf({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 })) for (const i of layers.grid.get(cell) ?? []) touching.add(i);
+        const parts: Drawn[] = [];
+        for (const i of touching) {
+          const d = layers.items[i] as Drawn;
+          if (d.x < x1 && d.x + d.w > x0 && d.y < y1 && d.y + d.h > y0) parts.push(d);
+        }
+        for (const other of cars) if (other.x < x1 && other.x + other.w > x0 && other.y < y1 && other.y + other.h > y0) parts.push(other);
+        parts.sort((p, q) => p.key - q.key || p.sub - q.sub);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x0, y0, x1 - x0, y1 - y0);
+        ctx.clip();
+        ctx.drawImage(base, 0, 0);
+        for (const d of parts) ctx.drawImage(d.src, d.x, d.y, d.w, d.h);
+        ctx.restore();
+      }
+    };
+    paintRef.current(animate ? (performance.now() - clock.current) / 1000 : 0);
+  }, [layers, sprites, route, origin, tw, hypotheses, dpr, scale, city, size, w, h, animate]);
+
+  // The cars drive: about thirty frames a second, only while the screen shows the map and motion is welcome.
+  useEffect(() => {
+    if (!animate || !layers) return;
+    let raf = 0;
+    let last = 0;
+    let slow = 0;
+    const loop = (now: number) => {
+      if (now - last < 33) {
+        raf = requestAnimationFrame(loop);
+        return;
+      }
+      last = now;
+      const began = performance.now();
+      paintRef.current((now - clock.current) / 1000);
+      // A device that cannot paint the city in time leaves the cars parked rather than stuttering the whole page.
+      slow = performance.now() - began > 24 ? slow + 1 : Math.max(0, slow - 1);
+      if (slow < 30) raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [animate, layers]);
 
   const plates = useMemo(() => {
     const topOf = (c: Cell, sprite: string): number => {
@@ -257,7 +390,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
       })(),
     ];
     // a plate never rides up under the HUD
-    return spreadPlates(raw, w, (h < 520 ? 72 : w >= 600 ? 150 : 154) + 6);
+    return spreadPlates(raw, w, (h < 520 ? 72 : w >= 600 ? 150 : 154) + 6, h < 520);
   }, [city, names, sprites, tw, origin, w, h, selected]);
   const van = pointAlongRoute(route.cells, tw, origin, progress);
   const vanName = van.dir === "UL" ? "car-van-270" : "car-van-180";

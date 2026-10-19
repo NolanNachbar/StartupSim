@@ -27,7 +27,7 @@ export function cardText(report: Report, seed: number, company = ""): CardText {
     report.outcome === "landed"
       ? "Default alive"
       : report.probableCause
-        ? `Probable cause: ${report.probableCause.id}. ${report.probableCause.title}`
+        ? `Probable cause: ${report.probableCause.title}`
         : "No single dominant cause";
   return { headline: report.headline, cause, footer: `${company ? `${company} on ` : ""}Runway, run ${seed}. Run a startup. Learn why most fail.` };
 }

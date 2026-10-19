@@ -87,7 +87,7 @@ components:
 **Key characteristics:**
 - The first five seconds: a bright isometric campus, a delivery van on a road climbing into the city, white panels and one blue button.
 - Pivots remaining is the biggest number, repeated as a row of little vans, one per pivot.
-- The city is laid out by code from the world's seed and the industry. Four settings (rural, suburban, urban, downtown) follow the industry: local services is rural, consumer apps urban, business software and fintech downtown, health and creators suburban. Districts grow from a core of towers down to low streets, with compound buildings (courtyards, podiums with towers, L-wings, solar-roofed halls, factory yards, stepped terraces) assembled from the kit pieces in Blender, big and small lots, paved lots with parked cars, tree-lined streets, roundabouts and traffic. Each customer group is a numbered landmark beside the road.
+- The city is laid out by code from the world's seed and the industry. Four settings (rural, suburban, urban, downtown) follow the industry: local services is rural, consumer apps urban, business software and fintech downtown, health and creators suburban. Districts grow from a core of towers down to low streets, with compound buildings (courtyards, podiums with towers, L-wings, solar-roofed halls, factory yards, stepped terraces) assembled from the kit pieces in Blender, big and small lots, paved lots with parked cars, tree-lined streets, roundabouts, and traffic that drives (cars glide along the cross streets in two lanes, never on a street the route uses; they pass behind buildings that stand in front of them; they stand still under reduced motion and while a menu covers the map). Each customer group is a numbered landmark beside the road.
 - Depth is a soft offset shadow, the way the diorama is lit. No zero-offset glows, no gradients.
 - Honest limit: Kenney's kits are widely used. Distinctiveness comes from the composition, the lighting and the report.
 
@@ -97,7 +97,7 @@ components:
 
 **Light or dark:** Light. It is a sunny afternoon diorama played on a phone in ordinary light. There is no night theme.
 
-Blue is the one primary action per screen. Green means verified (the solid route line). The accident orange-red belongs to the accident report and crash warnings only. Never rely on color alone: pair it with a line style, an icon or a label.
+Blue is the one primary action per screen. Green means verified (the solid route line). The accident orange-red belongs to the accident report and crash warnings only; the one other red is the error ink (#b3261e), used for the destructive Start over button and form errors. Never rely on color alone: pair it with a line style, an icon or a label.
 
 ## Typography
 

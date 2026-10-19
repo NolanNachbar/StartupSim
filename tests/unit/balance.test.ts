@@ -30,7 +30,7 @@ describe("balance bots", () => {
   });
 
   // Every market must be winnable by good play and ruinous for bad play, or the choice at setup means nothing.
-  it.runIf(FULL)("prints a table per industry and keeps every market in the winnable band", () => {
+  it("prints a table per industry and keeps every market in the winnable band", () => {
     const lines: string[] = [];
     INDUSTRY_LIST.forEach((ind, i) => {
       const validator = tally("validator", SEEDS_200, i);

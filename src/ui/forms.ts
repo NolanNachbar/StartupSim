@@ -91,7 +91,7 @@ export const FORMS: readonly FormDef[] = [
     id: "build",
     title: "Build a test",
     blurb: "Make something customers can react to.",
-    intro: () => "Build something small enough to put in front of people. A landing page is the cheapest way to find out if anyone wants it.",
+    intro: () => "Build something small enough to put in front of people. A landing page costs the least and takes the least time.",
     fields: () => [
       {
         id: "kind",

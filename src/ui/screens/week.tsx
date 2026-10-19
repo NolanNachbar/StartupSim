@@ -4,6 +4,15 @@ import { Panel } from "../panel";
 import { INDUSTRY_LIST } from "../../sim";
 import { act, company, go, sheetOpen, state } from "../store";
 
+let lastWait = 0;
+/** One week per press: the second click of a double click, within a quarter second, is the other half of one tap, not a new decision. */
+function waitOnce(e: MouseEvent): void {
+  const now = Date.now();
+  if (e.detail > 1 && now - lastWait < 250) return;
+  lastWait = now;
+  act({ type: "wait" });
+}
+
 export function Week() {
   const s = state.value;
   if (!s) return null;
@@ -30,7 +39,7 @@ export function Week() {
       <footer class="actions">
         <button type="button" class="button button--primary" onClick={() => go({ name: "actions" })}>Choose an action</button>
         <div class="actions__row">
-          <button type="button" class="button" onClick={(e) => { if (e.detail > 1) return; /* the second click of a double tap */ act({ type: "wait" }); }}>Wait a week</button>
+          <button type="button" class="button" onClick={waitOnce}>Wait a week</button>
           <button type="button" class="button button--phone" aria-expanded={sheetOpen.value} onClick={() => (sheetOpen.value = !sheetOpen.value)}>Details</button>
         </div>
       </footer>

@@ -47,7 +47,7 @@ export function ReportScreen() {
           {r.probableCause ? (
             <section class="report__section" style={{ "--i": 2 }}>
               <h2>Probable cause</h2>
-              <p class="report__cause">{`${r.probableCause.id}. ${r.probableCause.title}`}</p>
+              <p class="report__cause">{r.probableCause.title}</p>
               <ul>{r.probableCause.evidence.map((e, i) => (<li key={i}>{e}</li>))}</ul>
               <p>{r.probableCause.lesson}</p>
             </section>
@@ -61,7 +61,7 @@ export function ReportScreen() {
             <section class="report__section" style={{ "--i": 3 }}>
               <h2>Contributing factors</h2>
               <ul>
-                {r.contributing.map((c) => (<li key={c.id}>{`${c.id}. ${c.title}: ${c.evidence[0] ?? ""}`}</li>))}
+                {r.contributing.map((c) => (<li key={c.id}>{`${c.title}: ${c.evidence[0] ?? ""}`}</li>))}
               </ul>
             </section>
           ) : null}

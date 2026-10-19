@@ -119,7 +119,7 @@ test("starting a new company warns that it replaces the saved run", async ({ pag
   await expect(page.getByRole("status").filter({ hasText: "replaces your saved run" })).toContainText("Pretzel Robotics");
 });
 
-test("the browser Back button steps back through the game and never drops you out of a run", async ({ page }) => {
+test("the browser Back button steps back through the game, and from a run it leaves the run safe on the front door", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
@@ -127,7 +127,10 @@ test("the browser Back button steps back through the game and never drops you ou
   await expect(page.getByRole("heading", { name: "Choose an action" })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
-  await page.goBack(); // on the route screen Back stays in the run
+  // From the route screen Back returns to the front door, where the run waits under Continue run.
+  await page.goBack();
+  await expect(page.getByRole("button", { name: "Continue run" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue run" }).click();
   await expect(page.getByRole("heading", { name: "Your route" })).toBeVisible();
   expect(new URL(page.url()).pathname).toBe("/");
 });

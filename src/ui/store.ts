@@ -324,11 +324,29 @@ export function watchSystemBack(): void {
         return;
       }
       history.pushState({ runway: true }, "");
-      back();
+      systemBack();
     });
   } catch {
     // history is unavailable (a sandboxed frame): the on-screen Back buttons still work
   }
+}
+
+/**
+ * Back from the browser. It steps back through the screens like the on-screen Back, and from the route screen it
+ * returns to the front door, where the run is waiting under Continue run (a run is saved after every action).
+ */
+export function systemBack(): void {
+  const s = screen.value;
+  if (s.name === "week" && run.value && state.value?.status === "running") {
+    savedRun.value = run.value;
+    go({ name: "board" });
+    return;
+  }
+  if (s.name === "report" || s.name === "week") {
+    go({ name: "board" });
+    return;
+  }
+  back();
 }
 
 export function openMenu(): void {

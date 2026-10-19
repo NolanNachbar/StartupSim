@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import manifest from "../../../public/art/city/manifest.json";
-import { buildCity, buildRoute, DIR, project, roadMask, roadSprite, gridFor, spreadPlates, themeFor, unproject, type Cell, type Theme } from "./iso";
+import { buildCity, buildRoute, DIR, project, roadMask, roadSprite, gridFor, spreadPlates, themeFor, unproject, vehicleCell, CAR_SPRITES, type Cell, type Theme } from "./iso";
 
 const key = (c: Cell) => `${c.gx},${c.gy}`;
 
@@ -425,5 +425,91 @@ describe("the skyline rises away from the route", () => {
       expect(farTall / farAll, `${theme}: far`).toBeGreaterThan(nearTall / nearAll);
       expect(nearTall / nearAll, `${theme}: nothing tall hugs the route`).toBeLessThan(0.05);
     }
+  });
+});
+
+describe("traffic", () => {
+  const size = 108;
+  for (const theme of ["rural", "suburban", "urban", "downtown"] as const) {
+    describe(theme, () => {
+      const route = buildRoute(4, 9, size);
+      const city = buildCity(9, route, size, theme);
+      const routeLines = new Set<string>();
+      for (let i = 1; i < route.cells.length; i++) {
+        const a = route.cells[i - 1]!;
+        const b = route.cells[i]!;
+        routeLines.add(a.gx !== b.gx ? `x:${b.gy}` : `y:${b.gx}`);
+      }
+      for (const end of [route.cells[0]!, route.cells[route.cells.length - 1]!]) routeLines.add(`x:${end.gy}`).add(`y:${end.gx}`);
+
+      it("is deterministic and only uses car sprites that exist", () => {
+        expect(buildCity(9, route, size, theme).traffic).toEqual(city.traffic);
+        for (const v of city.traffic) expect(CAR_SPRITES).toContain(v.sprite);
+      });
+
+      it("drives along real streets, never along a street the route uses", () => {
+        expect(city.traffic.length).toBeGreaterThan(theme === "rural" ? 10 : 100);
+        for (const v of city.traffic) {
+          expect((v.line - 3) % 6).toBe(0);
+          expect(routeLines.has(`${v.axis}:${v.line}`)).toBe(false);
+        }
+      });
+
+      it("heads along its street, and the two lanes go opposite ways", () => {
+        const headings: Record<string, string> = { "x:-1": "270", "x:1": "90", "y:-1": "180", "y:1": "0" };
+        for (const v of city.traffic) expect(v.sprite.endsWith(`-${headings[`${v.axis}:${v.dir}`]}`)).toBe(true);
+        const speeds = new Map<string, Set<number>>();
+        for (const v of city.traffic) {
+          const k = `${v.axis}:${v.line}:${v.dir}`;
+          speeds.set(k, (speeds.get(k) ?? new Set()).add(v.speed));
+        }
+        for (const set of speeds.values()) expect(set.size).toBe(1); // one speed per lane: no overtaking
+      });
+
+      it("keeps cars apart in a lane, and keeps them on their street, at any time", () => {
+        for (const t of [0, 13.7, 600, 123456]) {
+          const lanes = new Map<string, number[]>();
+          for (const v of city.traffic) {
+            const c = vehicleCell(v, t, size);
+            const along = v.axis === "x" ? c.gx : c.gy;
+            expect(along).toBeGreaterThanOrEqual(3);
+            expect(along).toBeLessThan(size - 3);
+            expect(Math.abs((v.axis === "x" ? c.gy : c.gx) - v.line)).toBeLessThan(0.2);
+            const k = `${v.axis}:${v.line}:${v.dir}`;
+            lanes.set(k, [...(lanes.get(k) ?? []), along]);
+          }
+          for (const list of lanes.values()) {
+            list.sort((a, b) => a - b);
+            for (let i = 1; i < list.length; i++) expect(list[i]! - list[i - 1]!).toBeGreaterThan(1.5);
+            if (list.length > 1) expect(size - 7 - (list[list.length - 1]! - list[0]!)).toBeGreaterThan(1.5); // across the wrap
+          }
+        }
+      });
+    });
+  }
+});
+
+describe("buildings never hide the route", () => {
+  it("leaves no stretch of the route covered by a building, using each sprite's real height", () => {
+    const meta = manifest as unknown as Record<string, { ay: number }>;
+    const building = /^(com|sky|ind|low|cx|cs|sub)-/;
+    let buildings = 0;
+    const hiding: string[] = [];
+    for (const theme of ["rural", "suburban", "urban", "downtown"] as const) {
+      for (const seed of [3, 7, 11, 19, 23, 31]) {
+        const route = buildRoute(4, seed, 108);
+        const city = buildCity(seed, route, 108, theme);
+        const special = new Set(city.landmarks.map((l) => `${l.gx},${l.gy}`));
+        for (const p of city.props) {
+          if (!building.test(p.sprite) || special.has(`${p.gx},${p.gy}`) || /^sub-tree|^sub-planter/.test(p.sprite)) continue;
+          buildings += 1;
+          const reach = (meta[p.sprite]?.ay ?? 0) / 24; // a sprite covers this many (gx + gy) steps up the screen
+          const hides = route.cells.some((c) => Math.abs(c.gx - c.gy - (p.gx - p.gy)) <= 1.6 && p.gx + p.gy - (c.gx + c.gy) > 0 && p.gx + p.gy - (c.gx + c.gy) <= reach);
+          if (hides) hiding.push(`${theme} seed ${seed}: ${p.sprite} at ${p.gx},${p.gy}`);
+        }
+      }
+    }
+    expect(buildings).toBeGreaterThan(1000);
+    expect(hiding.length / buildings, hiding.slice(0, 5).join("; ")).toBeLessThan(0.004);
   });
 });

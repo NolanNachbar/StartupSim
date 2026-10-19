@@ -49,7 +49,7 @@ export interface Loaded {
 }
 
 export async function loadSprites(names: Iterable<string>): Promise<Loaded> {
-  const meta = await loadManifest();
+  const meta = await loadManifest().catch((): Record<string, SpriteMeta> => ({}));
   const list = [...new Set(names)].filter((n) => n in meta);
   // One sprite that fails to download must not blank the whole map: draw without it.
   const settled = await Promise.allSettled(list.map(async (n) => [n, await loadSprite(n)] as const));
@@ -72,25 +72,34 @@ export function drawSprite(ctx: CanvasRenderingContext2D, l: Loaded, name: strin
  */
 export const TINTS: readonly string[] = ["", "#ecd9b8", "#d9d2c3", "#e4c9a8", "#c9d3dc", "#f0e6d0", "#d8bfa6", "#bfc7c9", "#e8e2d6", "#cdb99a", "#5f8f4e", "#52814a", "#6a9855", "#477a45"];
 
-let scratch: HTMLCanvasElement | null = null;
-/** Draw a sprite with an optional tint. The colour goes on a scratch copy, so nothing is cached. */
-export function drawStyled(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number, tint: number): void {
-  if (!tint) return void ctx.drawImage(img, x, y, w, h);
-  scratch ??= document.createElement("canvas");
-  if (scratch.width < img.width) scratch.width = img.width;
-  if (scratch.height < img.height) scratch.height = img.height;
-  const s = scratch.getContext("2d");
-  if (!s) return void ctx.drawImage(img, x, y, w, h);
-  s.globalCompositeOperation = "source-over";
-  s.clearRect(0, 0, scratch.width, scratch.height);
-  s.drawImage(img, 0, 0);
-  if (tint) {
+const styled = new WeakMap<HTMLImageElement, Map<number, HTMLCanvasElement>>();
+/** The sprite with a tint multiplied in (index 0 is the sprite as rendered). Each tinted copy is made once and kept. */
+export function styledImage(img: HTMLImageElement, tint: number): CanvasImageSource {
+  if (!tint) return img;
+  let per = styled.get(img);
+  if (!per) {
+    per = new Map();
+    styled.set(img, per);
+  }
+  let copy = per.get(tint);
+  if (!copy) {
+    copy = document.createElement("canvas");
+    copy.width = img.width;
+    copy.height = img.height;
+    const s = copy.getContext("2d");
+    if (!s) return img;
+    s.drawImage(img, 0, 0);
     s.globalCompositeOperation = "multiply";
     s.fillStyle = TINTS[tint] ?? "#ffffff";
-    s.fillRect(0, 0, img.width, img.height);
+    s.fillRect(0, 0, copy.width, copy.height);
     s.globalCompositeOperation = "destination-in"; // multiply fills the transparent pixels too: keep only the sprite's own shape
     s.drawImage(img, 0, 0);
+    per.set(tint, copy);
   }
-  ctx.drawImage(scratch, 0, 0, img.width, img.height, x, y, w, h);
+  return copy;
 }
 
+/** Draw a sprite with an optional tint. */
+export function drawStyled(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number, tint: number): void {
+  ctx.drawImage(styledImage(img, tint), x, y, w, h);
+}

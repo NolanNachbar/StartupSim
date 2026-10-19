@@ -100,13 +100,41 @@ export interface Landmark extends Cell {
   /** A standing sign with an abstract mark, next to the building. */
   readonly sign: Prop;
 }
+/** A car that drives along a straight street, in one of two lanes, forever (it wraps at the edge of the city). */
+export interface Vehicle {
+  /** The sprite, with its heading: the same model faces along its street. */
+  readonly sprite: string;
+  /** "x": the street runs along gx (up-left and down-right on screen); "y": along gy. */
+  readonly axis: "x" | "y";
+  /** The street's fixed coordinate: gy for axis x, gx for axis y. */
+  readonly line: number;
+  /** Where along the street it is at time zero, in cells. */
+  readonly start: number;
+  readonly dir: 1 | -1;
+  /** Cells per second. Every car in a lane has the same speed, so cars in a lane never overtake. */
+  readonly speed: number;
+}
+
+/** Where a vehicle is, in cells, after `seconds`. The lane offset keeps opposite directions apart. */
+export function vehicleCell(v: Vehicle, seconds: number, size: number): Cell {
+  const length = size - 7;
+  const along = STREET_OFFSET + ((((v.start - STREET_OFFSET + v.dir * v.speed * seconds) % length) + length) % length);
+  const lane = v.dir * 0.17;
+  return v.axis === "x" ? { gx: along, gy: v.line + lane } : { gx: v.line + lane, gy: along };
+}
+
+/** Every car sprite the traffic can use, so a screen can fetch them all up front (they are small). */
+export const CAR_SPRITES: readonly string[] = ["sedan", "suv", "taxi", "police", "truck-flat"].flatMap((m) => ["0", "90", "180", "270"].map((r) => `car-${m}-${r}`));
+
 export interface City {
   readonly theme: Theme;
   /** Street cells: key "gx,gy" to the route index (or -1 for a cross street). */
   readonly roads: ReadonlyMap<string, number>;
   readonly props: readonly Prop[];
-  /** Traffic on the cross streets (never on the route), and cars parked on the paved lots. */
+  /** Cars parked on the paved lots. */
   readonly cars: readonly Prop[];
+  /** Cars driving along the cross streets (never on a street the route uses). */
+  readonly traffic: readonly Vehicle[];
   /** Paved lots (parking, plazas) drawn flat on the ground. */
   readonly pads: readonly Cell[];
   /** Intersections built as roundabouts. */
@@ -136,8 +164,8 @@ const twoViews = (base: string): boolean => /-z\d+$|^c[xs]-|^low-/.test(base);
 const SIGNS = ["sign-ring", "sign-rise", "sign-hex", "sign-tri", "sign-cubes"];
 const letters = (set: string, make: (l: string) => string): string[] => set.split("").map(make);
 const FACTORY = [...letters("abcefhij", (l) => `ind-${l}`), ...letters("klmnopqrst", (l) => `ind-${l}`)];
-// Houses come in the kit's mint roof and in terracotta and slate (recoloured in Blender), mostly the latter two.
-const HOUSES = letters("abcdefghijklmnopqrstu", (l) => l).flatMap((l) => [`sub-${l}`, `sub-${l}-brick`, `sub-${l}-slate`, `sub-${l}-brick`, `sub-${l}-slate`]);
+// Houses have terracotta or slate roofs (recoloured in Blender); the kit's own mint roof is not used.
+const HOUSES = letters("abcdefghijklmnopqrstu", (l) => l).flatMap((l) => [`sub-${l}-brick`, `sub-${l}-slate`]);
 /**
  * Buildings by height. Tier 0 is a shop or small office; tier 4 is a supertall. Stretched models (-z) are the same
  * buildings with more or fewer floors, so a skyline has a rhythm and no two streets repeat.
@@ -164,9 +192,15 @@ const WILD_TREES = ["tree_oak", "tree_default", "tree_pineTallA", "tree_pineRoun
 const CROPS = ["crops_wheatStageB", "crops_cornStageD", "crops_leafsStageB", "crops_wheatStageA"];
 const MEADOW = ["flower_redA", "flower_yellowB", "flower_purpleC", "flower_yellowB", "flower_purpleC"];
 const STREET_BITS = ["light-square-double", "light-square-double", "traffic-light", "dumpster", "construction-cone"];
-const CARS = ["car-sedan", "car-suv", "car-taxi", "car-van", "car-police", "car-truck-flat", "car-sedan", "car-suv"];
+// (never the delivery van: that is the player's)
+const CARS = ["car-sedan", "car-suv", "car-taxi", "car-police", "car-truck-flat", "car-sedan", "car-suv", "car-taxi"];
 /** Only these may stand within CORRIDOR cells of the route, so the road is always readable. */
 const CORRIDOR = 4;
+/** Beside the road (two cells) only these stand: they are flat or knee-high, so they cannot hide the line. */
+const FLAT = /^(plant_|flower_|crops_|stump_|light-|traffic-|dumpster|construction-|sub-planter)/;
+/** How far up the screen a building of each height tier hides things, in (gx + gy) steps (its height in pixels over 24). */
+const TIER_REACH: readonly number[] = [3, 4.5, 7.5, 11, 18];
+const COMPOUND_REACH = 10;
 const LOW = /^(tree_|plant_|rock_|sub-tree|sub-planter|flower_|stump_|log_|stone_large|fence_|crops_|light-|traffic-|dumpster|construction-)/;
 const HAS_PAINT = /^(com-|sky-|ind-|sub-|low-|c[xs]-)/;
 const FOLIAGE = /^(tree_|plant_|sub-tree|crops_)/;
@@ -267,16 +301,26 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
     props.push(tint ? { gx, gy, sprite, tint } : { gx, gy, sprite });
   };
   const place = (gx: number, gy: number, sprite: string): void => {
-    if (taken.has(k(gx, gy))) return;
-    if (routeDist(gx, gy) <= CORRIDOR && !LOW.test(sprite)) return;
+    if (!sprite || taken.has(k(gx, gy))) return;
+    const d = routeDist(gx, gy);
+    if (d <= 2 && !FLAT.test(sprite)) return; // beside the road: only things that cannot hide the line
+    if (d <= CORRIDOR && !LOW.test(sprite)) return;
     taken.add(k(gx, gy));
     add(gx, gy, sprite);
   };
   /** A building that fills n x n cells, centred between them. */
+  /**
+   * Would a sprite this tall, standing at this cell, hide part of the route? A sprite rises up the screen from its
+   * base: `reach` is how many (gx + gy) steps up it covers. It hides a route cell that lies up-screen of it, in about
+   * the same screen column.
+   */
+  const hidesRoute = (gx: number, gy: number, reach: number): boolean =>
+    route.cells.some((c) => Math.abs(c.gx - c.gy - (gx - gy)) <= 1.6 && gx + gy - (c.gx + c.gy) > 0 && gx + gy - (c.gx + c.gy) <= reach + 1);
   const placeLot = (gx: number, gy: number, n: number, sprite: string): boolean => {
     const spots: [number, number][] = [];
     for (let dx = 0; dx < n; dx++) for (let dy = 0; dy < n; dy++) spots.push([gx + dx, gy + dy]);
     if (spots.some(([x, y]) => taken.has(k(x, y)) || routeDist(x, y) <= 7)) return false;
+    if (hidesRoute(gx + (n - 1) / 2, gy + (n - 1) / 2, COMPOUND_REACH)) return false;
     for (const [x, y] of spots) taken.add(k(x, y));
     add(gx + (n - 1) / 2, gy + (n - 1) / 2, sprite);
     return true;
@@ -305,7 +349,11 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
   };
   /** A building of about this height tier (a little either way), no taller than the route allows. */
   const tiered = (centre: number, spread: number, max: number): string => {
-    const t = Math.max(0, Math.min(max, centre + Math.floor(rng() * (2 * spread + 1)) - spread));
+    let t = Math.max(0, Math.min(max, centre + Math.floor(rng() * (2 * spread + 1)) - spread));
+    const [cx, cy] = cursor;
+    // never so tall that it hides a stretch of the route: take a shorter one, or leave the cell empty
+    while (t > 0 && hidesRoute(cx, cy, TIER_REACH[t] as number)) t--;
+    if (hidesRoute(cx, cy, TIER_REACH[0] as number)) return "";
     return model(TIERS[t] as readonly string[]);
   };
   /** A crop tile only turns a quarter, so rows can run either way. */
@@ -407,13 +455,32 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
     }
   }
 
-  // Traffic on the cross streets: a car heads one way or the other along a straight stretch.
-  for (const [rk, idx] of roads) {
-    if (idx !== -1) continue;
-    const [gx, gy] = rk.split(",").map(Number) as [number, number];
-    if (isCrossing(gx, gy) || rng() >= look.carRate) continue;
-    const alongX = (gy - STREET_OFFSET) % STREET === 0; // the street runs in the gx direction (up-left and down-right)
-    cars.push({ gx, gy, sprite: `${pick(CARS)}-${alongX ? pick(["270", "90"]) : pick(["180", "0"])}` });
+  // Traffic: in each of the two lanes of every cross street, cars with gaps between them, all at the lane's speed.
+  // A street the route runs along is left empty, so the delivery van has its road to itself.
+  const routeLines = new Set<string>();
+  for (let i = 1; i < route.cells.length; i++) {
+    const a = route.cells[i - 1] as Cell;
+    const b = route.cells[i] as Cell;
+    routeLines.add(a.gx !== b.gx ? `x:${b.gy}` : `y:${b.gx}`);
+  }
+  // The van waits at the start and the HQ stands at the end: no traffic on the streets that cross them either.
+  for (const end of [route.cells[0] as Cell, route.cells[route.cells.length - 1] as Cell]) routeLines.add(`x:${end.gy}`).add(`y:${end.gx}`);
+  const traffic: Vehicle[] = [];
+  const gapMean = 2 / Math.max(look.carRate, 0.001);
+  for (const axis of ["x", "y"] as const) {
+    for (let line = STREET_OFFSET; line <= size - 4; line += STREET) {
+      if (routeLines.has(`${axis}:${line}`)) continue;
+      for (const dir of [-1, 1] as const) {
+        const speed = Math.round((0.7 + rng() * 0.6) * 100) / 100;
+        const length = size - 7;
+        const starts: number[] = [];
+        for (let pos = STREET_OFFSET + rng() * gapMean; pos < size - 4; pos += 3 + rng() * gapMean) starts.push(Math.round(pos * 100) / 100);
+        // the lane is a loop: the last car and the first must not meet where it wraps
+        while (starts.length > 1 && length - ((starts[starts.length - 1] as number) - (starts[0] as number)) < 3) starts.pop();
+        const heading = axis === "x" ? (dir === -1 ? "270" : "90") : dir === -1 ? "180" : "0";
+        for (const start of starts) traffic.push({ sprite: `${pick(CARS)}-${heading}`, axis, line, start, dir, speed });
+      }
+    }
   }
 
   // A few intersections away from the route are roundabouts, so the grid is not one repeated crossing.
@@ -424,7 +491,7 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
   }
 
   const hq = route.cells[route.cells.length - 1] as Cell;
-  return { theme, roads, props, cars, pads, circles, landmarks, hq, hqSprite: look.hq };
+  return { theme, roads, props, cars, traffic, pads, circles, landmarks, hq, hqSprite: look.hq };
 }
 
 export interface Plate {
@@ -442,9 +509,10 @@ export interface Plate {
  * sideways (its pointer stays on its building), then rise on a stem (`dy`); the cheapest free spot wins.
  * `minTop` is the highest a plate may reach (just below the HUD).
  */
-export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 0): (Plate & { dx: number; dy: number })[] {
-  const widthOf = (p: Plate): number => Math.max(40, p.name.length * 8.4 + 16); // measured: bold 16 px type, 24 px of padding
-  const height = 30; // 22 px of line plus 4 px of padding above and below
+export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 0, compact = false): (Plate & { dx: number; dy: number })[] {
+  // measured: bold 16 px type with 24 px of side padding (16 in the compact screen, whose badges are smaller)
+  const widthOf = (p: Plate): number => Math.max(compact ? 32 : 40, p.name.length * 8.4 + (compact ? 16 : 24));
+  const height = compact ? 26 : 30; // 22 px of line plus the padding above and below
   const pin = 7;
   // A building so near the HUD that its plate would rise under it: the pointer lands lower, on the roof.
   const plates = items.map((item) => ({ ...item, top: Math.max(item.top, minTop + height + pin) }));

@@ -34,6 +34,9 @@ function Current() {
   }
 }
 
+/** The operating system's reduced-motion preference. */
+const prefersReducedMotion = (): boolean => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export function App() {
   const key = screen.value.name === "form" ? `form-${screen.value.id}` : screen.value.name;
   useEffect(() => {
@@ -74,6 +77,7 @@ export function App() {
         w={vp.w}
         h={vp.h}
         labels={open}
+        animate={open && !settings.value.reduceMotion && !prefersReducedMotion()}
         onSelect={(i) => (selected.value = i)}
       />
       <div class={open ? "veil" : "veil veil--on"} aria-hidden="true" />

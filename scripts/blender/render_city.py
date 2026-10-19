@@ -1,6 +1,8 @@
 # Renders isometric sprites from Kenney's CC0 3D kits (City Kit Commercial/Industrial/Roads, Car Kit, Nature Kit)
 # into public/art/city/*.png plus manifest.json. Run headless:
 #   KENNEY3D=/path/to/kits OUT=public/art/city SET=all blender -b -P scripts/blender/render_city.py
+# Needs: Blender 5 on PATH as `blender` (or call its binary directly), the Kenney kits unzipped under $KENNEY3D, and
+# the webp tools (brew install webp) for scripts/blender/to_webp.sh afterwards.
 # The models are real Kenney art; this script only places a camera and lights and renders them. One tile of ground
 # is a diamond 96 px wide and 48 px tall (a 2:1 isometric projection). Each sprite's anchor is the ground centre
 # of its footprint, so the game can place it on its grid cell.

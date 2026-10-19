@@ -42,8 +42,8 @@ export async function auditScreen(page: Page, name: string, info: TestInfo, sche
   });
   expect(small, `${label}: tap targets`).toEqual([]);
 
-  // Accessibility: WCAG A and AA rules.
-  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  // Accessibility: WCAG 2.0 and 2.1 A and AA rules.
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   expect(axe.violations, `${label}: axe\n${JSON.stringify(axe.violations, null, 2)}`).toEqual([]);
 
   // Checklist 8: reading text is never below 16 px (instrument captions are the one exception).
