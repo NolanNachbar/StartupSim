@@ -113,3 +113,9 @@ Selling skill (offers, objections, Hormozi-style), mindset layer (sunk cost, ego
 Ranked: founder pay and weekly hours budget; start capex and cash per kind (location needs far more than $30k); cost of goods
 and gross margin; visit and order revenue for places and products; per-kind churn and price ladders; hiring lag and ramp;
 realistic loan pricing; channel learning; refunds and taxes.
+
+## Walkthrough 2 leftovers (2026-10-19)
+
+Explain why pivots change (cash divided by pivot cost) and the jump on a loan; ask different questions per group; one paid-test
+wording across report and log; explain the accident report numbers (world, "The numbers" row); build report verbs per business
+kind (trial pass, fit-out, run it small); wedding-style ideas matching groups; a prompt to set marketing after many empty weeks.

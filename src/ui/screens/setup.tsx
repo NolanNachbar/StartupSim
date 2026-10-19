@@ -35,7 +35,7 @@ export function Setup() {
         <main class="board">
           <p class="step" aria-hidden="true">Step 1 of 4</p>
           <h1 class="board__title" tabIndex={-1}>Choose your industry</h1>
-          <p class="board__lede">You start with $30,000 and four pivots. Each industry pays differently and is hard to read in its own way.</p>
+          <p class="board__lede">Your starting cash and pivots depend on what you build: a gym or restaurant needs far more money to open than an app. Each industry has its own customers and its own way of making money.</p>
           {sharedNote}
           {replaces}
           <fieldset class="field">

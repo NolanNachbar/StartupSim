@@ -1,14 +1,17 @@
 // The words of the company the player founded: the questions they can ask, what the builds, channels and hires are called,
 // and what each stage of the business is. It reads only the public business content from the sim, so nothing here
 // knows any hidden truth.
-import { BUSINESS_LIST, BUSINESS_MODELS, CATALOG, cleanIdea, type Business, type BusinessChoice, type QuestionType } from "../sim";
+import { BUSINESS_LIST, BUSINESS_MODELS, CATALOG, cleanCustom, cleanIdea, type Business, type BusinessChoice, type QuestionType } from "../sim";
 
 /** The business the player chose, as the words use it, or null before they chose one. */
 export function businessOf(industry: number, choice: BusinessChoice | null): Business | null {
   const combo = BUSINESS_LIST[industry]?.[choice?.model ?? -1];
   const model = BUSINESS_MODELS[choice?.model ?? -1];
   const idea = choice ? cleanIdea(choice.idea) : null;
-  return combo && model && idea ? { ...combo, model, idea } : null;
+  if (!combo || !model || !idea) return null;
+  // the player's own wording, tidied the same way the sim does it
+  const c = cleanCustom(choice?.custom);
+  return { ...combo, ...(c?.segmentNames ? { segmentNames: c.segmentNames } : {}), ...(c?.situation ? { situation: c.situation } : {}), ...(c?.cost ? { cost: c.cost } : {}), ...(c?.workaround ? { workaround: c.workaround } : {}), model, idea };
 }
 
 export interface QuestionOption {

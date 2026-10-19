@@ -136,7 +136,7 @@ export const FORMS: readonly FormDef[] = [
     title: "Charge for a test",
     blurb: "Ask for real money and see who pays.",
     intro: (s) =>
-      `Ask real leads from one group to pay ${money(s.priceCents)} a month for ${ideaOf(biz())}. It needs a landing page. Anyone who pays counts as real evidence; the money is not kept as revenue.`,
+      `Ask real leads from one group to pay ${money(s.priceCents)} a month for ${ideaOf(biz())}. Anyone who pays counts as real evidence, and the cash lands in your books as paid-test sales. ${s.landingPageBuilt ? "" : "You cannot run this yet: build the first test (a page people can pay on) from Build a test, then come back."}`.trim(),
     fields: (s) => [segmentField(s), channelField(s)],
     submit: "Charge for a test",
     build: (v) => ({ type: "chargeTest", segment: num(v, "segment"), channel: num(v, "channel") }),
@@ -207,7 +207,7 @@ export const FORMS: readonly FormDef[] = [
     intro: (s) =>
       s.capacity === null
         ? `A contractor costs ${money(CATALOG.hireWeeklyCents)} every week, shortens every build by a week and adds 25 percent to the leads your marketing reaches. You have hired ${s.hires} of ${CATALOG.maxHires} you can.`
-        : `Finding the right person takes a week of your time. Each person costs ${money(CATALOG.hireWeeklyCents)} every week, so your weekly costs (${costsOf(biz())}) would go from ${money(s.weeklyBurnCents)} to ${money(s.weeklyBurnCents + CATALOG.hireWeeklyCents)} before marketing. You have ${s.hires} of ${CATALOG.maxTeam} people. The team works at the same time as you, so you can talk to customers while they work.`,
+        : `Finding the right person takes a week of your time. Each person costs ${money(CATALOG.hireWeeklyCents)} every week, so your weekly costs (${costsOf(biz())}) would go from ${money(s.weeklyBurnCents)} to ${money(s.weeklyBurnCents + CATALOG.hireWeeklyCents)} before marketing. You have ${s.hires} of ${CATALOG.maxTeam} people (at most ${CATALOG.roleCap} in each role). The team works at the same time as you, so you can talk to customers while they work.`,
     fields: (s) =>
       s.capacity === null
         ? []

@@ -41,7 +41,7 @@ describe("business model descriptions", () => {
     const health = INDUSTRY_LIST.findIndex((i) => i.name === "Health and wellness");
     const food = INDUSTRY_LIST.findIndex((i) => i.name === "Food and drink");
     expect(describeModel(health, 2)).toContain("a gym, a yoga studio or a physiotherapy clinic");
-    expect(describeModel(food, 2)).toContain("a coffee shop, a bakery or a ramen bar");
+    expect(describeModel(food, 2)).toContain("a restaurant, a coffee shop or a bakery");
     for (let i = 0; i < INDUSTRY_LIST.length; i++) for (let m = 0; m < MODELS.length; m++) expect(describeModel(i, m)).not.toContain("{kinds}");
     const descriptions = INDUSTRY_LIST.flatMap((_, i) => MODELS.map((_m, m) => describeModel(i, m)));
     expect(new Set(descriptions).size).toBe(descriptions.length);
@@ -134,5 +134,12 @@ describe("matching an idea to a closer pack", () => {
     expect(matchPack("a small strength-training gym", health, 2)).toBeNull();
     expect(matchPack("zzz qqq", 1, 0)).toBeNull();
     expect(matchPack("", 1, 0)).toBeNull();
+  });
+});
+
+describe("matching an idea keeps the kind of business the player chose", () => {
+  it("does not turn a restaurant into an app", () => {
+    const m = matchPack("a family pizza restaurant", 6, 2);
+    expect(m === null || m.model === 2).toBe(true);
   });
 });

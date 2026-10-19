@@ -122,3 +122,11 @@ test("the same seed and actions give the same numbers in every browser engine", 
   await expect(strip.locator(".instrument").nth(1)).toContainText(String(expected.week));
   await expect(page.locator(".route-row").first()).toBeVisible();
 });
+
+test("a challenge link carries the sharer's own customer groups", async ({ page }) => {
+  const custom = encodeURIComponent(JSON.stringify({ segmentNames: ["Brides", "Grooms", "Parents"], situation: "the photos came out blurry" }));
+  await page.goto(`/?play=3&industry=3&model=1&idea=${encodeURIComponent("a wedding photography service")}&custom=${custom}`);
+  await page.getByRole("button", { name: "Start the shared run" }).click();
+  await page.getByRole("button", { name: "Start the company" }).click();
+  await expect(page.locator(".route-row, .hyp, [class*=hypothes]").filter({ hasText: "Brides" }).first()).toBeVisible();
+});

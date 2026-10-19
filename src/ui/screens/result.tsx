@@ -1,4 +1,5 @@
-import type { Evidence, PublicState } from "../../sim";
+import type { Business, Evidence, PublicState } from "../../sim";
+import { roleInfo, type Role } from "../business";
 import { CATALOG } from "../../sim";
 import { STAGE_COUNT, stageInfo } from "../stage";
 import { money, questionLabel, tagExplain, tagLabel } from "../format";
@@ -48,7 +49,7 @@ function Other({ e, after }: { e: Evidence; after: PublicState }) {
 }
 
 /** What the player just did, in a sentence. */
-function didWhat(action: { type: string }, hire?: string): string {
+function didWhat(action: { type: string; role?: string }, b: Business | null): string {
   switch (action.type) {
     case "wait": return "You waited a week.";
     case "interview": return "You held a round of customer interviews.";
@@ -57,7 +58,7 @@ function didWhat(action: { type: string }, hire?: string): string {
     case "chargeTest": return "You ran a paid test.";
     case "setPrice": return "You changed your price.";
     case "setMarketing": return "You changed your marketing.";
-    case "hire": return `You hired ${hire ?? "a contractor"}.`;
+    case "hire": return action.role ? `You hired someone for the ${roleInfo(b, action.role as Role).label.toLowerCase()} role.` : "You hired a contractor.";
     case "raiseMoney": return "You raised money.";
     case "pivot": return "You pivoted to a new customer group.";
     default: return "Time passed.";
@@ -73,7 +74,8 @@ export function Result() {
   const marketing = after.marketing.channel === null ? 0 : (CATALOG.budgetLevelsCents[after.marketing.level] ?? 0);
   const goods = Math.floor((after.weeklyRevenueCents * after.cogsPct) / 100);
   const rnd = CATALOG.rndLevelsCents[after.rndLevel] ?? 0;
-  const weeklyCosts = after.weeklyBurnCents + marketing + goods + rnd;
+  const repay = before.loan ? before.loan.weeklyRepaymentCents : 0;
+  const weeklyCosts = after.weeklyBurnCents + marketing + goods + rnd + repay;
   const b = currentBusiness();
   const stageNow = stageInfo(after, b);
   const launched = before.productProgressPct < 100 && after.productProgressPct >= 100;
@@ -83,7 +85,7 @@ export function Result() {
       <main class="board">
         <h1 class="board__title" tabIndex={-1}>{`Week ${after.week}`}</h1>
         <p class="board__lede">
-          {didWhat(action, b?.hire)}
+          {didWhat(action, b)}
           {d.weeksPassed > 1 ? ` ${d.weeksPassed} weeks passed.` : ""}
         </p>
         {launched ? (
@@ -96,7 +98,7 @@ export function Result() {
         <dl class="overview">
           <dt>Cash</dt><dd>{`${money(before.cashCents)} to ${money(after.cashCents)} (${d.cashDeltaCents >= 0 ? "+" : "-"}${money(Math.abs(d.cashDeltaCents))})`}</dd>
           <dt>Money in</dt><dd>{`${money(after.weeklyRevenueCents)} a week from ${after.payingCustomers} paying ${after.payingCustomers === 1 ? "customer" : "customers"} (${signed(after.payingCustomers - before.payingCustomers)})`}</dd>
-          <dt>Money out</dt><dd>{`${money(weeklyCosts)} a week (${money(after.weeklyBurnCents)} to run the company${marketing > 0 ? `, ${money(marketing)} on marketing` : ""}${rnd > 0 ? `, ${money(rnd)} on R&D` : ""}${goods > 0 ? `, ${money(goods)} for the goods you sold` : ""})`}</dd>
+          <dt>Money out</dt><dd>{`${money(weeklyCosts)} a week (${money(after.weeklyBurnCents)} to run the company${marketing > 0 ? `, ${money(marketing)} on marketing` : ""}${rnd > 0 ? `, ${money(rnd)} on R&D` : ""}${goods > 0 ? `, ${money(goods)} for the goods you sold` : ""}${repay > 0 ? `, ${money(repay)} repaying the loan` : ""})`}</dd>
           <dt>Stage</dt><dd>{`${stageNow.index + 1} of ${STAGE_COUNT}: ${stageNow.name}. ${stageNow.short}`}</dd>
           <dt>Pivots left</dt><dd>{String(after.pivotsRemaining)}</dd>
         </dl>

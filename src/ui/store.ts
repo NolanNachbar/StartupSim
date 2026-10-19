@@ -2,7 +2,7 @@
 // this file only calls `step` and `view` and remembers what to show.
 import { computed, signal } from "@preact/signals";
 import {
-  BUSINESS_LIST, INDUSTRY_LIST, cleanIdea, newRun, type Custom, report as reportFor, step, toSave, view,
+  BUSINESS_LIST, INDUSTRY_LIST, cleanCustom, cleanIdea, newRun, type Custom, report as reportFor, step, toSave, view,
   type Action, type PublicState, type Report, type Run,
 } from "../sim";
 import { describeStep, reasonText, type StepDescription } from "./format";
@@ -58,7 +58,7 @@ export const challengeSeed = signal<number | null>(null);
 export const currentSeed = signal(0);
 export const challengeIndustry = signal<number | null>(null);
 /** A shared link can name the business model and idea too. */
-export const challengeBusiness = signal<{ model: number; idea: string } | null>(null);
+export const challengeBusiness = signal<{ model: number; idea: string; custom?: Custom } | null>(null);
 /** The company being run: its name and market. */
 export const company = signal<{ name: string; industry: number; model: number; idea: string; custom?: Custom }>({ name: "", industry: 0, model: 0, idea: "" });
 /** The setup form. */
@@ -118,7 +118,16 @@ export function init(search: string): void {
     const params = new URLSearchParams(search);
     const modelNum = Number.parseInt(params.get("model") ?? "", 10);
     const idea = cleanIdea(params.get("idea") ?? "");
-    if (Number.isInteger(modelNum) && modelNum >= 0 && modelNum < (BUSINESS_LIST[indNum]?.length ?? 0) && idea) challengeBusiness.value = { model: modelNum, idea };
+    if (Number.isInteger(modelNum) && modelNum >= 0 && modelNum < (BUSINESS_LIST[indNum]?.length ?? 0) && idea) {
+      // the sharer's own customer groups and wording ride along in the link
+      let custom: Custom | undefined;
+      try {
+        custom = cleanCustom(JSON.parse(params.get("custom") ?? "null") as Custom);
+      } catch {
+        custom = undefined;
+      }
+      challengeBusiness.value = { model: modelNum, idea, ...(custom ? { custom } : {}) };
+    }
   }
   notes.value = loadNotes(storage);
   flights.value = loadFlights(storage);
@@ -211,7 +220,16 @@ export function openSetup(): void {
   const seed = challengeSeed.value ?? baseSeed.value;
   const industry = challengeIndustry.value ?? draft.value.industry;
   const chosen = challengeBusiness.value;
-  draft.value = { name: suggestName(seed), industry, model: chosen?.model ?? draft.value.model, idea: chosen?.idea ?? exampleIdea(industry, draft.value.model) };
+  const model = chosen?.model ?? draft.value.model;
+  const pack = BUSINESS_LIST[industry]?.[model];
+  const shared = chosen?.custom;
+  draft.value = {
+    name: suggestName(seed),
+    industry,
+    model,
+    idea: chosen?.idea ?? exampleIdea(industry, draft.value.model),
+    ...(shared && pack ? { custom: { groups: (shared.segmentNames ?? pack.segmentNames).join("\n"), situation: shared.situation ?? pack.situation, workaround: shared.workaround ?? pack.workaround } } : {}),
+  };
   // a shared link that names the industry (and the business) skips the pages it already answers
   setupStep.value = challengeIndustry.value === null ? 1 : chosen === null ? 2 : 4;
   go({ name: "setup" });
@@ -269,7 +287,7 @@ export function takeOff(seed: number, industry: number, model: number, idea: str
   syncBlocked();
   if (storageBlocked.value) notice.value = "Progress will not be saved in this browser. You can keep playing.";
   else notice.value = null;
-  announcement.value = `${name} is open for business. Week 1.`;
+  announcement.value = `${name} is founded. Week 1.`;
   go({ name: "week" });
 }
 
@@ -418,12 +436,13 @@ export function openNotes(): void {
 }
 
 /** A link that starts anyone in the same world. */
-export function challengeLink(seed: number, industry: number, model: number, idea: string): string {
-  return `${location.origin}${location.pathname}?play=${seed}&industry=${industry}&model=${model}&idea=${encodeURIComponent(idea)}`;
+export function challengeLink(seed: number, industry: number, model: number, idea: string, custom?: Custom): string {
+  const extra = custom ? `&custom=${encodeURIComponent(JSON.stringify(custom))}` : "";
+  return `${location.origin}${location.pathname}?play=${seed}&industry=${industry}&model=${model}&idea=${encodeURIComponent(idea)}${extra}`;
 }
 
 export async function copyChallengeLink(): Promise<void> {
-  const link = challengeLink(currentSeed.value, company.value.industry, company.value.model, company.value.idea);
+  const link = challengeLink(currentSeed.value, company.value.industry, company.value.model, company.value.idea, company.value.custom);
   try {
     await navigator.clipboard.writeText(link);
     shareNotice.value = `Link copied: ${link}`;
