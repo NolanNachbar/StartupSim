@@ -178,16 +178,13 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
       diamond(g, c.x, c.y, (tw * dpr) / 2, "#f6f8ff");
       diamond(g, c.x, c.y, (tw * dpr) / 2 - 5 * dpr, "#dfe6fb");
     }
-    // Props, landmarks and signs, back to front. Buildings away from the route are a little hazier, so the
-    // route and the landmarks stand out.
-    interface Item { gx: number; gy: number; sprite: string; near: boolean; tint?: number }
-    const routeCells = route.cells;
-    const nearRoute = (gx: number, gy: number) => routeCells.some((c) => Math.abs(c.gx - gx) + Math.abs(c.gy - gy) <= 4);
+    // Props, landmarks and signs, back to front.
+    interface Item { gx: number; gy: number; sprite: string; tint?: number }
     const items: Item[] = [
-      ...city.props.map((p) => ({ ...p, near: nearRoute(p.gx, p.gy) })),
-      ...city.cars.map((p) => ({ ...p, near: nearRoute(p.gx, p.gy) })),
-      ...city.landmarks.flatMap((l) => [{ gx: l.gx, gy: l.gy, sprite: l.sprite, near: true }, { gx: l.sign.gx, gy: l.sign.gy, sprite: l.sign.sprite, near: true }]),
-      { gx: city.hq.gx - 1, gy: city.hq.gy - 1, sprite: city.hqSprite, near: true },
+      ...city.props,
+      ...city.cars,
+      ...city.landmarks.flatMap((l) => [{ gx: l.gx, gy: l.gy, sprite: l.sprite }, { gx: l.sign.gx, gy: l.sign.gy, sprite: l.sign.sprite }]),
+      { gx: city.hq.gx - 1, gy: city.hq.gy - 1, sprite: city.hqSprite },
     ];
     items.sort((a, b) => a.gx + a.gy - (b.gx + b.gy) || a.gx - b.gx);
     for (const p of items) {
@@ -195,7 +192,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, progress, sele
       const c = toCanvas(project(p, tw, origin));
       const m = sprites.meta[p.sprite];
       const img = sprites.img.get(p.sprite);
-      if (m && img) drawStyled(ctx, img, c.x - m.ax * scale, c.y - m.ay * scale, m.w * scale, m.h * scale, p.tint ?? 0, !p.near);
+      if (m && img) drawStyled(ctx, img, c.x - m.ax * scale, c.y - m.ay * scale, m.w * scale, m.h * scale, p.tint ?? 0);
     }
     setLayers({ ground, stand });
   }, [sprites, city, route, origin, tw, dpr, scale, w, h]);

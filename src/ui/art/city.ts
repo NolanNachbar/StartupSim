@@ -71,12 +71,11 @@ export function drawSprite(ctx: CanvasRenderingContext2D, l: Loaded, name: strin
  * foliage. Real cities are mostly neutral, so the palette is too.
  */
 export const TINTS: readonly string[] = ["", "#ecd9b8", "#d9d2c3", "#e4c9a8", "#c9d3dc", "#f0e6d0", "#d8bfa6", "#bfc7c9", "#e8e2d6", "#cdb99a", "#5f8f4e", "#52814a", "#6a9855", "#477a45"];
-const HAZE = "rgba(214, 226, 250, 0.3)";
 
 let scratch: HTMLCanvasElement | null = null;
-/** Draw a sprite with an optional tint and distance haze. The colour goes on a scratch copy, so nothing is cached. */
-export function drawStyled(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number, tint: number, far: boolean): void {
-  if (!tint && !far) return void ctx.drawImage(img, x, y, w, h);
+/** Draw a sprite with an optional tint. The colour goes on a scratch copy, so nothing is cached. */
+export function drawStyled(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number, tint: number): void {
+  if (!tint) return void ctx.drawImage(img, x, y, w, h);
   scratch ??= document.createElement("canvas");
   if (scratch.width < img.width) scratch.width = img.width;
   if (scratch.height < img.height) scratch.height = img.height;
@@ -91,11 +90,6 @@ export function drawStyled(ctx: CanvasRenderingContext2D, img: HTMLImageElement,
     s.fillRect(0, 0, img.width, img.height);
     s.globalCompositeOperation = "destination-in"; // multiply fills the transparent pixels too: keep only the sprite's own shape
     s.drawImage(img, 0, 0);
-  }
-  if (far) {
-    s.globalCompositeOperation = "source-atop";
-    s.fillStyle = HAZE;
-    s.fillRect(0, 0, img.width, img.height);
   }
   ctx.drawImage(scratch, 0, 0, img.width, img.height, x, y, w, h);
 }

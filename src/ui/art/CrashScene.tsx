@@ -63,7 +63,7 @@ export function CrashScene({ landed, seed }: Props) {
         const c = at(gx, gy);
         const m = l.meta[name];
         const img = l.img.get(name);
-        if (m && img) drawStyled(ctx, img, c.x - m.ax * scale, c.y - m.ay * scale, m.w * scale, m.h * scale, tint, false);
+        if (m && img) drawStyled(ctx, img, c.x - m.ax * scale, c.y - m.ay * scale, m.w * scale, m.h * scale, tint);
       }
       const van = at(2, 2);
       if (!landed) {

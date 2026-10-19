@@ -22,7 +22,7 @@ Nolan's reference image is the HBO Silicon Valley title-sequence city (a local f
 6. The four themes are recognisable at a glance and different from each other: rural (fields, woods, farms), suburban (houses, yards), urban (mixed mid-rise), downtown (towers, dense core).
 7. No sprite is cut off at a hard edge, floating above the ground, or overlapping a road. Cars face along their road. No black texture glitches.
 8. The route and the customer-group landmarks are the first thing the eye finds. Name plates never overlap each other, are never hidden under a tower, and never run off the screen.
-9. Distance haze and shadows are consistent; nothing looks pasted on.
+9. Shadows and lighting are consistent and the colours are the same across the whole map (no washed-out distance); nothing looks pasted on.
 
 ### B. Interface
 1. One typeface, consistent weights and sizes. No orphaned words, no clipped or overflowing text at 390 px, at 200 percent text size, or on desktop.
