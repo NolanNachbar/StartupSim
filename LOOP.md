@@ -51,6 +51,10 @@ notes: [ ... ]      # non-blocking observations
 - Tick the roadmap item, commit with a message that names the item (for example "M2: interview signal model"), then continue or stop per the stop rules.
 - The remote is the public repo https://github.com/NolanNachbar/StartupSim. Push only when Nolan asks, never force-push, and never put a local path in a tracked file (the `no-local-paths` gate in `npm run verify` enforces this).
 
+## Every complaint becomes a guard
+
+When Nolan reports a problem, add it to `docs/feedback-log.md` with the test or checker item that would have caught it, then write that guard before or with the fix. A fix without a guard is not done. Every round includes the player walkthrough and the consistency test (`tests/e2e/consistency.spec.ts`), which checks that the same number agrees everywhere it appears.
+
 ## Stop rules
 
 Stop and report when any of these happens:

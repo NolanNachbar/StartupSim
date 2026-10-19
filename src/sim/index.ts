@@ -1,5 +1,5 @@
 // Public API of the simulation. src/ui may import only from here (enforced by ESLint).
-import { COMBOS, MAX_IDEA, MODELS, cleanIdea, type Business, type BusinessChoice, type Combo, type ModelInfo } from "./business";
+import { COMBOS, MAX_IDEA, MODELS, cleanIdea, describeModel, type Business, type BusinessChoice, type Combo, type ModelInfo } from "./business";
 // `Run` is opaque: it carries the hidden world, but the type gives the UI no way to read it.
 import { legalActions as legalActionsInternal } from "./actions";
 import { step as stepInternal } from "./reducer";
@@ -81,7 +81,7 @@ const outside = (run: InternalRun): Run => run as unknown as Run;
 export const BUSINESS_LIST: readonly (readonly Combo[])[] = COMBOS;
 export const BUSINESS_MODELS: readonly ModelInfo[] = MODELS;
 export const MAX_IDEA_LENGTH = MAX_IDEA;
-export { cleanIdea };
+export { cleanIdea, describeModel };
 export type { Business, BusinessChoice, Combo, ModelInfo };
 
 /** The markets a company can start in: public descriptions only. The numbers behind them stay hidden. */

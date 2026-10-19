@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMBOS, MAX_IDEA, MODELS, businessFor, cleanIdea } from "./business";
+import { COMBOS, MAX_IDEA, MODELS, businessFor, cleanIdea, describeModel } from "./business";
 import { INDUSTRY_LIST, fromSave, newRun, step, toSave, view } from "./index";
 import { INDUSTRIES } from "./world";
 
@@ -17,6 +17,7 @@ describe("business models and combos", () => {
         expect(c.examples.length).toBeGreaterThanOrEqual(3);
         for (const field of [c.situation, c.cost, c.workaround, c.place, c.hire]) expect(field.length).toBeGreaterThan(4);
         for (const e of c.examples) expect(cleanIdea(e)).not.toBeNull();
+        expect(c.kinds.length).toBe(3);
       }
     }
   });
@@ -32,6 +33,18 @@ describe("business models and combos", () => {
     expect(cleanIdea("x".repeat(200))?.length).toBeLessThanOrEqual(MAX_IDEA);
     expect(businessFor(2, { model: 9, idea: "a gym" })).toBeNull();
     expect(businessFor(null, gym)).toBeNull();
+  });
+});
+
+describe("business model descriptions", () => {
+  it("use examples from the chosen industry, not the same ones everywhere", () => {
+    const health = INDUSTRY_LIST.findIndex((i) => i.name === "Health and wellness");
+    const food = INDUSTRY_LIST.findIndex((i) => i.name === "Food and drink");
+    expect(describeModel(health, 2)).toContain("a gym, a yoga studio or a physiotherapy clinic");
+    expect(describeModel(food, 2)).toContain("a coffee shop, a bakery or a ramen bar");
+    for (let i = 0; i < INDUSTRY_LIST.length; i++) for (let m = 0; m < MODELS.length; m++) expect(describeModel(i, m)).not.toContain("{kinds}");
+    const descriptions = INDUSTRY_LIST.flatMap((_, i) => MODELS.map((_m, m) => describeModel(i, m)));
+    expect(new Set(descriptions).size).toBe(descriptions.length);
   });
 });
 

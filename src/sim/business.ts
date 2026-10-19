@@ -8,7 +8,7 @@ export type ModelId = "software" | "service" | "location" | "product";
 export interface ModelInfo {
   readonly id: ModelId;
   readonly name: string;
-  /** One plain sentence on how this kind of business makes money. */
+  /** One plain sentence on how this kind of business makes money; {kinds} is replaced with examples from the industry. */
   readonly blurb: string;
   /** Verbs that make a question or an answer read naturally: "pay for", "sign up for", "book", "buy". */
   readonly payVerb: string;
@@ -19,10 +19,10 @@ export interface ModelInfo {
 }
 
 export const MODELS: readonly ModelInfo[] = [
-  { id: "software", name: "Software or app", blurb: "You build a product people use on a screen and charge a monthly fee.", payVerb: "pay for", useVerb: "use", ingVerb: "building" },
-  { id: "service", name: "Service business", blurb: "You do the work for clients, such as coaching, repairs or advice, and charge for your time.", payVerb: "book", useVerb: "try", ingVerb: "starting" },
-  { id: "location", name: "Physical location", blurb: "You open a place people come to, such as a gym, a cafe or a studio, and charge memberships or visits.", payVerb: "sign up for", useVerb: "visit", ingVerb: "opening" },
-  { id: "product", name: "Physical product", blurb: "You make or source something and sell it to people, one order or one subscription at a time.", payVerb: "buy", useVerb: "try", ingVerb: "making" },
+  { id: "software", name: "Software or app", blurb: "You build a product people use on a screen, such as {kinds}, and charge a monthly fee.", payVerb: "pay for", useVerb: "use", ingVerb: "building" },
+  { id: "service", name: "Service business", blurb: "You do the work for clients, such as {kinds}, and charge for your time.", payVerb: "book", useVerb: "try", ingVerb: "starting" },
+  { id: "location", name: "Physical location", blurb: "You open a place people come to, such as {kinds}, and charge memberships or visits.", payVerb: "sign up for", useVerb: "visit", ingVerb: "opening" },
+  { id: "product", name: "Physical product", blurb: "You make or source something and sell it, such as {kinds}, one order or one subscription at a time.", payVerb: "buy", useVerb: "try", ingVerb: "making" },
 ];
 
 /** What is specific to one industry and one business model: who the customers are, and their world. */
@@ -41,10 +41,18 @@ export interface Combo {
   readonly hire: string;
   /** Example ideas the player can start from, or replace with their own. */
   readonly examples: readonly string[];
+  /** Three short names for kinds of business here ("a gym", "a yoga studio"), used to describe the model in this industry. */
+  readonly kinds: readonly string[];
 }
 
+/** What the content below does not repeat: the short names are added by industry and model. */
+type RawCombo = Omit<Combo, "kinds">;
+
+/** Short names for kinds of business, by industry then model: used to describe each business model in that industry. */
+const KINDS: readonly (readonly (readonly string[])[])[] = [[["a crew scheduler","a quoting app","a booking page"],["a handyman service","a cleaning service","a pressure-washing service"],["a repair shop","a laundromat","a bike shop"],["a tool-rental kit","a toolbox","a garden box"]],[["a habit tracker","a bill-splitting app","a meal planner"],["a life-admin concierge","a meal-prep service","an online tutor"],["a board-game cafe","a study cafe","a climbing and coffee space"],["a snack box","a water bottle","a desk organiser"]],[["an onboarding tool","an expenses app","a reporting dashboard"],["a bookkeeping service","an HR outsourcing service","a fractional operations manager"],["a coworking space","a podcast studio","a meeting-room space"],["a remote-work kit","an onboarding kit","a desk set"]],[["a reminder app","an intake form tool","a recovery app"],["a personal training service","a coaching service","a corporate wellness programme"],["a gym","a yoga studio","a physiotherapy clinic"],["a protein snack line","a supplement","a home-workout kit"]],[["an invoicing tool","a cash-flow app","a rent-collection app"],["a bookkeeping service","a tax-prep service","a budgeting coach"],["a tax and paperwork office","a currency exchange","a bookkeeping office"],["a budget planner","an invoice organiser kit","a savings box"]],[["a course-selling page","a tutor booking app","a coaching feedback app"],["a tutoring service","a music lessons service","a language coaching service"],["a coding studio for kids","an art studio","a language school"],["a science kit","a craft box","a flashcard set"]],[["a stock tracker","an ordering page","a recipe-costing tool"],["a meal-prep service","a private chef service","a catering service"],["a coffee shop","a bakery","a ramen bar"],["a hot sauce brand","a baking mix line","a coffee subscription"]],[["an inventory sync tool","a returns app","a product-photo tool"],["a fulfilment service","a personal shopping service","a photography service"],["a bookshop","a vintage clothing store","a hobby shop"],["a candle line","a travel bag line","a subscription box"]],[["a hotel booking tool","a trip-planning app","a check-in app"],["an itinerary planning service","a walking-tour company","a retreat planning service"],["a guesthouse","a hostel","a campsite"],["a travel organiser","a daypack line","a travel gift box"]],[["a maintenance tracker","a viewing scheduler","a tenant screening tool"],["a property management service","a home staging service","a renovation management service"],["a real-estate office","a home-improvement showroom","a tool-hire shop"],["a storage system","a smart-sensor kit","a move-in box"]],[["a booking app for dog walkers","a vet records app","a shelter scheduler"],["a dog-walking service","a mobile grooming service","a puppy training service"],["a dog day-care","a pet-friendly cafe","a grooming salon"],["a dog-food subscription","a chew-toy line","a cat furniture brand"]],[["a ticketing app","a band booking tool","a volunteer rota app"],["a wedding planning service","a kids' party service","a team-event service"],["an escape room","a live-music bar","a mini-golf and arcade"],["a party kit","a board game","an event decor line"]],[["a route planner","a proof-of-delivery app","a load-matching tool"],["a courier service","a moving service","a medical delivery service"],["a bike repair hub","a parcel pickup point","a self-storage facility"],["a pannier line","a bike-lock set","a rider kit"]],[["a stylist booking app","a barbershop loyalty app","a salon ordering tool"],["a mobile hair and makeup service","an office barber","a home nail service"],["a barbershop","a nail salon","a spa"],["a skincare line","a hair-care range","a grooming subscription"]]];
+
 /** By industry (the order of INDUSTRIES in world.ts), then by model (the order of MODELS). */
-export const COMBOS: readonly (readonly Combo[])[] = [
+const RAW: readonly (readonly RawCombo[])[] = [
   // Local services
   [
     { segmentNames: ["Solo tradespeople", "Small crews", "Multi-van firms", "Franchisees", "Property managers"], situation: "a crew showed up at the wrong time", cost: "the wasted trip cost me half a day", workaround: "a whiteboard and a group chat", place: "trade groups and contractor forums", hire: "a developer", examples: ["an app that schedules crews and texts customers when they are on the way", "a quoting app for contractors", "an online booking page for small clinics"] },
@@ -145,6 +153,9 @@ export const COMBOS: readonly (readonly Combo[])[] = [
   ],
 ];
 
+/** Every industry and model, with its short names. */
+export const COMBOS: readonly (readonly Combo[])[] = RAW.map((row, i) => row.map((c, m) => ({ ...c, kinds: KINDS[i]?.[m] ?? [] })));
+
 /** The player's choice: a model, and an idea in their own words. */
 export interface BusinessChoice {
   readonly model: number;
@@ -178,4 +189,14 @@ export function businessFor(industry: number | null, choice: BusinessChoice | nu
   const idea = cleanIdea(choice.idea);
   if (!combo || !model || !idea) return null;
   return { ...combo, model, idea };
+}
+
+/** "a gym, a yoga studio or a physiotherapy clinic". */
+export function listKinds(kinds: readonly string[]): string {
+  return kinds.length <= 1 ? (kinds[0] ?? "") : `${kinds.slice(0, -1).join(", ")} or ${kinds[kinds.length - 1]}`;
+}
+
+/** The description of a business model for an industry, with that industry's own examples. */
+export function describeModel(industry: number, model: number): string {
+  return (MODELS[model]?.blurb ?? "").replace("{kinds}", listKinds(COMBOS[industry]?.[model]?.kinds ?? []));
 }

@@ -1,4 +1,4 @@
-import { BUSINESS_LIST, BUSINESS_MODELS, INDUSTRY_LIST, MAX_IDEA_LENGTH, view } from "../../sim";
+import { BUSINESS_LIST, BUSINESS_MODELS, INDUSTRY_LIST, MAX_IDEA_LENGTH, describeModel, view } from "../../sim";
 import { THEME_LABEL, themeFor } from "../art/iso";
 import { MAX_NAME } from "../names";
 import { back, challengeBusiness, challengeIndustry, challengeSeed, company, draft, exampleIdea, savedRun, setupStep, startCompany, suggestAnotherName } from "../store";
@@ -67,7 +67,7 @@ export function Setup() {
                 <label key={m.id} class="pick pick--wide">
                   <input type="radio" name="model" value={String(i)} checked={d.model === i} onChange={() => (draft.value = { ...draft.value, model: i, idea: exampleIdea(d.industry, i) })} />
                   <span class="pick__title">{m.name}</span>
-                  <span class="pick__where">{m.blurb}</span>
+                  <span class="pick__where">{describeModel(d.industry, i)}</span>
                 </label>
               ))}
             </div>

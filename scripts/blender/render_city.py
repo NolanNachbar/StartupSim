@@ -164,20 +164,35 @@ def reset_scene():
     cam.rotation_euler = euler
     cam_data.clip_end = 200
     scene.camera = cam
-    # warm sun from the upper left, soft shadows
+    # Golden-hour light, like the reference: a strong warm sun low in the sky from the upper left, so shadows are long
+    # and soft-edged, and only a little cool sky light, so the shadowed sides stay rich instead of washed out.
+    look = os.environ.get("LIGHT", "golden")
     sun_data = bpy.data.lights.new("sun", "SUN")
-    sun_data.energy = 3.4
-    sun_data.angle = math.radians(6)
-    sun_data.color = (1.0, 0.93, 0.80)
+    if look == "golden":
+        sun_data.energy = 5.2
+        sun_data.angle = math.radians(4.5)
+        sun_data.color = (1.0, 0.84, 0.64)
+        elevation, azimuth = 24, -38
+    else:
+        sun_data.energy = 3.4
+        sun_data.angle = math.radians(6)
+        sun_data.color = (1.0, 0.93, 0.80)
+        elevation, azimuth = 30, -35
     sun = bpy.data.objects.new("sun", sun_data)
-    sun.rotation_euler = (math.radians(30), math.radians(6), math.radians(-35))
+    sun.rotation_euler = (math.radians(elevation), math.radians(6), math.radians(azimuth))
     scene.collection.objects.link(sun)
-    # cool sky fill
+    # cool sky fill, much weaker in the golden look
     world = bpy.data.worlds.new("world")
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (0.74, 0.84, 1.0, 1.0)
-    bg.inputs[1].default_value = 0.85
+    if look == "golden":
+        bg.inputs[0].default_value = (0.62, 0.74, 0.98, 1.0)
+        bg.inputs[1].default_value = 0.42
+        scene.view_settings.view_transform = "AgX"
+        scene.view_settings.look = "AgX - Medium High Contrast"
+    else:
+        bg.inputs[0].default_value = (0.74, 0.84, 1.0, 1.0)
+        bg.inputs[1].default_value = 0.85
     scene.world = world
     # a shadow catcher so the sprite carries its own ground shadow
     bpy.ops.mesh.primitive_plane_add(size=30, location=(0, 0, -0.001))

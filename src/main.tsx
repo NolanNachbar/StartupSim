@@ -20,3 +20,8 @@ installKeyboard();
 trackViewport();
 installGamepad();
 render(<App />, root);
+
+// In development, any source edit reloads the page fully. A hot swap of the store would leave some components on the
+// old copy of the game's state and some on the new one (a HUD that shows a game that never started while the screen
+// shows week 7), and the game saves after every action, so a reload loses nothing.
+if (import.meta.hot) import.meta.hot.on("vite:beforeUpdate", () => location.reload());
