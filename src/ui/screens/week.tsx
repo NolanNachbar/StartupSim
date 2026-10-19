@@ -1,8 +1,8 @@
-import { CalloutHost, HypothesisList, PathBar } from "../parts";
+import { CalloutHost, GroupActions, HypothesisList, StageBar } from "../parts";
 import { money } from "../format";
 import { Panel } from "../panel";
 import { INDUSTRY_LIST } from "../../sim";
-import { act, company, go, sheetOpen, state } from "../store";
+import { act, company, go, selected, sheetOpen, state } from "../store";
 
 let lastWait = 0;
 /** One week per press: the second click of a double click, within a quarter second, is the other half of one tap, not a new decision. */
@@ -30,10 +30,10 @@ export function Week() {
             <h1 class="board__title" tabIndex={-1}>Your customers</h1>
             <p class="board__lede plate__company">{company.value.idea || (INDUSTRY_LIST[company.value.industry]?.name ?? "")}</p>
           </div>
-          <p class="plate__how">Each road leads to a group of people you could build for.</p>
           <CalloutHost screen="week" />
-          <PathBar s={s} />
+          <StageBar s={s} compact />
           <HypothesisList hypotheses={s.hypotheses} names={s.segmentNames} focus={s.focusSegment} />
+          {selected.value !== null ? <GroupActions s={s} index={selected.value} /> : null}
         </div>
       </main>
       <Panel />

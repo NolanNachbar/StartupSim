@@ -57,7 +57,7 @@ export function FormScreen({ id }: { id: FormId }) {
         <button type="button" class="button button--primary" onClick={() => {
           if (id === "interview") {
             const b = currentBusiness();
-            askedWording.value = [values.q1, values.q2, values.q3].map((v) => questionTextFor(b, v ?? "past-behavior#0"));
+            askedWording.value = [values.q1, values.q2, values.q3].map((v) => questionTextFor(b, v ?? "last-time"));
           }
           act(def.build(values, s));
         }}>{def.submit}</button>

@@ -17,7 +17,8 @@ async function startRun(page: Page): Promise<void> {
 async function openAction(page: Page, name: string): Promise<void> {
   await page.getByRole("button", { name: "Choose an action" }).click();
   await expect(page.getByRole("heading", { name: "Choose an action" })).toBeVisible();
-  await page.getByRole("button", { name: name }).click();
+  // The full list (the stage list above it repeats a few of the same actions, with the same names).
+  await page.getByRole("button", { name: name }).last().click();
 }
 
 for (const colorScheme of ["light"] as const) {
@@ -118,12 +119,13 @@ test.describe("saving, keyboard and the reveal", () => {
     await openAction(page, "Interview a customer");
     await page.getByRole("button", { name: "Hold the interviews" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
-    const weekBefore = await page.locator(".strip").innerText();
+    const readings = () => page.locator(".strip .instrument").allInnerTexts();
+    const weekBefore = await readings();
     await page.reload();
     await expect(page.getByRole("button", { name: "Continue run" })).toBeVisible();
     await page.getByRole("button", { name: "Continue run" }).click();
     await expect(page.getByRole("heading", { name: "Your customers" })).toBeVisible();
-    expect(await page.locator(".strip").innerText()).toBe(weekBefore);
+    expect(await readings()).toEqual(weekBefore);
   });
 
   test("a corrupt save says so and still lets you start", async ({ page }) => {

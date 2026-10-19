@@ -5,7 +5,8 @@ import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { hypothesisLabel, money } from "./format";
 import { spriteUrl } from "./art/city";
 import { pathProgress } from "./guide";
-import { markCalloutShown, openHelp, openMenu, selected, settings, shownCallouts, startPivots, state } from "./store";
+import { currentBusiness, last, markCalloutShown, openForm, openHelp, openMenu, screen, selected, settings, shownCallouts, startPivots, state } from "./store";
+import { STAGE_COUNT, stageInfo } from "./stage";
 import type { Hypothesis, PublicState } from "../sim";
 
 export function Instrument({ caption, value }: { caption: string; value: string }) {
@@ -54,6 +55,7 @@ export function Strip({ fresh }: { fresh: PublicState }) {
           </button>
         </div>
         <Instrument caption="Cash" value={money(s.cashCents)} />
+        <CashChange />
         <Instrument caption="Week" value={String(s.week)} />
       </div>
     </header>
@@ -155,5 +157,62 @@ export function PathBar({ s }: { s: PublicState }) {
       </ol>
       <p class="path__label">{current ? `${doneCount} of 5: ${current.label}` : "Default alive"}</p>
     </div>
+  );
+}
+
+/** What the last action did to the cash, so a change in the number is never a surprise. */
+export function CashChange() {
+  const l = last.value;
+  if (!l || state.value === null || screen.value.name === "board") return null;
+  const d = l.step.cashDeltaCents;
+  if (d === 0) return null;
+  return (
+    <p class={`delta ${d < 0 ? "delta--out" : "delta--in"}`} aria-hidden="true">{`${d < 0 ? "-" : "+"}${money(Math.abs(d))} since your last move`}</p>
+  );
+}
+
+/** The five stages as a bar, the one you are in named, and what that stage means. */
+export function StageBar({ s, compact = false }: { s: PublicState; compact?: boolean }) {
+  const info = stageInfo(s, currentBusiness());
+  return (
+    <div class="stage">
+      <ol class="stage__bar" aria-label="Stages of your business">
+        {info.names.map((n, i) => (
+          <li key={n} class={i < info.index ? "stage__step stage__step--done" : i === info.index ? "stage__step stage__step--now" : "stage__step"} aria-current={i === info.index ? "step" : undefined}>
+            <span class="stage__name">{n}</span>
+          </li>
+        ))}
+      </ol>
+      <p class="stage__what"><strong>{`Stage ${info.index + 1} of ${STAGE_COUNT}: ${info.name}.`}</strong>{` ${compact ? info.short : info.what}`}</p>
+    </div>
+  );
+}
+
+/** What you can do with one customer group, opened from the map or the chips. */
+export function GroupActions({ s, index }: { s: PublicState; index: number }) {
+  const name = s.segmentNames[index] ?? "this group";
+  const h = s.hypotheses[index];
+  const isFocus = index === s.focusSegment;
+  const items: { form: Parameters<typeof openForm>[0]; label: string; why: string }[] = [
+    { form: "interview", label: `Interview ${name}`, why: "Three conversations with people in this group." },
+    { form: "test-channel", label: "Test reaching them", why: "Spend a little to see whether they respond to outreach or ads." },
+    { form: "charge", label: "Ask them to pay", why: "A paid test: real money from this group counts as proof." },
+    { form: "marketing", label: "Aim marketing at them", why: "Pay each week to reach this group and win customers." },
+    ...(isFocus ? [] : [{ form: "pivot" as const, label: "Switch to them", why: "Make this your main group. It uses up a pivot." }]),
+  ];
+  return (
+    <section class="group" aria-label={`Actions for ${name}`}>
+      <p class="group__title">{name}</p>
+      <p class="group__facts">{h ? `${hypothesisLabel(h.state)}. ${h.interviews} interviewed, ${h.interested} interested, ${h.payments} paid.` : ""}</p>
+      <ul class="group__list">
+        {items.map((it) => (
+          <li key={it.form}>
+            <button type="button" class="button button--row" onClick={() => openForm(it.form, index)}>
+              <span class="row__text"><span class="row__title">{it.label}</span><span class="row__hint">{it.why}</span></span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

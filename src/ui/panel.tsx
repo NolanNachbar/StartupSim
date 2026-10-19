@@ -30,6 +30,13 @@ export function Panel({ idle }: { idle?: boolean }) {
           <dt>Paying customers</dt><dd>{String(s.payingCustomers)}</dd>
           <dt>Revenue</dt><dd>{`${money(s.weeklyRevenueCents)} a week`}</dd>
           <dt>Costs</dt><dd>{`${money(s.weeklyBurnCents + (CATALOG.budgetLevelsCents[s.marketing.level] ?? 0))} a week`}</dd>
+          {s.capacity !== null ? (
+            <>
+              <dt>Customers</dt><dd>{s.capacity >= 100_000 ? String(s.payingCustomers) : `${s.payingCustomers} of ${s.capacity} you can serve`}</dd>
+              <dt>Team</dt><dd>{s.hires === 0 ? "Just you" : `${s.team.builder} building, ${s.team.seller} selling, ${s.team.ops} serving`}</dd>
+              <dt>R&D</dt><dd>{s.rndLevel === 0 ? `None. Quality ${s.qualityPct} percent` : `${money(CATALOG.rndLevelsCents[s.rndLevel] ?? 0)} a week. Quality ${s.qualityPct} percent`}</dd>
+            </>
+          ) : null}
           <dt>Stage</dt><dd>{`${stageOf(currentBusiness(), s.productProgressPct, s.landingPageBuilt).label}, ${s.productProgressPct} percent ready`}</dd>
         </dl>
       </Section>

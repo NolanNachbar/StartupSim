@@ -66,6 +66,13 @@ export const draft = signal({ name: "", industry: 0, model: 0, idea: "" });
 export const setupStep = signal<1 | 2 | 3 | 4>(1);
 /** The wording of the questions asked in the interview round just held, in order (shown on the result). */
 export const askedWording = signal<readonly string[]>([]);
+/** The customer group a form opens on (picked on the map), or null for the one the company is focused on. */
+export const formSegment = signal<number | null>(null);
+/** Open an action's form, optionally already pointed at one customer group. */
+export function openForm(id: FormId, segment: number | null = null): void {
+  formSegment.value = segment;
+  go({ name: "form", id });
+}
 export const shareNotice = signal<string | null>(null);
 export const notes = signal<Note[]>([]);
 export const flights = signal<Flight[]>([]);

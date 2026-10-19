@@ -1,7 +1,7 @@
 // The words of the company the player founded: the questions they can ask, what the builds, channels and hires are called,
 // and what each stage of the business is. It reads only the public business content from the sim, so nothing here
 // knows any hidden truth.
-import { BUSINESS_LIST, BUSINESS_MODELS, cleanIdea, type Business, type BusinessChoice, type QuestionType } from "../sim";
+import { BUSINESS_LIST, BUSINESS_MODELS, CATALOG, cleanIdea, type Business, type BusinessChoice, type QuestionType } from "../sim";
 
 /** The business the player chose, as the words use it, or null before they chose one. */
 export function businessOf(industry: number, choice: BusinessChoice | null): Business | null {
@@ -12,13 +12,15 @@ export function businessOf(industry: number, choice: BusinessChoice | null): Bus
 }
 
 export interface QuestionOption {
-  /** Unique within the list; the part before "#" is the question type the sim understands. */
+  /** The topic id (see the sim's question bank); unique in the list. */
   readonly value: string;
   readonly type: QuestionType;
+  /** A short name for the choice list. */
+  readonly short: string;
   readonly text: string;
 }
 
-/** Two ways to ask each kind of question, in this business's words. The sim sees only the type. */
+/** Twelve different questions, in this business's words. What each is about differs; the sim sees the topic and the kind. */
 export function questionOptions(b: Business | null): QuestionOption[] {
   const idea = b?.idea ?? "this idea";
   const situation = b?.situation ?? "you ran into this problem";
@@ -26,20 +28,25 @@ export function questionOptions(b: Business | null): QuestionOption[] {
   const pay = b?.model.payVerb ?? "pay for";
   const use = b?.model.useVerb ?? "use";
   const ing = b?.model.ingVerb ?? "building";
-  return [
-    { value: "past-behavior#0", type: "past-behavior", text: `Tell me about the last time ${situation}.` },
-    { value: "past-behavior#1", type: "past-behavior", text: `How do you handle this today with ${workaround}, and what does it cost you?` },
-    { value: "commitment#0", type: "commitment", text: `Would you ${pay} ${idea} today?` },
-    { value: "commitment#1", type: "commitment", text: `If ${idea} were ready next week, would you put your card down now?` },
-    { value: "hypothetical#0", type: "hypothetical", text: `Would you ${use} ${idea}?` },
-    { value: "hypothetical#1", type: "hypothetical", text: `Do you think ${idea} would be useful for people like you?` },
-    { value: "pitch#0", type: "pitch", text: `I'm ${ing} ${idea}. What do you think?` },
-    { value: "pitch#1", type: "pitch", text: `Here is my idea: ${idea}. Does it sound good?` },
-  ];
+  const texts: Record<string, [string, string]> = {
+    "last-time": ["Their last time", `Tell me about the last time ${situation}.`],
+    cost: ["What it costs them", `What does it cost you when ${situation}, in money and in time?`],
+    tried: ["What they have tried", `What have you tried to fix this, and why did it not stick?`],
+    who: ["Who decides", `Who else is involved when this happens, and who decides what to do about it?`],
+    "pay-today": ["Pay today", `Would you ${pay} ${idea} today?`],
+    "pre-order": ["Pre-order", `If I could get ${idea} to you next month, would you pre-order it now?`],
+    deposit: ["Put down a deposit", `Would you put down a deposit today to be first in line for ${idea}?`],
+    "would-use": ["Would they use it", `Would you ${use} ${idea}?`],
+    useful: ["Is it useful", `Do you think ${idea} would be useful for people like you?`],
+    switch: ["Switch from today", `Would you switch from ${workaround} to ${idea}?`],
+    pitch: ["Pitch it", `I'm ${ing} ${idea}. What do you think?`],
+    feedback: ["Ask for feedback", `Here is my idea: ${idea}. What would you change?`],
+  };
+  return CATALOG.questionBank.map((q) => ({ value: q.topic, type: q.type, short: texts[q.topic]?.[0] ?? q.topic, text: texts[q.topic]?.[1] ?? q.topic }));
 }
 
-export const questionType = (value: string): QuestionType => (value.split("#")[0] ?? "past-behavior") as QuestionType;
-export const questionTextFor = (b: Business | null, value: string): string => questionOptions(b).find((o) => o.value === value)?.text ?? "";
+export const questionType = (topic: string): QuestionType => CATALOG.questionBank.find((q) => q.topic === topic)?.type ?? "past-behavior";
+export const questionTextFor = (b: Business | null, topic: string): string => questionOptions(b).find((o) => o.value === topic)?.text ?? "";
 
 export const ideaOf = (b: Business | null): string => b?.idea ?? "your idea";
 
@@ -105,4 +112,20 @@ export function stageOf(b: Business | null, progressPct: number, landingPageBuil
     return { label: words.mid, detail: landingPageBuilt && progressPct === 0 ? `You can ask people to pay in tests. The ${words.unit} itself is not ready.` : `The ${words.unit} is ${progressPct} percent ready. At 100 percent it is ${words.done.toLowerCase()}.` };
   }
   return { label: words.idea, detail: `Nothing is ready yet. ${m === "location" ? "A trial pass" : "A first page"} lets you ask people to pay in tests.` };
+}
+
+export type Role = "builder" | "seller" | "ops";
+
+/** Who each role is in this kind of business, and what they do for it. */
+export function roleInfo(b: Business | null, role: Role): { label: string; what: string } {
+  const m = b?.model.id ?? "software";
+  if (role === "builder") {
+    const label = { software: "Developer", service: "Delivery specialist", location: "Fit-out and upkeep crew", product: "Maker" }[m];
+    const what = { software: "builds the product every week, without you", service: "builds your methods and materials every week, without you", location: "sets the place up and keeps it running every week, without you", product: "makes the product every week, without you" }[m];
+    return { label, what };
+  }
+  if (role === "seller") return { label: m === "location" ? "Membership salesperson" : "Salesperson", what: "reaches people by hand every week and makes your marketing reach more of them" };
+  const hire = b?.hire ? b.hire.replace(/^an? /, "") : "support person";
+  const ops = m === "software" ? "Support agent" : hire.charAt(0).toUpperCase() + hire.slice(1);
+  return { label: ops, what: m === "software" ? "looks after customers, so you can serve far more of them" : "serves customers, so the business can hold more of them" };
 }

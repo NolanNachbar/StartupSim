@@ -192,15 +192,41 @@ test("help explains the game without telling the player what to do", async ({ pa
   await expect(page.getByRole("heading", { name: "How to play" })).toBeVisible();
 });
 
-test("the week screen shows the path to default alive as milestones", async ({ page }) => {
+test("the week screen shows the stage of the business, and the action screen says what you can do in it", async ({ page }) => {
   await page.goto("/?seed=3");
   await page.getByRole("button", { name: "Start a run" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
-  const bar = page.getByRole("list", { name: "Your path to default alive" });
+  const bar = page.getByRole("list", { name: "Stages of your business" });
   await expect(bar).toBeVisible();
   await expect(bar.getByRole("listitem")).toHaveCount(5);
-  await expect(page.getByText("0 of 5: Talk to customers")).toBeVisible();
+  await expect(page.getByText(/Stage 1 of 5: Idea\./)).toBeVisible();
+  await page.getByRole("button", { name: "Choose an action" }).click();
+  await expect(page.getByRole("heading", { name: "What you can do in this stage" })).toBeVisible();
+  await expect(page.getByText(/no proof yet that anyone wants it/)).toBeVisible();
+});
+
+test("tapping a customer group shows what you can do with that group", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
+  await page.goto("/?seed=3");
+  await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Start the company" }).click();
+  const chip = page.locator(".route-row[data-focus=\"false\"]").first();
+  const chipName = await chip.locator(".route-row__name").innerText();
+  await chip.click();
+  const panel = page.getByRole("region", { name: /Actions for/ });
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("button", { name: /Interview/ })).toBeVisible();
+  await expect(panel.getByRole("button", { name: /Aim marketing at them/ })).toBeVisible();
+  await expect(panel.getByRole("button", { name: /Switch to them/ })).toBeVisible();
+  // The form opens already pointed at that group.
+  await panel.getByRole("button", { name: /Interview/ }).click();
+  await expect(page.getByRole("radio", { checked: true }).first()).toBeVisible();
+  const picked = await page.getByRole("radio", { checked: true }).first().evaluate((e) => (e.closest("label")?.textContent ?? "").trim());
+  expect(picked).toContain(chipName);
 });

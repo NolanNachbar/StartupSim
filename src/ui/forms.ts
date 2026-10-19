@@ -1,14 +1,14 @@
 // The action forms. Each form is data: its fields and how to turn the chosen values into a sim action.
 // Rules live in the sim; a form never decides whether an action is legal, it only builds the action.
 import { CATALOG, type Action, type BuildKind, type PublicState } from "../sim";
-import { buildCopy, channelCopy, costsOf, hireRole, ideaOf, questionOptions, questionType } from "./business";
+import { buildCopy, channelCopy, costsOf, ideaOf, questionOptions, questionType, roleInfo, type Role } from "./business";
 import { money } from "./format";
-import { currentBusiness } from "./store";
+import { currentBusiness, formSegment } from "./store";
 
 const biz = currentBusiness;
 
 export type FormId =
-  | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer";
+  | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer";
 
 export interface Option {
   readonly value: string;
@@ -43,7 +43,7 @@ const segmentField = (s: PublicState, label = "Customer group"): Field => ({
   label,
   kind: "radio",
   options: s.segmentNames.map((name, i) => ({ value: String(i), label: name })),
-  initial: String(s.focusSegment),
+  initial: String(formSegment.value ?? s.focusSegment),
 });
 
 const channelField = (s: PublicState): Field => ({
@@ -76,7 +76,7 @@ export const FORMS: readonly FormDef[] = [
           label: `Question ${n}`,
           kind: "select",
           options: questionOptions(biz()).map((o) => ({ value: o.value, label: o.text })),
-          initial: "past-behavior#0",
+          initial: ["last-time", "pay-today", "would-use"][n - 1] ?? "last-time",
         }),
       ),
     ],
@@ -84,7 +84,8 @@ export const FORMS: readonly FormDef[] = [
     build: (v, s) => ({
       type: "interview",
       segment: Number.isNaN(num(v, "segment")) ? s.focusSegment : num(v, "segment"),
-      questions: [v.q1, v.q2, v.q3].map((q) => questionType(q ?? "past-behavior#0")),
+      questions: [v.q1, v.q2, v.q3].map((q) => questionType(q ?? "last-time")),
+      topics: [v.q1 ?? "last-time", v.q2 ?? "pay-today", v.q3 ?? "would-use"],
     }),
     listed: () => true,
   },
@@ -171,11 +172,22 @@ export const FORMS: readonly FormDef[] = [
         options: CATALOG.budgetLevelsCents.map((c, i) => ({ value: String(i), label: `${LEVEL_NAMES[i] ?? ""}, ${money(c)} a week` })),
         initial: String(s.marketing.level),
       },
+      ...(s.capacity === null
+        ? []
+        : [
+            {
+              id: "target",
+              label: "Who to aim at",
+              kind: "select" as const,
+              options: s.segmentNames.map((n, i) => ({ value: String(i), label: n })),
+              initial: String(formSegment.value ?? s.marketing.target ?? s.focusSegment),
+            },
+          ]),
     ],
     submit: "Set marketing",
     build: (v) => {
       const level = num(v, "level");
-      return { type: "setMarketing", channel: level === 0 ? null : num(v, "channel"), level };
+      return { type: "setMarketing", channel: level === 0 ? null : num(v, "channel"), level, ...(v.target !== undefined ? { target: num(v, "target") } : {}) };
     },
     listed: () => true,
   },
@@ -184,11 +196,52 @@ export const FORMS: readonly FormDef[] = [
     title: "Hire someone",
     blurb: "Add a person to the team. They cost money every week.",
     intro: (s) =>
-      `You hire ${hireRole(biz())} who helps build and sell ${ideaOf(biz())}. They cost ${money(CATALOG.hireWeeklyCents)} every week, shorten every build by a week, and add 25 percent to the leads your marketing reaches. Your weekly costs (${costsOf(biz())}) would go from ${money(s.weeklyBurnCents)} to ${money(s.weeklyBurnCents + CATALOG.hireWeeklyCents)} before marketing. You have hired ${s.hires} of ${CATALOG.maxHires} you can.`,
-    fields: () => [],
+      s.capacity === null
+        ? `A contractor costs ${money(CATALOG.hireWeeklyCents)} every week, shortens every build by a week and adds 25 percent to the leads your marketing reaches. You have hired ${s.hires} of ${CATALOG.maxHires} you can.`
+        : `Finding the right person takes a week of your time. Each person costs ${money(CATALOG.hireWeeklyCents)} every week, so your weekly costs (${costsOf(biz())}) would go from ${money(s.weeklyBurnCents)} to ${money(s.weeklyBurnCents + CATALOG.hireWeeklyCents)} before marketing. You have ${s.hires} of ${CATALOG.maxTeam} people. The team works at the same time as you, so you can talk to customers while they work.`,
+    fields: (s) =>
+      s.capacity === null
+        ? []
+        : [
+            {
+              id: "role",
+              label: "Who to hire",
+              kind: "radio",
+              options: (CATALOG.roles as readonly Role[]).map((r) => {
+                const info = roleInfo(biz(), r);
+                const have = s.team[r];
+                const effect = r === "builder" ? `Adds ${CATALOG.builderProgressPct} percent to what you are getting ready, every week.` : r === "seller" ? `Reaches ${CATALOG.sellerOutreachLeads} people by hand every week, once you have something to sell, and makes marketing reach 25 percent more.` : `Raises the most customers you can serve (now ${s.capacity}).`;
+                return { value: r, label: `${info.label} (${have} of ${CATALOG.roleCap})`, hint: `Someone who ${info.what}. ${effect}` };
+              }),
+              initial: "builder",
+            },
+          ],
     submit: "Hire",
-    build: () => ({ type: "hire" }),
+    build: (v, s) => (s.capacity === null ? { type: "hire" } : { type: "hire", role: (v.role ?? "builder") as Role }),
     listed: () => true,
+  },
+  {
+    id: "rnd",
+    title: "Spend on R&D",
+    blurb: "Pay every week to make what you offer better.",
+    intro: (s) =>
+      `Research and development makes ${ideaOf(biz())} better over time: better quality helps it sell, lets you charge more and keeps customers from leaving. It comes out of your cash every week until you turn it off. Quality now: ${s.qualityPct} percent.`,
+    fields: (s) => [
+      {
+        id: "level",
+        label: "Weekly R&D budget",
+        kind: "radio",
+        options: CATALOG.rndLevelsCents.map((c, i) => ({
+          value: String(i),
+          label: i === 0 ? "None" : `${["", "Light", "Steady", "Heavy"][i] ?? ""}, ${money(c)} a week`,
+          hint: i === 0 ? "No R&D spending." : `About ${CATALOG.rndGain[i]} points of quality a week.`,
+        })),
+        initial: String(s.rndLevel),
+      },
+    ],
+    submit: "Set R&D",
+    build: (v) => ({ type: "setRnd", level: num(v, "level") }),
+    listed: (s) => s.capacity !== null,
   },
   {
     id: "raise",

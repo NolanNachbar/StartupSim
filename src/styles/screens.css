@@ -342,3 +342,23 @@
 .examples { display: grid; gap: var(--s-2); }
 .button--example { width: 100%; height: auto; min-height: var(--tap); padding: var(--s-2) var(--s-4); text-align: left; white-space: normal; }
 .button--example[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
+
+/* Stage bar, group actions and the cash change on the HUD. */
+.stage { display: grid; gap: var(--s-2); }
+.stage__bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s-1); margin: 0; padding: 0; list-style: none; }
+.stage__step { position: relative; height: 8px; border-radius: 4px; background: var(--line); min-width: 0; }
+.stage__step--done { background: var(--primary); }
+.stage__step--now { background: var(--primary); outline: 2px solid var(--primary); outline-offset: 2px; }
+.stage__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.stage__what { margin: 0; line-height: 1.35; }
+.group { display: grid; gap: var(--s-2); padding: var(--s-3); background: var(--surface-raised); border-radius: var(--radius-chip); }
+.group__title { margin: 0; font-size: var(--t-lg); font-weight: 800; }
+.group__facts { margin: 0; color: var(--ink-soft); }
+.group__list { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.delta { margin: 0; font-size: 1rem; font-weight: 700; text-align: right; }
+.delta--out { color: var(--error-ink); }
+.delta--in { color: var(--verified); }
+
+/* The idea under the heading stays on one line. */
+.plate__company { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
+.plate__head { min-width: 0; }
