@@ -267,6 +267,8 @@ export interface Save {
   model?: number;
   /** The player's idea in their own words. Present with a model. */
   idea?: string;
+  /** The player's own customer groups and wording, when they changed the defaults. */
+  custom?: import("./business").Custom;
   actions: Action[];
 }
 

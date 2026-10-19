@@ -1,7 +1,7 @@
 // Internal run state. Nothing outside src/sim imports this: the public API wraps it as an opaque Run.
 import type { BusinessChoice } from "./business";
 import { INTERVIEW_ROUND_CASH_CENTS, PIVOT_COST_CENTS, ROUND_WEEKS, START_CASH_CENTS, TEST_CASH_CENTS, WEEKLY_BURN_CENTS, pivotsRemaining } from "./runway";
-import { BURN_BY_MODEL, capacityOf } from "./realism";
+import { BURN_BY_MODEL, START_PRICE_BY_MODEL, capacityOf } from "./realism";
 import { hypothesesFrom } from "./hypotheses";
 import type { Action, PublicState, Secret } from "./types";
 import { generateWorld } from "./world";
@@ -30,7 +30,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     endReason: null,
     cashCents: START_CASH_CENTS,
     weeklyBurnCents: secret.business ? BURN_BY_MODEL[secret.business.model.id] : WEEKLY_BURN_CENTS,
-    priceCents: START_PRICE_CENTS,
+    priceCents: secret.business ? START_PRICE_BY_MODEL[secret.business.model.id] : START_PRICE_CENTS,
     pivotCostCents: pivotCost,
     pivotsRemaining: pivotsRemaining(START_CASH_CENTS, pivotCost),
     pivotsUsed: 0,

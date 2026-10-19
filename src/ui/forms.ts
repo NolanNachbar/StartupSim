@@ -7,6 +7,15 @@ import { currentBusiness, formSegment } from "./store";
 
 const biz = currentBusiness;
 
+/** What businesses like this usually charge, so the price you pick is judged against something real. */
+const typicalPrice = (b: ReturnType<typeof currentBusiness>): string =>
+  ({
+    software: "Software and apps usually charge about $10 to $100 a month.",
+    service: "Services such as coaching, repairs or advice usually charge about $200 to $1,000 a month per client.",
+    location: "Memberships and visits at a place usually come to about $30 to $150 a month.",
+    product: "Products and subscriptions usually charge about $20 to $100 a month.",
+  })[b?.model.id ?? "software"];
+
 export type FormId =
   | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer";
 
@@ -137,7 +146,7 @@ export const FORMS: readonly FormDef[] = [
     id: "price",
     title: "Set price",
     blurb: "Change what customers are charged.",
-    intro: (s) => `This is how you make money: every paying customer pays your price each month, so weekly revenue is customers times price. You charge ${money(s.priceCents)} a month now and have ${s.payingCustomers} paying ${s.payingCustomers === 1 ? "customer" : "customers"}. A price that is too low starves your cash; one that is too high means fewer people buy.`,
+    intro: (s) => `This is how you make money: every paying customer pays your price each month, so weekly revenue is customers times price. ${typicalPrice(biz())} You charge ${money(s.priceCents)} a month now and have ${s.payingCustomers} paying ${s.payingCustomers === 1 ? "customer" : "customers"}. A price that is too low starves your cash; one that is too high means fewer people buy.`,
     fields: (s) => [
       {
         id: "price",

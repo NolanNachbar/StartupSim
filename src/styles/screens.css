@@ -338,6 +338,11 @@
 .launch__title { margin: 0; font-size: var(--t-lg); font-weight: 800; color: var(--verified); }
 .launch__text { margin: 0; }
 
+/* The optional part of the idea page. */
+.more { padding: var(--s-3); background: var(--surface-raised); border-radius: var(--radius-chip); }
+.more summary { cursor: pointer; font-weight: 700; min-height: var(--tap); display: flex; align-items: center; }
+.textarea { height: auto; padding: var(--s-2) var(--s-3); line-height: 1.35; resize: vertical; }
+
 /* Example ideas on the idea page: full-width, wrapping, one per row. */
 .examples { display: grid; gap: var(--s-2); }
 .button--example { width: 100%; height: auto; min-height: var(--tap); padding: var(--s-2) var(--s-4); text-align: left; white-space: normal; }

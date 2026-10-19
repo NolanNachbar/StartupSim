@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMBOS, MAX_IDEA, MODELS, businessFor, cleanIdea, describeModel } from "./business";
+import { COMBOS, MAX_IDEA, MODELS, businessFor, cleanCustom, cleanIdea, describeModel, matchPack } from "./business";
 import { INDUSTRY_LIST, fromSave, newRun, step, toSave, view } from "./index";
 import { INDUSTRIES } from "./world";
 
@@ -99,5 +99,40 @@ describe("a run with a chosen business", () => {
 
   it("leaves the original generic worlds exactly as they were", () => {
     expect(view(newRun(3, 1)).segmentNames).toEqual(INDUSTRIES[1]!.segmentNames.slice(0, view(newRun(3, 1)).segmentNames.length));
+  });
+});
+
+describe("the player's own customers and words", () => {
+  const health = 3;
+  it("replaces the pack's customers and wording, leaves the rest, and tidies it", () => {
+    const b = businessFor(health, { model: 2, idea: "a boxing gym", custom: { segmentNames: ["Amateur boxers", "Office workers <b>", "Teenagers"], situation: "your gloves stank and the gym was full" } })!;
+    expect(b.segmentNames).toEqual(["Amateur boxers", "Office workers b", "Teenagers"]);
+    expect(b.situation).toBe("your gloves stank and the gym was full");
+    expect(b.workaround).toBe(COMBOS[health]![2]!.workaround);
+    expect(cleanCustom({ segmentNames: ["only", "two"] })).toBeUndefined();
+    expect(cleanCustom({ situation: "x" })).toBeUndefined();
+  });
+
+  it("flows into the run: the groups, the interviews, and the save", () => {
+    const choice = { model: 2, idea: "a boxing gym", custom: { segmentNames: ["Amateur boxers", "Office workers", "Teenagers", "Retirees"], workaround: "a damp garage and a heavy bag" } };
+    const run = newRun(5, health, choice);
+    expect(view(run).segmentNames).toEqual(["Amateur boxers", "Office workers", "Teenagers", "Retirees"].slice(0, view(run).segmentNames.length));
+    const save = toSave(run);
+    expect(save.custom?.workaround).toBe("a damp garage and a heavy bag");
+    const loaded = fromSave(JSON.parse(JSON.stringify(save)));
+    expect(loaded.ok && view(loaded.run).segmentNames).toEqual(view(run).segmentNames);
+    expect(fromSave({ ...save, custom: "oops" }).ok).toBe(false);
+    expect(fromSave({ ...save, custom: { segmentNames: [1, 2, 3] } }).ok).toBe(true); // junk entries are dropped, not fatal
+  });
+});
+
+describe("matching an idea to a closer pack", () => {
+  const health = 3;
+  it("suggests the pack an idea sounds like, and keeps quiet when the current one fits", () => {
+    expect(matchPack("a boxing gym", 1, 0)).toEqual({ industry: health, model: 2 });
+    expect(matchPack("a family pizza restaurant", 3, 0)?.industry).toBe(6); // food and drink
+    expect(matchPack("a small strength-training gym", health, 2)).toBeNull();
+    expect(matchPack("zzz qqq", 1, 0)).toBeNull();
+    expect(matchPack("", 1, 0)).toBeNull();
   });
 });

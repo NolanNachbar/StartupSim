@@ -198,3 +198,33 @@ test("a shared link with a market that does not exist leaves the choice to you",
   await expect(page.getByRole("heading", { name: "Choose your industry" })).toBeVisible(); // a bad industry leaves the choice to the player
   await expect(page.getByRole("radio", { name: /Business software/ })).toBeEnabled();
 });
+
+test("a typed idea suggests a closer match, and the customers and wording can be your own", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
+  await page.goto("/?seed=3");
+  await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("radio", { name: /Consumer apps/ }).check();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByLabel("Your idea").fill("a boxing gym");
+  await expect(page.getByText(/Sounds like physical location in Health and wellness/)).toBeVisible();
+  await page.getByRole("button", { name: "Use that" }).click();
+  await expect(page.getByText(/Sounds like/)).toHaveCount(0);
+  await expect(page.getByText(/groups like Local regulars/)).toBeVisible();
+
+  await page.getByText("Make it yours").click();
+  await page.getByLabel(/Customer groups, one per line/).fill("Amateur boxers\nOffice workers\nTeenagers\nRetirees");
+  await page.getByLabel("How they cope today").fill("a damp garage and a heavy bag");
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Start the company" }).click();
+  await expect(page.getByRole("button", { name: /Amateur boxers/ }).first()).toBeVisible();
+  await expect(page.locator(".plate__company")).toHaveText("a boxing gym");
+
+  // The wording of the questions uses the player's words, and survives a refresh.
+  await page.reload();
+  await page.getByRole("button", { name: "Continue run" }).click();
+  await expect(page.getByRole("button", { name: /Amateur boxers/ }).first()).toBeVisible();
+  await page.getByRole("button", { name: "Choose an action" }).click();
+  await page.getByRole("button", { name: /Interview a customer/ }).last().click();
+  await expect(page.getByRole("combobox").first()).toContainText("a boxing gym");
+});

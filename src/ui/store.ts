@@ -2,7 +2,7 @@
 // this file only calls `step` and `view` and remembers what to show.
 import { computed, signal } from "@preact/signals";
 import {
-  BUSINESS_LIST, INDUSTRY_LIST, cleanIdea, newRun, report as reportFor, step, toSave, view,
+  BUSINESS_LIST, INDUSTRY_LIST, cleanIdea, newRun, type Custom, report as reportFor, step, toSave, view,
   type Action, type PublicState, type Report, type Run,
 } from "../sim";
 import { describeStep, reasonText, type StepDescription } from "./format";
@@ -59,9 +59,10 @@ export const challengeIndustry = signal<number | null>(null);
 /** A shared link can name the business model and idea too. */
 export const challengeBusiness = signal<{ model: number; idea: string } | null>(null);
 /** The company being run: its name and market. */
-export const company = signal({ name: "", industry: 0, model: 0, idea: "" });
+export const company = signal<{ name: string; industry: number; model: number; idea: string; custom?: Custom }>({ name: "", industry: 0, model: 0, idea: "" });
 /** The setup form. */
-export const draft = signal({ name: "", industry: 0, model: 0, idea: "" });
+/** The setup form. `custom` holds the player's own wording once they change anything under "Make it yours". */
+export const draft = signal<{ name: string; industry: number; model: number; idea: string; custom?: { groups: string; situation: string; workaround: string } }>({ name: "", industry: 0, model: 0, idea: "" });
 /** Which of the four setup pages is showing: 1 industry, 2 business model, 3 idea, 4 name. */
 export const setupStep = signal<1 | 2 | 3 | 4>(1);
 /** The wording of the questions asked in the interview round just held, in order (shown on the result). */
@@ -127,7 +128,7 @@ export function init(search: string): void {
     const meta = storage.getJson("runway.company");
     const saveIndustry = toSave(loaded.run).industry ?? 0;
     const savedName = meta && typeof meta === "object" && typeof (meta as { name?: unknown }).name === "string" ? cleanName((meta as { name: string }).name) : null;
-    company.value = { name: savedName ?? suggestName(toSave(loaded.run).seed), industry: saveIndustry, model: toSave(loaded.run).model ?? 0, idea: toSave(loaded.run).idea ?? "" };
+    company.value = { name: savedName ?? suggestName(toSave(loaded.run).seed), industry: saveIndustry, model: toSave(loaded.run).model ?? 0, idea: toSave(loaded.run).idea ?? "", ...(toSave(loaded.run).custom ? { custom: toSave(loaded.run).custom as Custom } : {}) };
     currentSeed.value = toSave(loaded.run).seed;
   }
   if (loaded.kind === "corrupt") {
@@ -224,7 +225,7 @@ export function flyAgain(): void {
 
 import { businessOf } from "./business";
 /** The business the company now running is, as the words use it. */
-export const currentBusiness = () => businessOf(company.value.industry, company.value.idea ? { model: company.value.model, idea: company.value.idea } : null);
+export const currentBusiness = () => businessOf(company.value.industry, company.value.idea ? { model: company.value.model, idea: company.value.idea, ...(company.value.custom ? { custom: company.value.custom } : {}) } : null);
 
 /** The first example idea for an industry and model: the starting text of the idea page. */
 export const exampleIdea = (industry: number, model: number): string => BUSINESS_LIST[industry]?.[model]?.examples[0] ?? "my business";
@@ -238,14 +239,25 @@ export function startCompany(): void {
   const seed = challengeSeed.value ?? baseSeed.value;
   const name = cleanName(draft.value.name) ?? suggestName(seed);
   const idea = cleanIdea(draft.value.idea) ?? exampleIdea(draft.value.industry, draft.value.model);
-  takeOff(seed, draft.value.industry, draft.value.model, idea, name);
+  const typed = draft.value.custom;
+  const pack = BUSINESS_LIST[draft.value.industry]?.[draft.value.model];
+  const groups = typed ? typed.groups.split("\n").map((g) => g.trim()).filter(Boolean) : [];
+  const custom: Custom | undefined =
+    typed && pack
+      ? {
+          ...(groups.length >= 3 && groups.join("|") !== pack.segmentNames.join("|") ? { segmentNames: groups } : {}),
+          ...(typed.situation.trim() && typed.situation.trim() !== pack.situation ? { situation: typed.situation.trim() } : {}),
+          ...(typed.workaround.trim() && typed.workaround.trim() !== pack.workaround ? { workaround: typed.workaround.trim() } : {}),
+        }
+      : undefined;
+  takeOff(seed, draft.value.industry, draft.value.model, idea, name, custom && Object.keys(custom).length > 0 ? custom : undefined);
 }
 
-export function takeOff(seed: number, industry: number, model: number, idea: string, name: string): void {
-  const next = newRun(seed, industry, { model, idea });
+export function takeOff(seed: number, industry: number, model: number, idea: string, name: string, custom?: Custom): void {
+  const next = newRun(seed, industry, { model, idea, ...(custom ? { custom } : {}) });
   run.value = next;
   currentSeed.value = seed;
-  company.value = { name, industry, model, idea };
+  company.value = { name, industry, model, idea, ...(custom ? { custom } : {}) };
   storage.setJson("runway.company", { name });
   shareNotice.value = null;
   savedRun.value = null;

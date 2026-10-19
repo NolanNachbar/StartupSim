@@ -4,7 +4,7 @@
 import { isActionShape } from "./actions";
 import { step } from "./reducer";
 import { initialRun, type InternalRun } from "./state";
-import { COMBOS, MAX_IDEA, MODELS, cleanIdea, type BusinessChoice } from "./business";
+import { COMBOS, MAX_IDEA, MODELS, cleanCustom, cleanIdea, type BusinessChoice, type Custom } from "./business";
 import { INDUSTRIES } from "./world";
 import type { Action, LoadError, Save } from "./types";
 
@@ -18,7 +18,8 @@ export const MAX_SAVE_ACTIONS = 5000;
 export function toSave(run: InternalRun): Save {
   const base = { simVersion: SIM_VERSION, seed: run.seed, actions: run.actions.map((a) => ({ ...a })) };
   if (run.industry === null) return base;
-  return run.business === null ? { ...base, industry: run.industry } : { ...base, industry: run.industry, model: run.business.model, idea: run.business.idea };
+  if (run.business === null) return { ...base, industry: run.industry };
+  return { ...base, industry: run.industry, model: run.business.model, idea: run.business.idea, ...(run.business.custom ? { custom: run.business.custom } : {}) };
 }
 
 export type LoadResult =
@@ -33,7 +34,7 @@ type Checked =
 function check(input: unknown): Checked {
   try {
     if (typeof input !== "object" || input === null) return { ok: false, reason: "invalid" };
-    const { simVersion, seed, actions, industry, model, idea } = input as { simVersion?: unknown; seed?: unknown; actions?: unknown; industry?: unknown; model?: unknown; idea?: unknown };
+    const { simVersion, seed, actions, industry, model, idea, custom } = input as { simVersion?: unknown; seed?: unknown; actions?: unknown; industry?: unknown; model?: unknown; idea?: unknown; custom?: unknown };
     if (!Number.isSafeInteger(simVersion)) return { ok: false, reason: "invalid" };
     if (typeof seed !== "number" || !Number.isInteger(seed) || seed < 0 || seed > MAX_SEED) {
       return { ok: false, reason: "invalid" };
@@ -50,7 +51,9 @@ function check(input: unknown): Checked {
       if (typeof industry !== "number" || typeof model !== "number" || !Number.isInteger(model) || model < 0 || model >= MODELS.length || !COMBOS[industry]?.[model] || cleaned === null) {
         return { ok: false, reason: "invalid" };
       }
-      business = { model, idea: cleaned };
+      const own = custom === undefined ? undefined : typeof custom === "object" && custom !== null ? cleanCustom(custom as Custom) : null;
+      if (own === null) return { ok: false, reason: "invalid" };
+      business = { model, idea: cleaned, ...(own ? { custom: own } : {}) };
     }
     if (simVersion !== SIM_VERSION) return { ok: false, reason: "version-mismatch" };
     // Copy so later changes to the caller's objects cannot affect the replay.

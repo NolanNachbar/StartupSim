@@ -1,5 +1,5 @@
 // Public API of the simulation. src/ui may import only from here (enforced by ESLint).
-import { COMBOS, MAX_IDEA, MODELS, cleanIdea, describeModel, type Business, type BusinessChoice, type Combo, type ModelInfo } from "./business";
+import { COMBOS, MAX_IDEA, MODELS, cleanCustom, cleanIdea, describeModel, matchPack, type Business, type BusinessChoice, type Combo, type Custom, type ModelInfo } from "./business";
 // `Run` is opaque: it carries the hidden world, but the type gives the UI no way to read it.
 import { legalActions as legalActionsInternal } from "./actions";
 import { step as stepInternal } from "./reducer";
@@ -92,8 +92,8 @@ const outside = (run: InternalRun): Run => run as unknown as Run;
 export const BUSINESS_LIST: readonly (readonly Combo[])[] = COMBOS;
 export const BUSINESS_MODELS: readonly ModelInfo[] = MODELS;
 export const MAX_IDEA_LENGTH = MAX_IDEA;
-export { cleanIdea, describeModel };
-export type { Business, BusinessChoice, Combo, ModelInfo };
+export { cleanCustom, cleanIdea, describeModel, matchPack };
+export type { Business, BusinessChoice, Combo, Custom, ModelInfo };
 
 /** The markets a company can start in: public descriptions only. The numbers behind them stay hidden. */
 export const INDUSTRY_LIST: readonly { readonly name: string; readonly blurb: string }[] = INDUSTRIES.map((i) => ({ name: i.name, blurb: i.blurb }));
@@ -112,7 +112,8 @@ export function newRun(seed: number, industry?: number, business?: BusinessChoic
   if (business !== undefined && (industry === undefined || !Number.isInteger(business.model) || !COMBOS[industry]?.[business.model] || cleanIdea(business.idea) === null)) {
     throw new RangeError("business needs an industry, a model index and an idea of at least three characters");
   }
-  return outside(initialRun(seed, industry ?? null, business ? { model: business.model, idea: cleanIdea(business.idea) as string } : null));
+  const custom = business ? cleanCustom(business.custom) : undefined;
+  return outside(initialRun(seed, industry ?? null, business ? { model: business.model, idea: cleanIdea(business.idea) as string, ...(custom ? { custom } : {}) } : null));
 }
 
 export function legalActions(run: Run): readonly Action[] {

@@ -160,6 +160,39 @@ export const COMBOS: readonly (readonly Combo[])[] = RAW.map((row, i) => row.map
 export interface BusinessChoice {
   readonly model: number;
   readonly idea: string;
+  /** The player's own version of who the customers are and what they say: anything left out comes from the pack. */
+  readonly custom?: Custom;
+}
+
+export interface Custom {
+  /** Up to five customer groups, smallest and easiest to reach first. */
+  readonly segmentNames?: readonly string[];
+  readonly situation?: string;
+  readonly cost?: string;
+  readonly workaround?: string;
+}
+
+export const MAX_LINE = 80;
+export const MAX_GROUP = 28;
+
+/** Tidy one line of the player's own words: letters, digits and common punctuation, no markup. */
+export function cleanLine(raw: unknown, max = MAX_LINE): string | null {
+  if (typeof raw !== "string") return null;
+  const s = raw.replace(/[^\p{L}\p{N} .,'&/+-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, max).trim();
+  return s.length >= 3 ? s : null;
+}
+
+/** The player's customisation, tidied and checked; null when there is nothing in it. */
+export function cleanCustom(c: Custom | undefined): Custom | undefined {
+  if (!c) return undefined;
+  const groups = (Array.isArray(c.segmentNames) ? c.segmentNames : []).map((g) => cleanLine(g, MAX_GROUP)).filter((g): g is string => g !== null).slice(0, 5);
+  const out: { segmentNames?: string[]; situation?: string; cost?: string; workaround?: string } = {};
+  if (groups.length >= 3) out.segmentNames = groups;
+  for (const k of ["situation", "cost", "workaround"] as const) {
+    const v = typeof c[k] === "string" ? cleanLine(c[k] as string) : null;
+    if (v) out[k] = v;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 /** A business as the sim and the UI use it: the combo for this industry and model, with the player's idea. */
@@ -188,7 +221,8 @@ export function businessFor(industry: number | null, choice: BusinessChoice | nu
   const model = MODELS[choice.model];
   const idea = cleanIdea(choice.idea);
   if (!combo || !model || !idea) return null;
-  return { ...combo, model, idea };
+  const custom = cleanCustom(choice.custom);
+  return { ...combo, ...(custom?.segmentNames ? { segmentNames: custom.segmentNames } : {}), ...(custom?.situation ? { situation: custom.situation } : {}), ...(custom?.cost ? { cost: custom.cost } : {}), ...(custom?.workaround ? { workaround: custom.workaround } : {}), model, idea };
 }
 
 /** "a gym, a yoga studio or a physiotherapy clinic". */
@@ -199,4 +233,33 @@ export function listKinds(kinds: readonly string[]): string {
 /** The description of a business model for an industry, with that industry's own examples. */
 export function describeModel(industry: number, model: number): string {
   return (MODELS[model]?.blurb ?? "").replace("{kinds}", listKinds(COMBOS[industry]?.[model]?.kinds ?? []));
+}
+
+const STOP = new Set(["a", "an", "the", "for", "and", "with", "that", "of", "to", "in", "on", "my", "small", "new", "local", "your", "app", "service", "tool"]);
+const tokens = (text: string): string[] =>
+  text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length >= 3 && !STOP.has(w))
+    .map((w) => (w.length > 3 ? w.replace(/s$/, "") : w));
+
+/**
+ * Which industry and business model an idea sounds most like, by the words it shares with the examples and kinds of
+ * business in each pack. It only suggests: the player decides. Null when nothing matches better than the current choice.
+ */
+export function matchPack(idea: string, currentIndustry: number, currentModel: number): { industry: number; model: number } | null {
+  const words = tokens(idea);
+  if (words.length === 0) return null;
+  const score = (industry: number, model: number): number => {
+    const c = COMBOS[industry]?.[model];
+    if (!c) return 0;
+    const bag = new Set([...c.kinds, ...c.examples].flatMap(tokens));
+    return words.filter((w) => bag.has(w)).length;
+  };
+  let best = { industry: currentIndustry, model: currentModel, score: score(currentIndustry, currentModel) };
+  COMBOS.forEach((row, industry) => row.forEach((_c, model) => {
+    const sc = score(industry, model);
+    if (sc > best.score) best = { industry, model, score: sc };
+  }));
+  return best.industry === currentIndustry && best.model === currentModel ? null : { industry: best.industry, model: best.model };
 }

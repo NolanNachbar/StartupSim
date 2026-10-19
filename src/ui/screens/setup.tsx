@@ -1,4 +1,4 @@
-import { BUSINESS_LIST, BUSINESS_MODELS, INDUSTRY_LIST, MAX_IDEA_LENGTH, describeModel, view } from "../../sim";
+import { BUSINESS_LIST, BUSINESS_MODELS, INDUSTRY_LIST, MAX_IDEA_LENGTH, describeModel, matchPack, view } from "../../sim";
 import { THEME_LABEL, themeFor } from "../art/iso";
 import { MAX_NAME } from "../names";
 import { back, challengeBusiness, challengeIndustry, challengeSeed, company, draft, exampleIdea, savedRun, setupStep, startCompany, suggestAnotherName } from "../store";
@@ -15,6 +15,11 @@ export function Setup() {
   const industry = INDUSTRY_LIST[d.industry];
   const model = BUSINESS_MODELS[d.model];
   const combo = BUSINESS_LIST[d.industry]?.[d.model];
+  // Your own wording starts from the pack for this industry and business model, and stays yours once you change it.
+  const base = { groups: (combo?.segmentNames ?? []).join("\n"), situation: combo?.situation ?? "", workaround: combo?.workaround ?? "" };
+  const custom = d.custom ?? base;
+  const setCustom = (patch: Partial<typeof base>) => (draft.value = { ...draft.value, custom: { ...custom, ...patch } });
+  const suggestion = step === 3 ? matchPack(d.idea, d.industry, d.model) : null;
   const replaces = saved ? <p class="notice" role="status">{`Starting a new company replaces your saved run (${company.value.name || "your company"}, week ${view(saved).week}). Use Back to keep it.`}</p> : null;
   const sharedNote = shared ? <p class="notice" role="status">This is a shared run: the same world as the person who sent it.</p> : null;
   const nextButtons = (next: 2 | 3 | 4, label = "Next") => (
@@ -38,7 +43,7 @@ export function Setup() {
             <div class="picks">
               {INDUSTRY_LIST.map((ind, i) => (
                 <label key={ind.name} class="pick">
-                  <input type="radio" name="industry" value={String(i)} checked={d.industry === i} onChange={() => (draft.value = { ...draft.value, industry: i, idea: exampleIdea(i, draft.value.model) })} />
+                  <input type="radio" name="industry" value={String(i)} checked={d.industry === i} onChange={() => (draft.value = { ...draft.value, industry: i, idea: exampleIdea(i, draft.value.model), custom: undefined })} />
                   <span class="pick__title">{ind.name}</span>
                   <span class="pick__where">{THEME_LABEL[themeFor(i)]}</span>
                 </label>
@@ -65,7 +70,7 @@ export function Setup() {
             <div class="kinds">
               {BUSINESS_MODELS.map((m, i) => (
                 <label key={m.id} class="pick pick--wide">
-                  <input type="radio" name="model" value={String(i)} checked={d.model === i} onChange={() => (draft.value = { ...draft.value, model: i, idea: exampleIdea(d.industry, i) })} />
+                  <input type="radio" name="model" value={String(i)} checked={d.model === i} onChange={() => (draft.value = { ...draft.value, model: i, idea: exampleIdea(d.industry, i), custom: undefined })} />
                   <span class="pick__title">{m.name}</span>
                   <span class="pick__where">{describeModel(d.industry, i)}</span>
                 </label>
@@ -98,7 +103,28 @@ export function Setup() {
               ))}
             </div>
           </div>
-          <p class="pick-detail">{`Your first customers will be groups like ${(combo?.segmentNames ?? []).slice(0, 3).join(", ")}.`}</p>
+          {suggestion ? (
+            <div class="notice" role="status">
+              <p>{`Sounds like ${BUSINESS_MODELS[suggestion.model]?.name.toLowerCase() ?? ""} in ${INDUSTRY_LIST[suggestion.industry]?.name ?? ""}. That would give you customers and wording that fit.`}</p>
+              <button type="button" class="button" onClick={() => (draft.value = { ...draft.value, industry: suggestion.industry, model: suggestion.model, custom: undefined })}>Use that</button>
+            </div>
+          ) : null}
+          <p class="pick-detail">{`Your first customers will be groups like ${(custom?.groups.split("\n").filter(Boolean) ?? combo?.segmentNames ?? []).slice(0, 3).join(", ")}.`}</p>
+          <details class="more">
+            <summary>Make it yours: change the customers and what they say</summary>
+            <div class="field">
+              <label class="field__label" for="groups">Customer groups, one per line (3 to 5, smallest and easiest to reach first)</label>
+              <textarea id="groups" class="select textarea" rows={5} value={custom?.groups ?? ""} onInput={(e) => setCustom({ groups: (e.currentTarget as HTMLTextAreaElement).value })} />
+            </div>
+            <div class="field">
+              <label class="field__label" for="situation">A bad moment your customers have (it follows "the last time")</label>
+              <input id="situation" class="select" type="text" value={custom?.situation ?? ""} maxLength={80} onInput={(e) => setCustom({ situation: (e.currentTarget as HTMLInputElement).value })} />
+            </div>
+            <div class="field">
+              <label class="field__label" for="workaround">How they cope today</label>
+              <input id="workaround" class="select" type="text" value={custom?.workaround ?? ""} maxLength={80} onInput={(e) => setCustom({ workaround: (e.currentTarget as HTMLInputElement).value })} />
+            </div>
+          </details>
         </main>
         {nextButtons(4)}
       </>
