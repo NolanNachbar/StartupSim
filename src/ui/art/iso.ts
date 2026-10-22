@@ -131,9 +131,23 @@ export interface Vehicle {
   readonly speed: number;
 }
 
+/**
+ * How far a street's loop is, in cells. It is a whole number of blocks, so a car that wraps keeps the same place
+ * within its block: that is what keeps cars on crossing streets from ever meeting (see SLOTS).
+ */
+export const trafficLength = (size: number): number => Math.floor((size - 7) / STREET) * STREET;
+
+/**
+ * Where in its block (cells past a crossing) a car may start. Every car drives at the same speed, so two cars meet at a
+ * crossing only if their places in the block match (same heading) or add up to a whole block (opposite headings).
+ * These places keep every pair at least 1.5 cells apart in either case, so cars on crossing streets never pass through
+ * each other. Streets along x use the first pair, streets along y the second.
+ */
+const SLOTS: Record<"x" | "y", readonly number[]> = { x: [0, 3], y: [1.5, 4.5] };
+
 /** Where a vehicle is, in cells, after `seconds`. The lane offset keeps opposite directions apart. */
 export function vehicleCell(v: Vehicle, seconds: number, size: number): Cell {
-  const length = size - 7;
+  const length = trafficLength(size);
   const along = STREET_OFFSET + ((((v.start - STREET_OFFSET + v.dir * v.speed * seconds) % length) + length) % length);
   const lane = v.dir * 0.17;
   return v.axis === "x" ? { gx: along, gy: v.line + lane } : { gx: v.line + lane, gy: along };
@@ -475,36 +489,42 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
     }
   }
 
-  // Traffic: in each of the two lanes of every cross street, cars with gaps between them, all at the lane's speed.
+  // Roundabouts: a few intersections away from the route. A street through one is left empty (cars would drive over the island).
+  const circles: Cell[] = [];
+  for (const [rk, idx] of roads) {
+    const [gx, gy] = rk.split(",").map(Number) as [number, number];
+    if (idx === -1 && isCrossing(gx, gy) && routeDist(gx, gy) > 3 && rng() < 0.03) circles.push({ gx, gy });
+  }
+
+  // Traffic: in each of the two lanes of every cross street, cars with gaps between them, all at one speed and
+  // in the places SLOTS allow, so no two cars on crossing streets ever meet.
   // A street the route runs along is left empty, so the delivery van has its road to itself.
   const routeLines = new Set<string>();
   for (const c of route.cells) {
     if ((c.gy - STREET_OFFSET) % STREET === 0) routeLines.add(`x:${c.gy}`);
     if ((c.gx - STREET_OFFSET) % STREET === 0) routeLines.add(`y:${c.gx}`);
   }
+  for (const c of circles) {
+    routeLines.add(`x:${c.gy}`);
+    routeLines.add(`y:${c.gx}`);
+  }
   const traffic: Vehicle[] = [];
-  const gapMean = 2 / Math.max(look.carRate, 0.001);
+  const speed = Math.round((0.8 + rng() * 0.3) * 100) / 100;
+  const blocks = Math.floor((size - 7) / STREET);
+  const density = Math.min(0.9, 0.2 + look.carRate * 4);
   for (const axis of ["x", "y"] as const) {
     for (let line = STREET_OFFSET; line <= size - 4; line += STREET) {
       if (routeLines.has(`${axis}:${line}`)) continue;
       for (const dir of [-1, 1] as const) {
-        const speed = Math.round((0.7 + rng() * 0.6) * 100) / 100;
-        const length = size - 7;
-        const starts: number[] = [];
-        for (let pos = STREET_OFFSET + rng() * gapMean; pos < size - 4; pos += 3 + rng() * gapMean) starts.push(Math.round(pos * 100) / 100);
-        // the lane is a loop: the last car and the first must not meet where it wraps
-        while (starts.length > 1 && length - ((starts[starts.length - 1] as number) - (starts[0] as number)) < 3) starts.pop();
         const heading = axis === "x" ? (dir === -1 ? "270" : "90") : dir === -1 ? "180" : "0";
-        for (const start of starts) traffic.push({ sprite: `${pick(CARS)}-${heading}`, axis, line, start, dir, speed });
+        for (let k = 0; k < blocks; k++) {
+          for (const slot of SLOTS[axis]) {
+            if (rng() > density) continue;
+            traffic.push({ sprite: `${pick(CARS)}-${heading}`, axis, line, start: STREET_OFFSET + k * STREET + slot, dir, speed });
+          }
+        }
       }
     }
-  }
-
-  // A few intersections away from the route are roundabouts, so the grid is not one repeated crossing.
-  const circles: Cell[] = [];
-  for (const [rk, idx] of roads) {
-    const [gx, gy] = rk.split(",").map(Number) as [number, number];
-    if (idx === -1 && isCrossing(gx, gy) && routeDist(gx, gy) > 3 && rng() < 0.14) circles.push({ gx, gy });
   }
 
   const hq = route.hub;

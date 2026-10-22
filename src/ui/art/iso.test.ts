@@ -526,3 +526,36 @@ describe("buildings never hide the route", () => {
     expect(hiding.length / buildings, hiding.slice(0, 5).join("; ")).toBeLessThan(0.004);
   });
 });
+
+describe("cars never drive through each other", () => {
+  it("keeps cars on crossing streets at least a cell apart, at every moment of the loop", () => {
+    for (const theme of ["suburban", "urban", "downtown"] as const) {
+      for (const [seed, size] of [[3, 60], [9, 108]] as const) {
+        const route = buildRoute(4, seed, size);
+        const city = buildCity(seed, route, size, theme);
+        const xs = city.traffic.filter((v) => v.axis === "x");
+        const ys = city.traffic.filter((v) => v.axis === "y");
+        expect(xs.length + ys.length).toBeGreaterThan(0);
+        let closest = Infinity;
+        for (let t = 0; t < 140; t += 1) {
+          const yp = ys.map((v) => vehicleCell(v, t, size));
+          for (const v of xs) {
+            const a = vehicleCell(v, t, size);
+            for (const b of yp) closest = Math.min(closest, Math.hypot(a.gx - b.gx, a.gy - b.gy));
+          }
+        }
+        expect(closest, `${theme} seed ${seed}`).toBeGreaterThanOrEqual(1);
+      }
+    }
+  });
+
+  it("leaves a street with a roundabout empty, so no car drives over the island", () => {
+    for (const seed of [3, 7, 11]) {
+      const route = buildRoute(4, seed, 108);
+      const city = buildCity(seed, route, 108, "urban");
+      for (const c of city.circles) {
+        for (const v of city.traffic) expect(v.axis === "x" ? v.line === c.gy : v.line === c.gx).toBe(false);
+      }
+    }
+  });
+});
