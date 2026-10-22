@@ -5,7 +5,7 @@ import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { hypothesisLabel, money } from "./format";
 import { spriteUrl } from "./art/city";
 import { pathProgress } from "./guide";
-import { currentBusiness, last, markCalloutShown, openForm, openNotebook, openHelp, openMenu, screen, selected, settings, shownCallouts, startPivots, state } from "./store";
+import { currentBusiness, last, weekAhead, markCalloutShown, openForm, openNotebook, openHelp, openMenu, screen, selected, settings, shownCallouts, startPivots, state } from "./store";
 import { STAGE_COUNT, lockedReason, stageInfo } from "./stage";
 import { CATALOG, MONTH_NAMES, type Hypothesis, type PublicState } from "../sim";
 
@@ -176,7 +176,7 @@ export function CashChange() {
 export function StageBar({ s, compact = false }: { s: PublicState; compact?: boolean }) {
   const info = stageInfo(s, currentBusiness());
   return (
-    <div class="stage">
+    <div class={compact ? "stage stage--compact" : "stage"}>
       <p class="stage__now">
         <span class="stage__count">{`Stage ${info.index + 1} of ${STAGE_COUNT}`}</span>
         <span class="stage__title">{info.name}</span>
@@ -239,6 +239,28 @@ export function StatusCard({ s }: { s: PublicState }) {
       {s.capacity !== null ? (<><dt>People you know</dt><dd>{String(s.network.contacts)}</dd></>) : null}
       <dt>What you know</dt><dd>{`${s.evidence.length} ${s.evidence.length === 1 ? "result" : "results"}`}</dd>
     </dl>
+  );
+}
+
+/** What waiting a week would do to your cash, before you click it: money in, each cost, and where cash ends up. */
+export function WeekAheadCard({ compact = false }: { compact?: boolean }) {
+  const w = weekAhead.value;
+  if (!w) return null;
+  const change = w.cashCents - (state.value?.cashCents ?? 0);
+  const head = `If you wait a week: ${money(w.cashCents)} (${change < 0 ? "-" : "+"}${money(Math.abs(change))})`;
+  if (compact) {
+    return <p class="ahead ahead--compact" role="status">{w.endsRun ? "If you wait a week, you run out of cash." : head}</p>;
+  }
+  return (
+    <section class="ahead" aria-label="What waiting a week would do">
+      <p class="ahead__head">{head}</p>
+      {w.endsRun ? <p class="notice notice--error" role="note">You would run out of cash.</p> : null}
+      <dl class="status">
+        <dt>Money in</dt><dd>{money(w.moneyInCents)}</dd>
+        {w.costs.map((c) => (<><dt key={c.label}>{c.label}</dt><dd>{`-${money(c.cents)}`}</dd></>))}
+        <dt>Cash at the end</dt><dd>{money(w.cashCents)}</dd>
+      </dl>
+    </section>
   );
 }
 

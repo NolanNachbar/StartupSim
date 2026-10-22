@@ -86,6 +86,36 @@ export const notes = signal<Note[]>([]);
 export const flights = signal<Flight[]>([]);
 
 export const state = computed<PublicState | null>(() => (run.value ? view(run.value) : null));
+/**
+ * What waiting one week would do, worked out by trying it on a copy of the run (the sim is pure, so this is exact and
+ * nothing is committed): the money that comes in, each kind of cost, and the cash at the end.
+ */
+export interface WeekAhead {
+  readonly cashCents: number;
+  readonly moneyInCents: number;
+  readonly costs: readonly { readonly label: string; readonly cents: number }[];
+  readonly costsCents: number;
+  readonly endsRun: boolean;
+}
+export const weekAhead = computed<WeekAhead | null>(() => {
+  const r = run.value;
+  if (!r) return null;
+  const now = view(r);
+  if (now.status !== "running") return null;
+  const out = step(r, { type: "wait" });
+  if (!out.ok) return null;
+  const next = view(out.run);
+  const d = (a: number, b: number): number => b - a;
+  const costs = [
+    { label: "Running the company", cents: d(now.books.operatingCents, next.books.operatingCents) },
+    { label: "Marketing", cents: d(now.books.marketingCents, next.books.marketingCents) },
+    { label: "R&D", cents: d(now.books.rndCents, next.books.rndCents) },
+    { label: "Goods you sell", cents: d(now.books.cogsCents, next.books.cogsCents) },
+    { label: "Loan repayment", cents: d(now.books.principalRepaidCents + now.books.interestCents, next.books.principalRepaidCents + next.books.interestCents) },
+  ].filter((c) => c.cents !== 0);
+  const moneyIn = d(now.books.salesCashCents, next.books.salesCashCents);
+  return { cashCents: next.cashCents, moneyInCents: moneyIn, costs, costsCents: costs.reduce((a, c) => a + c.cents, 0), endsRun: next.status !== "running" };
+});
 export const finalReport = computed<Report | null>(() => (run.value ? reportFor(run.value) : null));
 
 const syncBlocked = () => {

@@ -409,3 +409,13 @@
 .notebook__tabs .button[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
 
 .range { width: 100%; min-height: 44px; accent-color: var(--primary); }
+
+/* What waiting a week would do, shown before the button that does it. */
+.ahead { display: grid; gap: var(--s-2); }
+.ahead__head { margin: 0; font-family: var(--font-ui); font-weight: 700; font-size: var(--t-lg); }
+.ahead--compact { margin: 0; padding: var(--s-2) var(--s-3); background: var(--surface); border-radius: var(--radius-chip); box-shadow: 0 4px 12px rgba(38, 42, 68, 0.22); font-weight: 700; font-size: 1rem; text-align: center; }
+
+/* On the map the tracker is a thin bar: the numbered steps live on the action screen, so the city keeps its room. */
+.stage--compact .stage__dot { display: none; }
+.stage--compact .stage__step { border-top-width: 8px; padding-top: 0; border-radius: 4px; }
+.stage--compact { padding: var(--s-2) var(--s-3); gap: var(--s-1); }

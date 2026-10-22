@@ -205,8 +205,8 @@ test("the week screen shows the stage of the business, and the action screen say
   await expect(bar.getByRole("listitem")).toHaveCount(5);
   await expect(page.getByText("Stage 1 of 5").first()).toBeVisible();
   await expect(page.locator(".stage__title").first()).toHaveText("Idea");
-  await expect(bar.locator(".stage__dot").first()).toBeVisible();
   await page.getByRole("button", { name: "Choose an action" }).click();
+  await expect(page.locator(".stage__dot").first()).toBeVisible(); // the numbered steps show on the action screen
   await expect(page.getByRole("heading", { name: "What you can do in this stage" })).toBeVisible();
   await expect(page.getByText(/no proof yet that anyone wants it/)).toBeVisible();
 });

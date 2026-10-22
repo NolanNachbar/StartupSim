@@ -1,6 +1,6 @@
 import { FORMS } from "../forms";
 import { Panel } from "../panel";
-import { StageBar, StatusCard } from "../parts";
+import { StageBar, StatusCard, WeekAheadCard } from "../parts";
 import { lockedReason, stageInfo } from "../stage";
 import { back, currentBusiness, openForm, openNotebook, state } from "../store";
 
@@ -13,6 +13,7 @@ export function Actions() {
       <main class="board">
         <h1 class="board__title" tabIndex={-1}>Choose an action</h1>
         <StageBar s={s} />
+        <WeekAheadCard />
         <StatusCard s={s} />
         <button type="button" class="button button--row" onClick={() => openNotebook()}>
           <span class="row__text"><span class="row__title">{`What you have learned (${s.evidence.length})`}</span><span class="row__hint">Every interview and test so far, and the questions you have not asked yet.</span></span>

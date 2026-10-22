@@ -114,3 +114,15 @@ test("a gym can run a promotion: it costs money, locks the next one, and shows i
   await page.getByRole("button", { name: /^Run a promotion/ }).last().click();
   await expect(page.getByText(/is running/).first()).toBeVisible();
 });
+
+test("before you wait a week it says what the week will do, and the cash you get is the cash it said", async ({ page }) => {
+  await start(page);
+  const line = page.getByText(/^If you wait a week: /).first();
+  await expect(line).toBeVisible();
+  const said = (await line.innerText()).match(/\$[\d,]+/)?.[0] ?? "";
+  await page.getByRole("button", { name: "Choose an action" }).click();
+  await expect(page.getByRole("region", { name: "What waiting a week would do" })).toContainText("Running the company");
+  await page.getByRole("button", { name: "Back" }).click();
+  await page.getByRole("button", { name: "Wait a week" }).click();
+  await expect(page.locator(".strip .instrument").first()).toContainText(said);
+});

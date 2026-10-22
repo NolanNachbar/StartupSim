@@ -1,4 +1,4 @@
-import { CalloutHost, GroupActions, HypothesisList, StageBar } from "../parts";
+import { CalloutHost, GroupActions, HypothesisList, StageBar, WeekAheadCard } from "../parts";
 import { money } from "../format";
 import { Panel } from "../panel";
 import { INDUSTRY_LIST } from "../../sim";
@@ -38,6 +38,7 @@ export function Week() {
       </main>
       <Panel />
       <footer class="actions">
+        <WeekAheadCard compact />
         <button type="button" class="button button--primary" onClick={() => go({ name: "actions" })}>Choose an action</button>
         <div class="actions__row">
           <button type="button" class="button" onClick={waitOnce}>Wait a week</button>
