@@ -3,6 +3,9 @@
 // this, so their results never change. Integer math only, like the rest of the sim.
 import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
 import { seasonAt } from "./seasons";
+
+/** The week a rival opens in a chosen business: somewhere in the first year or so. */
+export const rivalWeekOf = (seed: number): number => randInt(seed, 18, 60, "rival", "week");
 import { ACQUISITION_DIVISOR, BUDGET_LEVELS_CENTS, CREDIBILITY_FLOOR_PCT, acquiredCustomers, churnedCustomers, conversionPct, marketCeiling, marketingLeads, priceRatioPct, weeklyRevenue } from "./runway";
 import { randInt } from "./rng";
 import { DIFFICULTIES, DIFFICULTY_DEFAULT } from "./business";
@@ -97,6 +100,7 @@ export interface WeekResult {
   /** Revenue given up this week to a promotion's discount. */
   readonly discountCents: number;
   readonly reputation: number;
+  readonly rivalOpened: boolean;
   readonly notes: readonly string[];
 }
 
@@ -121,6 +125,9 @@ export function realisticWeek(run: InternalRun): WeekResult {
 
   const customers = pub.segmentNames.map((_, i) => pub.customersBySegment[i] ?? 0);
   const season = seasonAt(run.industry ?? 1, run.seed, pub.week);
+  // A rival nearby takes some of the people you would have reached and tempts some of the ones you have. A better product
+  // blunts it: at full quality it hurts half as much.
+  const rivalPct = pub.rivalSince !== null ? Math.max(0, 100 - Math.floor(quality / 2)) : 0;
   const promoSpec = pub.promo ? promotionsFor(model).find((q) => q.id === pub.promo?.id) : undefined;
   let promoSignups = pub.promo?.signups ?? 0;
 
@@ -137,7 +144,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
     // contacts you have made send people your way: one lead a week for every three
     const referralLeads = Math.floor(pub.network.contacts / 3);
     const standing = customers.reduce((a, b) => a + b, 0);
-    const lifted = Math.floor((Math.floor(((paidLeads + handLeads) * level.leadsPct) / 100) * season.index) / 100);
+    const lifted = Math.floor((Math.floor((Math.floor(((paidLeads + handLeads) * level.leadsPct) / 100) * season.index) / 100) * (100 - Math.floor((15 * rivalPct) / 100))) / 100);
     const leads = (promoSpec ? Math.floor((lifted * (100 + promoSpec.leadLiftPct)) / 100) + Math.floor((standing * promoSpec.referralPct) / 100) : lifted) + referralLeads;
     if (leads > 0) {
       const acquired = acquiredCustomers({
@@ -164,7 +171,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
     // A better product keeps people even when it is already finished: quality cuts churn by up to a third.
     const raw = churnedCustomers(here, effective, randInt(run.seed, 1, 10_000, "churn", pub.week, i));
     // happy customers stay: a good name cuts churn by up to 30 percent, a bad one raises it by as much
-    const churned = Math.floor((((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100 * (130 - Math.floor((pub.reputation * 6) / 10))) / 100);
+    const churned = Math.floor((((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100 * (130 - Math.floor((pub.reputation * 6) / 10)) * (100 + Math.floor((20 * rivalPct) / 100))) / 10_000);
     // a busy month holds more people; a quiet one does not send anyone away
     const ceiling = Math.floor((marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(pub.priceCents, wtpBoost(seg.willingnessToPayCents)))) * (100 + Math.floor(Math.max(0, season.index - 100) / 2))) / 100);
     customers[i] = Math.max(0, Math.min(ceiling, here - churned));
@@ -193,5 +200,12 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const crowded = capacityOf(model, pub.team.ops) > 0 && served * 100 > capacityOf(model, pub.team.ops) * 90;
   const deserved = Math.max(0, Math.min(100, 45 + Math.floor(quality / 4) + (progress >= 100 ? 15 : Math.floor(progress / 8)) + 4 * pub.team.ops + (crowded ? -20 : 0) + (promoSpec && promoSpec.dealChurnPct >= 4 ? -5 : 0)));
   const reputation = pub.reputation + Math.trunc((deserved - pub.reputation) / 6);
-  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, reputation, notes };
+  const rivalOpened = pub.rivalSince === null && pub.week + 1 >= rivalWeekOf(run.seed) && secret.business !== null;
+  if (rivalOpened) notes.push(`${cap(secret.business.kinds[0] ?? "a competitor")} has opened nearby, aimed at your customers. Expect fewer people to find you and some to be tempted away. A better product and a good name soften it.`);
+  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, reputation, rivalOpened, notes };
 }
+
+const cap = (s: string): string => {
+  const t = s.replace(/^an? /, "a new ");
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};

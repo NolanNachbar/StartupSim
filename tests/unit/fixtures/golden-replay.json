@@ -120,6 +120,7 @@
     },
     "promo": null,
     "reputation": 50,
+    "rivalSince": null,
     "season": null,
     "promoCooldown": 0,
     "cogsPct": 0,

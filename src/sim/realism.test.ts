@@ -260,3 +260,19 @@ describe("reputation", () => {
     expect(view(built).reputation).toBeGreaterThan(view(idle).reputation);
   });
 });
+
+describe("a rival", () => {
+  it("opens nearby some time in the first year or so, is announced, and only in a chosen business", () => {
+    let r = newRun(8, 3, { ...gym, startCashCents: 100_000_000 });
+    expect(view(r).rivalSince).toBeNull();
+    for (let i = 0; i < 61 && view(r).status === "running"; i++) r = must(step(r, { type: "wait" }));
+    const v = view(r);
+    expect(v.rivalSince).not.toBeNull();
+    expect(v.rivalSince as number).toBeGreaterThanOrEqual(18);
+    expect(v.rivalSince as number).toBeLessThanOrEqual(61);
+    expect(v.log.some((l) => /opened nearby/.test(l.text))).toBe(true);
+    let g = newRun(8, 3);
+    for (let i = 0; i < 61 && view(g).status === "running"; i++) g = must(step(g, { type: "wait" }));
+    expect(view(g).rivalSince).toBeNull();
+  });
+});

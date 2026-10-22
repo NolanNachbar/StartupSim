@@ -233,6 +233,7 @@ export function StatusCard({ s }: { s: PublicState }) {
       <dt>Product ready</dt><dd>{`${s.productProgressPct} percent`}</dd>
       <dt>Paying customers</dt><dd>{String(s.payingCustomers)}</dd>
       {s.season ? (<><dt>Reviews</dt><dd>{s.payingCustomers < 5 ? "Too few customers to have reviews yet" : `${(1 + s.reputation / 25).toFixed(1)} out of 5`}</dd></>) : null}
+      {s.rivalSince !== null ? (<><dt>Competition</dt><dd>{`A rival opened in week ${s.rivalSince}`}</dd></>) : null}
       {s.promo ? (<><dt>Promotion</dt><dd>{`${s.promo.weeksLeft} ${s.promo.weeksLeft === 1 ? "week" : "weeks"} left`}</dd></>) : null}
       <dt>Team</dt><dd>{s.hires === 0 ? "Just you" : `${s.hires} ${s.hires === 1 ? "person" : "people"} besides you`}</dd>
       {s.capacity !== null ? (<><dt>People you know</dt><dd>{String(s.network.contacts)}</dd></>) : null}

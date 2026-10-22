@@ -47,6 +47,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     network: { contacts: 0, events: 0 },
     promo: null,
     reputation: 50,
+    rivalSince: null,
     season: secret.business && industry !== null ? seasonAt(industry, seed, 0) : null,
     promoCooldown: 0,
     cogsPct: secret.business ? COGS_PCT_BY_MODEL[secret.business.model.id] : 0,

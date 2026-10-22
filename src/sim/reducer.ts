@@ -227,7 +227,7 @@ function tick(run: InternalRun): InternalRun {
       endReason,
       cashCents,
       payingCustomers,
-      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality, promo: fuller.promo, promoCooldown: fuller.promoCooldown, reputation: fuller.reputation, season } : {}),
+      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality, promo: fuller.promo, promoCooldown: fuller.promoCooldown, reputation: fuller.reputation, ...(fuller.rivalOpened ? { rivalSince: week } : {}), season } : {}),
       weeklyRevenueCents,
       profitableStreakWeeks,
       pivotsRemaining: runway,
