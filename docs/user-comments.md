@@ -50,3 +50,20 @@ Status: done (built and tested), partial (built, with a stated gap), open (not b
 | Stage should be clearly shown | done | numbered five-step tracker with the stage named large, on the map and action screens; overview and panel use the same stage names |
 | Test in the simulator | done | played a gym through the real UI on a phone viewport; found and fixed the HUD van overlap and stale overview stage text |
 | Show cash flow in/out, cash flow statement, balance sheet | done | Financials screen (income statement, cash flow, balance sheet) from the Menu and the weekly overview; balance identity is a property test |
+
+## Round 2 (2026-10-21 to 2026-10-22)
+| Comment | Status | Notes |
+|---|---|---|
+| Cars phase through things | done | one speed, block slots that keep crossing streets apart, empty roundabout streets; collision tests in `iso.test.ts` |
+| UI looks vibe coded: font, bubbles, van icons | proposal made | preview at `scratchpad/design/preview.html` (signboard plates, runway-light pivot gauge, Lilita One and Atkinson Hyperlegible Next); waiting on Nolan's approval before changing DESIGN.md and the UI |
+| Hard to tell what to do next; unclear how to leave Idea or Validating | done | stage goals with ticks and a Do it button; compact next goal on the map |
+| Build then "nothing built to sell" | done | Charge is locked with the reason and a Build first button; Build form marks what is built |
+| Status of the startup unclear | done | status card on the Actions screen: cash, in, out, how long cash lasts, product, customers, team, season, reviews |
+| Cannot see old interview results | done | notebook screen (every interview and test), reachable from Actions, groups, the interview form and results |
+| Interview: mark asked questions, follow-ups | done | asked questions marked with what they said; follow-up suggestions for repeats |
+| Interview questions as a checklist | done | tick three; others disable at three |
+| Difficulty slider; adjustable start money | done | setup step 4, saved and carried in challenge links |
+| Networking | done | Network action: coffee, meetup, conference; warm interviews, referral leads, faster hires and raises |
+| Promotions for a gym | done | per-kind promotions with costs, lifts, discounts, deal churn, cooldown |
+| Marketing options real and dynamic | partial | six channels per kind, seasonality, reputation, a rival; channel saturation, per-visit billing, capex and wages still to do (realism-pass-3.md) |
+| Full audit with Haiku agents | done | sixteen audits; synthesis in `docs/specs/realism-pass-3.md` |
