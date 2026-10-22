@@ -4,7 +4,7 @@ import * as sim from "./index";
 describe("public API (src/sim/index.ts)", () => {
   it("exports exactly the documented functions and constants", () => {
     expect(Object.keys(sim).sort()).toEqual(
-      ["BUSINESS_LIST", "BUSINESS_MODELS", "CATALOG", "DIFFICULTY_LIST", "MAX_IDEA_LENGTH", "START_CASH_RANGE", "cleanCustom", "cleanDifficulty", "cleanIdea", "cleanStartCash", "describeModel", "matchPack", "INDUSTRY_LIST", "SIM_VERSION", "fromSave", "legalActions", "newRun", "report", "statements", "step", "toSave", "view"].sort(),
+      ["BUSINESS_LIST", "BUSINESS_MODELS", "CATALOG", "DIFFICULTY_LIST", "MAX_IDEA_LENGTH", "MONTH_NAMES", "START_CASH_RANGE", "cleanCustom", "cleanDifficulty", "cleanIdea", "cleanStartCash", "describeModel", "matchPack", "INDUSTRY_LIST", "SIM_VERSION", "fromSave", "legalActions", "newRun", "report", "statements", "step", "toSave", "view"].sort(),
     );
     expect(sim.SIM_VERSION).toBe(6);
   });

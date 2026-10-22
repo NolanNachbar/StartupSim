@@ -119,6 +119,7 @@
       "events": 0
     },
     "promo": null,
+    "season": null,
     "promoCooldown": 0,
     "cogsPct": 0,
     "priceLadderCents": [

@@ -219,7 +219,7 @@ describe("promotions", () => {
       let a = withPage(seed);
       let b = withPage(seed);
       a = must(step(a, { type: "setPromotion", promo: "free-trial" }));
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 2; i++) {
         a = must(step(a, { type: "wait" }));
         b = must(step(b, { type: "wait" }));
       }

@@ -113,6 +113,14 @@ export interface Network {
   readonly events: number;
 }
 
+/** The calendar: the month, how busy it is for this industry (100 is an average month), and the next weeks. */
+export interface Season {
+  /** 0 is January. */
+  readonly month: number;
+  readonly index: number;
+  readonly forecast: readonly number[];
+}
+
 /** A promotion that is running (chosen businesses only). */
 export interface Promo {
   readonly id: string;
@@ -166,6 +174,8 @@ export interface PublicState {
   readonly network: Network;
   /** The promotion running now, or null. */
   readonly promo: Promo | null;
+  /** The season, for a chosen business (null in the original worlds). */
+  readonly season: Season | null;
   /** Weeks until another promotion can start. */
   readonly promoCooldown: number;
   /** The week of the first paid test that produced a payment. */

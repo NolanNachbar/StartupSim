@@ -7,7 +7,7 @@ import { spriteUrl } from "./art/city";
 import { pathProgress } from "./guide";
 import { currentBusiness, last, markCalloutShown, openForm, openNotebook, openHelp, openMenu, screen, selected, settings, shownCallouts, startPivots, state } from "./store";
 import { STAGE_COUNT, lockedReason, stageInfo } from "./stage";
-import { CATALOG, type Hypothesis, type PublicState } from "../sim";
+import { CATALOG, MONTH_NAMES, type Hypothesis, type PublicState } from "../sim";
 
 export function Instrument({ caption, value }: { caption: string; value: string }) {
   return (
@@ -217,6 +217,15 @@ export function StatusCard({ s }: { s: PublicState }) {
   const weeks = net >= 0 ? null : Math.floor(s.cashCents / -net);
   return (
     <dl class="status" aria-label="Where your company stands">
+      {s.season ? (
+        <>
+          <dt>Season</dt>
+          <dd>{`${MONTH_NAMES[s.season.month]}: ${s.season.index >= 115 ? "a busy time" : s.season.index <= 85 ? "a quiet time" : "an ordinary time"} (${s.season.index} percent of an average month). ${(() => {
+            const next = s.season.forecast[s.season.forecast.length - 1] ?? s.season.index;
+            return next >= s.season.index + 15 ? "Busier ahead." : next <= s.season.index - 15 ? "Quieter ahead." : "";
+          })()}`}</dd>
+        </>
+      ) : null}
       <dt>Cash</dt><dd>{money(s.cashCents)}</dd>
       <dt>Money in a week</dt><dd>{money(s.weeklyRevenueCents)}</dd>
       <dt>Money out a week</dt><dd>{money(costs)}</dd>

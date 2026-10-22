@@ -4,6 +4,7 @@ import { INTERVIEW_ROUND_CASH_CENTS, PIVOT_COST_CENTS, ROUND_WEEKS, START_CASH_C
 import { BURN_BY_MODEL, COGS_PCT_BY_MODEL, PRICE_LADDER_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, capacityOf } from "./realism";
 import { PRICE_LADDER_CENTS } from "./actions";
 import { hypothesesFrom } from "./hypotheses";
+import { seasonAt } from "./seasons";
 import type { Action, PublicState, Secret } from "./types";
 import { generateWorld } from "./world";
 
@@ -45,6 +46,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     books: { startCashCents: startCash, equityRaisedCents: 0, loanReceivedCents: 0, principalRepaidCents: 0, interestCents: 0, salesCashCents: 0, testSalesCents: 0, cogsCents: 0, operatingCents: 0, marketingCents: 0, rndCents: 0, learningCents: 0 },
     network: { contacts: 0, events: 0 },
     promo: null,
+    season: secret.business && industry !== null ? seasonAt(industry, seed, 0) : null,
     promoCooldown: 0,
     cogsPct: secret.business ? COGS_PCT_BY_MODEL[secret.business.model.id] : 0,
     priceLadderCents: secret.business ? PRICE_LADDER_BY_MODEL[secret.business.model.id] : PRICE_LADDER_CENTS,

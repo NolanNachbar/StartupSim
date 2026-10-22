@@ -2,6 +2,7 @@
 // the business can serve, and marketing aimed at a chosen customer group. The original generic worlds do not use any of
 // this, so their results never change. Integer math only, like the rest of the sim.
 import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
+import { seasonAt } from "./seasons";
 import { ACQUISITION_DIVISOR, BUDGET_LEVELS_CENTS, CREDIBILITY_FLOOR_PCT, acquiredCustomers, churnedCustomers, conversionPct, marketCeiling, marketingLeads, priceRatioPct, weeklyRevenue } from "./runway";
 import { randInt } from "./rng";
 import { DIFFICULTIES, DIFFICULTY_DEFAULT } from "./business";
@@ -117,6 +118,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const credibility = Math.min(100, Math.max(CREDIBILITY_FLOOR_PCT, progress) + Math.floor(quality / 4));
 
   const customers = pub.segmentNames.map((_, i) => pub.customersBySegment[i] ?? 0);
+  const season = seasonAt(run.industry ?? 1, run.seed, pub.week);
   const promoSpec = pub.promo ? promotionsFor(model).find((q) => q.id === pub.promo?.id) : undefined;
   let promoSignups = pub.promo?.signups ?? 0;
 
@@ -133,7 +135,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
     // contacts you have made send people your way: one lead a week for every three
     const referralLeads = Math.floor(pub.network.contacts / 3);
     const standing = customers.reduce((a, b) => a + b, 0);
-    const lifted = Math.floor(((paidLeads + handLeads) * level.leadsPct) / 100);
+    const lifted = Math.floor((Math.floor(((paidLeads + handLeads) * level.leadsPct) / 100) * season.index) / 100);
     const leads = (promoSpec ? Math.floor((lifted * (100 + promoSpec.leadLiftPct)) / 100) + Math.floor((standing * promoSpec.referralPct) / 100) : lifted) + referralLeads;
     if (leads > 0) {
       const acquired = acquiredCustomers({
@@ -160,7 +162,8 @@ export function realisticWeek(run: InternalRun): WeekResult {
     // A better product keeps people even when it is already finished: quality cuts churn by up to a third.
     const raw = churnedCustomers(here, effective, randInt(run.seed, 1, 10_000, "churn", pub.week, i));
     const churned = Math.floor(((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100);
-    const ceiling = marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(pub.priceCents, wtpBoost(seg.willingnessToPayCents))));
+    // a busy month holds more people; a quiet one does not send anyone away
+    const ceiling = Math.floor((marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(pub.priceCents, wtpBoost(seg.willingnessToPayCents)))) * (100 + Math.floor(Math.max(0, season.index - 100) / 2))) / 100);
     customers[i] = Math.max(0, Math.min(ceiling, here - churned));
   });
 

@@ -8,6 +8,7 @@
 // late payers delay some cash, costs and loan repayments go out, the week advances, then end checks.
 import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, topicsMatch } from "./actions";
 import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
+import { MONTH_NAMES, seasonAt } from "./seasons";
 import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
@@ -192,6 +193,11 @@ function tick(run: InternalRun): InternalRun {
   };
   if (pub.loan && !loan) note("The loan is paid off.");
   for (const n of fuller?.notes ?? []) note(n);
+  // The calendar moves on; a month that is very different from the last is worth a line in the log.
+  const season = fuller ? seasonAt(run.industry ?? 1, run.seed, week) : null;
+  if (season && pub.season && season.month !== pub.season.month && Math.abs(season.index - pub.season.index) >= 15) {
+    note(`It is ${MONTH_NAMES[season.month]}: ${season.index > pub.season.index ? "a busier" : "a quieter"} time for this market (${season.index} percent of an average month).`);
+  }
 
   // A cash offer appears once, when the runway is nearly gone, and lapses after a few weeks.
   let offer: LoanOffer | null = pub.offer;
@@ -221,7 +227,7 @@ function tick(run: InternalRun): InternalRun {
       endReason,
       cashCents,
       payingCustomers,
-      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality, promo: fuller.promo, promoCooldown: fuller.promoCooldown } : {}),
+      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality, promo: fuller.promo, promoCooldown: fuller.promoCooldown, season } : {}),
       weeklyRevenueCents,
       profitableStreakWeeks,
       pivotsRemaining: runway,
