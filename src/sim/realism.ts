@@ -1,7 +1,8 @@
 // The rules that apply once the player has chosen a business: a team with roles, R&D, a limit on how many customers
 // the business can serve, and marketing aimed at a chosen customer group. The original generic worlds do not use any of
 // this, so their results never change. Integer math only, like the rest of the sim.
-import { ACQUISITION_DIVISOR, BUDGET_LEVELS_CENTS, CREDIBILITY_FLOOR_PCT, acquiredCustomers, churnedCustomers, conversionPct, marketCeiling, marketingLeads, priceRatioPct } from "./runway";
+import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
+import { ACQUISITION_DIVISOR, BUDGET_LEVELS_CENTS, CREDIBILITY_FLOOR_PCT, acquiredCustomers, churnedCustomers, conversionPct, marketCeiling, marketingLeads, priceRatioPct, weeklyRevenue } from "./runway";
 import { randInt } from "./rng";
 import { DIFFICULTIES, DIFFICULTY_DEFAULT } from "./business";
 import type { InternalRun } from "./state";
@@ -89,6 +90,11 @@ export interface WeekResult {
   readonly marketingSpend: number;
   readonly rndSpend: number;
   readonly customers: readonly number[];
+  /** The promotion after this week (null when it ended or none ran), and the weeks until the next may start. */
+  readonly promo: import("./types").Promo | null;
+  readonly promoCooldown: number;
+  /** Revenue given up this week to a promotion's discount. */
+  readonly discountCents: number;
   readonly notes: readonly string[];
 }
 
@@ -111,6 +117,8 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const credibility = Math.min(100, Math.max(CREDIBILITY_FLOOR_PCT, progress) + Math.floor(quality / 4));
 
   const customers = pub.segmentNames.map((_, i) => pub.customersBySegment[i] ?? 0);
+  const promoSpec = pub.promo ? promotionsFor(model).find((q) => q.id === pub.promo?.id) : undefined;
+  let promoSignups = pub.promo?.signups ?? 0;
 
   // Marketing and outreach win customers in the group they are aimed at.
   const target = pub.marketing.target ?? pub.focusSegment;
@@ -118,12 +126,15 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const channel = pub.marketing.channel === null ? undefined : secret.channels[pub.marketing.channel];
   const marketingSpend = channel ? (BUDGET_LEVELS_CENTS[pub.marketing.level] ?? 0) : 0;
   if (targetSeg) {
-    const buyPct = Math.floor((conversionPct(priceRatioPct(pub.priceCents, wtpBoost(targetSeg.willingnessToPayCents))) * credibility) / 100);
+    const baseBuy = Math.floor((conversionPct(priceRatioPct(pub.priceCents, wtpBoost(targetSeg.willingnessToPayCents))) * credibility) / 100);
+    const buyPct = promoSpec ? Math.max(0, Math.floor((baseBuy * (100 + promoSpec.convLiftPct)) / 100)) : baseBuy;
     const paidLeads = channel && marketingSpend > 0 ? marketingLeads(marketingSpend, channel.costPerLeadCents, pub.team.seller) : 0;
     const handLeads = pub.landingPageBuilt ? SELLER_OUTREACH_LEADS * pub.team.seller : 0;
     // contacts you have made send people your way: one lead a week for every three
     const referralLeads = Math.floor(pub.network.contacts / 3);
-    const leads = Math.floor(((paidLeads + handLeads) * level.leadsPct) / 100) + referralLeads;
+    const standing = customers.reduce((a, b) => a + b, 0);
+    const lifted = Math.floor(((paidLeads + handLeads) * level.leadsPct) / 100);
+    const leads = (promoSpec ? Math.floor((lifted * (100 + promoSpec.leadLiftPct)) / 100) + Math.floor((standing * promoSpec.referralPct) / 100) : lifted) + referralLeads;
     if (leads > 0) {
       const acquired = acquiredCustomers({
         leads,
@@ -137,6 +148,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
       const taken = Math.min(acquired, room);
       if (taken < acquired) notes.push(model === "location" ? "The place is full: new people are being turned away." : "You are at capacity: new customers go on a waiting list.");
       customers[target] = (customers[target] ?? 0) + taken;
+      if (promoSpec) promoSignups += taken;
     }
   }
 
@@ -152,5 +164,22 @@ export function realisticWeek(run: InternalRun): WeekResult {
     customers[i] = Math.max(0, Math.min(ceiling, here - churned));
   });
 
-  return { progress, quality, marketingSpend, rndSpend, customers, notes };
+  // People won by a promotion leave faster, and pay less while it runs.
+  let discountCents = 0;
+  let promo: import("./types").Promo | null = null;
+  let promoCooldown = Math.max(0, pub.promoCooldown - 1);
+  if (pub.promo && promoSpec) {
+    const lost = Math.min(promoSignups, Math.floor((promoSignups * promoSpec.dealChurnPct) / 100));
+    if (lost > 0) {
+      customers[target] = Math.max(0, (customers[target] ?? 0) - lost);
+      promoSignups -= lost;
+    }
+    discountCents = Math.floor((weeklyRevenue(Math.min(promoSignups, customers.reduce((a, b) => a + b, 0)), pub.priceCents) * promoSpec.discountPct) / 100);
+    if (pub.promo.weeksLeft > 1) promo = { id: pub.promo.id, weeksLeft: pub.promo.weeksLeft - 1, signups: promoSignups };
+    else {
+      promoCooldown = PROMOTION_COOLDOWN_WEEKS;
+      notes.push(`${promoSpec.name} is over. People it brought in now pay the full price.`);
+    }
+  }
+  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, notes };
 }

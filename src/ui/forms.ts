@@ -17,7 +17,7 @@ const typicalPrice = (b: ReturnType<typeof currentBusiness>): string =>
   })[b?.model.id ?? "software"];
 
 export type FormId =
-  | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer" | "network";
+  | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer" | "network" | "promotion";
 
 export interface Option {
   readonly value: string;
@@ -25,6 +25,8 @@ export interface Option {
   readonly hint?: string;
   /** Already done: shown with a Built tag and cannot be chosen again. */
   readonly done?: boolean;
+  /** Why it cannot be chosen right now. */
+  readonly locked?: string;
 }
 
 export interface Field {
@@ -62,7 +64,7 @@ const channelField = (s: PublicState): Field => ({
   label: "Channel",
   kind: "radio",
   options: s.channels.map((c, i) => {
-    const copy = channelCopy(biz(), c.name);
+    const copy = c.blurb ? { label: c.name, hint: c.blurb } : channelCopy(biz(), c.name);
     return { value: String(i), label: copy.label, hint: `${copy.hint} ${money(c.costPerLeadCents)} a lead.` };
   }),
   initial: "0",
@@ -152,6 +154,49 @@ export const FORMS: readonly FormDef[] = [
     submit: "Charge for a test",
     build: (v) => ({ type: "chargeTest", segment: num(v, "segment"), channel: num(v, "channel") }),
     listed: () => true,
+  },
+  {
+    id: "promotion",
+    title: "Run a promotion",
+    blurb: "A time-limited offer that costs something and trades price or customer quality for demand.",
+    intro: (s) => {
+      const b = biz();
+      const spec = b ? CATALOG.promotions[b.model.id].find((q) => q.id === s.promo?.id) : undefined;
+      if (s.promo && spec) return `${spec.name} is running: ${s.promo.weeksLeft} ${s.promo.weeksLeft === 1 ? "week" : "weeks"} left, ${s.promo.signups} ${s.promo.signups === 1 ? "customer" : "customers"} won so far. You can end it early, but the money is spent.`;
+      return `A promotion buys demand with margin. It costs money to start, runs for a few weeks, and customers won this way tend to leave sooner than ones who came for the full price. After one ends you must wait ${CATALOG.promotionCooldownWeeks} weeks before the next, or people stop noticing.${s.promoCooldown > 0 ? ` You can start another in ${s.promoCooldown} ${s.promoCooldown === 1 ? "week" : "weeks"}.` : ""}`;
+    },
+    fields: (s) => {
+      const b = biz();
+      if (s.promo) return [{ id: "promo", label: "A promotion is running", kind: "radio", options: [{ value: "stop", label: "End it now", hint: "The money you paid is not returned." }], initial: "stop" }];
+      const list = b ? CATALOG.promotions[b.model.id] : [];
+      return [
+        {
+          id: "promo",
+          label: "Which promotion",
+          kind: "radio",
+          options: list.map((q) => {
+            const effects = [
+              q.leadLiftPct > 0 ? `${q.leadLiftPct} percent more people reached` : "",
+              q.convLiftPct > 0 ? `${q.convLiftPct} percent more of them buy` : q.convLiftPct < 0 ? `${-q.convLiftPct} percent fewer of them buy` : "",
+              q.referralPct > 0 ? `new leads from your customers (${q.referralPct} for every 100 of them, each week)` : "",
+              q.discountPct > 0 ? `${q.discountPct} percent off for the people it wins` : "",
+              q.dealChurnPct > 0 ? `${q.dealChurnPct} percent of those people leave each week` : "",
+            ].filter(Boolean);
+            const lock = s.promoCooldown > 0 ? `Not for ${s.promoCooldown} more ${s.promoCooldown === 1 ? "week" : "weeks"}.` : s.payingCustomers < q.needsCustomers ? `Needs ${q.needsCustomers} customers first.` : s.cashCents < q.cashCents ? "Not enough cash." : undefined;
+            return {
+              value: q.id,
+              label: q.name,
+              ...(lock ? { locked: lock } : {}),
+              hint: `${q.blurb} ${q.cashCents > 0 ? `Costs ${money(q.cashCents)}. ` : "No cost up front. "}Runs ${q.weeks} ${q.weeks === 1 ? "week" : "weeks"}: ${effects.join(", ")}.${lock ? ` ${lock}` : ""}`,
+            };
+          }),
+          initial: list.find((q) => q.cashCents <= s.cashCents && s.payingCustomers >= q.needsCustomers)?.id ?? list[0]?.id ?? "",
+        },
+      ];
+    },
+    submit: "Start it",
+    build: (v) => ({ type: "setPromotion", promo: v.promo === "stop" ? null : (v.promo ?? null) }),
+    listed: (s) => s.capacity !== null,
   },
   {
     id: "network",

@@ -7,6 +7,7 @@
 // A tick: marketing wins customers, churn takes some, the market ceiling caps them, revenue accrues,
 // late payers delay some cash, costs and loan repayments go out, the week advances, then end checks.
 import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, topicsMatch } from "./actions";
+import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
 import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
@@ -97,6 +98,8 @@ function canonical(action: Action): Action {
       return Object.freeze({ type: "setRnd", level: action.level });
     case "network":
       return Object.freeze({ type: "network", kind: action.kind });
+    case "setPromotion":
+      return Object.freeze({ type: "setPromotion", promo: action.promo });
     case "respondOffer":
       return Object.freeze({ type: "respondOffer", accept: action.accept });
     default:
@@ -145,7 +148,7 @@ function tick(run: InternalRun): InternalRun {
   const payingCustomers = fuller ? fuller.customers.reduce((a, b) => a + b, 0) : Math.min(ceiling, withNew - churned);
 
   // Revenue accrues; during a late-payer window part of it arrives weeks later.
-  const weeklyRevenueCents = weeklyRevenue(payingCustomers, pub.priceCents);
+  const weeklyRevenueCents = Math.max(0, weeklyRevenue(payingCustomers, pub.priceCents) - (fuller?.discountCents ?? 0));
   const week = pub.week + 1;
   const window = secret.lateWindow;
   const late = window && pub.week >= window.startWeek && pub.week < window.endWeek ? Math.floor((weeklyRevenueCents * window.pct) / 100) : 0;
@@ -218,7 +221,7 @@ function tick(run: InternalRun): InternalRun {
       endReason,
       cashCents,
       payingCustomers,
-      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality } : {}),
+      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality, promo: fuller.promo, promoCooldown: fuller.promoCooldown } : {}),
       weeklyRevenueCents,
       profitableStreakWeeks,
       pivotsRemaining: runway,
@@ -447,6 +450,32 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       return ok(
         recorded(
           withPub(run, { hires: run.pub.hires + 1, weeklyBurnCents: burn, log: withLog(run.pub, "Hired a contractor.") }),
+          action,
+        ),
+      );
+    }
+
+    case "setPromotion": {
+      const business = run.secret.business;
+      if (!business) return fail("not-implemented");
+      if (action.promo === null) {
+        // Stop one early: the money is gone, and the cooldown still applies.
+        if (!run.pub.promo) return fail("invalid-promotion");
+        return ok(recorded(withPub(run, { promo: null, promoCooldown: PROMOTION_COOLDOWN_WEEKS, log: withLog(run.pub, "You ended the promotion early.") }), action));
+      }
+      const spec = promotionsFor(business.model.id).find((q) => q.id === action.promo);
+      if (!spec) return fail("invalid-promotion");
+      if (run.pub.promo || run.pub.promoCooldown > 0) return fail("promotion-active");
+      if (run.pub.payingCustomers < spec.needsCustomers) return fail("promotion-needs-customers");
+      if (run.pub.cashCents < spec.cashCents) return fail("insufficient-cash");
+      return ok(
+        recorded(
+          withPub(run, {
+            cashCents: run.pub.cashCents - spec.cashCents,
+            books: { ...run.pub.books, marketingCents: run.pub.books.marketingCents + spec.cashCents },
+            promo: { id: spec.id, weeksLeft: spec.weeks, signups: 0 },
+            log: withLog(run.pub, `Started a promotion: ${spec.name}.`),
+          }),
           action,
         ),
       );

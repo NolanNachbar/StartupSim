@@ -16,6 +16,8 @@ export interface Segment {
 
 export interface Channel {
   readonly name: string;
+  /** What the channel is, in a sentence (chosen businesses only). */
+  readonly blurb?: string;
   readonly costPerLeadCents: Cents;
   /** Fit with each segment, 0 to 100, indexed like Secret.segments. */
   readonly fit: readonly number[];
@@ -111,6 +113,14 @@ export interface Network {
   readonly events: number;
 }
 
+/** A promotion that is running (chosen businesses only). */
+export interface Promo {
+  readonly id: string;
+  readonly weeksLeft: number;
+  /** Customers won while it runs: they get the discount and they leave faster. */
+  readonly signups: number;
+}
+
 export interface Team {
   readonly builder: number;
   readonly seller: number;
@@ -154,6 +164,10 @@ export interface PublicState {
   readonly ledger: Ledger;
   readonly books: Books;
   readonly network: Network;
+  /** The promotion running now, or null. */
+  readonly promo: Promo | null;
+  /** Weeks until another promotion can start. */
+  readonly promoCooldown: number;
   /** The week of the first paid test that produced a payment. */
   readonly firstPaymentWeek: number | null;
   /** Weeks spent raising money. */
@@ -211,6 +225,7 @@ export type BuildKind = "landing-page" | "concierge" | "prototype";
 
 export interface ChannelInfo {
   readonly name: string;
+  readonly blurb?: string;
   readonly costPerLeadCents: Cents;
 }
 
@@ -266,6 +281,7 @@ export type Action =
   | { readonly type: "setMarketing"; readonly channel: number | null; readonly level: number; readonly target?: number | null }
   | { readonly type: "hire"; readonly role?: import("./realism").Role }
   | { readonly type: "setRnd"; readonly level: number }
+  | { readonly type: "setPromotion"; readonly promo: string | null }
   | { readonly type: "network"; readonly kind: "coffee" | "meetup" | "conference" }
   | { readonly type: "respondOffer"; readonly accept: boolean }
   | { readonly type: ReservedActionType };
@@ -287,6 +303,9 @@ export type IllegalReason =
   | "role-limit"
   | "invalid-target"
   | "invalid-network"
+  | "invalid-promotion"
+  | "promotion-active"
+  | "promotion-needs-customers"
   | "no-offer"
   | "investors-want-proof"
   | "insufficient-cash"

@@ -8,6 +8,7 @@ import {
   MAX_RAISES,
 } from "./runway";
 import type { InternalRun } from "./state";
+import { promotionsFor } from "./promotions";
 import { MAX_TEAM, NETWORK_KINDS, NETWORK_OPTIONS, RND_LEVELS_CENTS, ROLES, ROLE_CAP } from "./realism";
 import type { Action, BuildKind, QuestionType, ReservedActionType } from "./types";
 
@@ -63,6 +64,7 @@ const KNOWN_TYPES: ReadonlySet<string> = new Set([
   "hire",
   "setRnd",
   "network",
+  "setPromotion",
   "respondOffer",
   ...RESERVED_ACTION_TYPES,
 ]);
@@ -96,6 +98,10 @@ export function isActionShape(x: unknown): x is Action {
     return role === undefined || (typeof role === "string" && (ROLES as readonly string[]).includes(role));
   }
   if (x.type === "setRnd") return Number.isInteger((x as { level?: unknown }).level);
+  if (x.type === "setPromotion") {
+    const { promo } = x as { promo?: unknown };
+    return promo === null || typeof promo === "string";
+  }
   if (x.type === "network") return (NETWORK_KINDS as readonly unknown[]).includes((x as { kind?: unknown }).kind);
   if (x.type === "respondOffer") return typeof (x as { accept?: unknown }).accept === "boolean";
   if (x.type === "interview") {
@@ -149,6 +155,9 @@ export function legalActions(run: InternalRun): readonly Action[] {
       for (const role of ROLES) if (pub.team[role] < ROLE_CAP) actions.push({ type: "hire", role });
     }
     for (let level = 0; level < RND_LEVELS_CENTS.length; level++) if (level !== pub.rndLevel) actions.push({ type: "setRnd", level });
+    if (!pub.promo && pub.promoCooldown === 0 && run.secret.business) {
+      for (const spec of promotionsFor(run.secret.business.model.id)) if (pub.cashCents >= spec.cashCents && pub.payingCustomers >= spec.needsCustomers) actions.push({ type: "setPromotion", promo: spec.id });
+    }
     for (const kind of NETWORK_KINDS) if (pub.cashCents >= NETWORK_OPTIONS[kind].cashCents) actions.push({ type: "network", kind });
   } else if (pub.hires < MAX_HIRES && pub.cashCents >= pub.weeklyBurnCents + HIRE_WEEKLY_CENTS) actions.push({ type: "hire" });
   if (pub.offer) {

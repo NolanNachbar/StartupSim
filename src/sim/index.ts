@@ -6,6 +6,7 @@ import { step as stepInternal } from "./reducer";
 import { fromSave as fromSaveInternal, SIM_VERSION, toSave as toSaveInternal } from "./save";
 import { initialRun, type InternalRun } from "./state";
 import { PRICE_LADDER_CENTS, QUESTION_BANK, QUESTION_TYPES } from "./actions";
+import { PROMOTION_COOLDOWN_WEEKS, PROMOTIONS_BY_MODEL } from "./promotions";
 import { BUILDER_PROGRESS_PCT, MAX_TEAM, NETWORK_KINDS, NETWORK_OPTIONS, RND_GAIN, RND_LEVELS_CENTS, ROLES, ROLE_CAP, SELLER_OUTREACH_LEADS } from "./realism";
 import {
   BUDGET_LEVELS_CENTS,
@@ -68,6 +69,8 @@ export const CATALOG = {
   /** The team roles, how many of each, and how many in all. */
   roles: ROLES,
   roleCap: ROLE_CAP,
+  promotions: PROMOTIONS_BY_MODEL,
+  promotionCooldownWeeks: PROMOTION_COOLDOWN_WEEKS,
   networkKinds: NETWORK_KINDS,
   networkOptions: NETWORK_OPTIONS,
   maxTeam: MAX_TEAM,

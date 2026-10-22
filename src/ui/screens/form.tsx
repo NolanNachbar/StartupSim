@@ -27,7 +27,7 @@ function FieldView({ field, value, onChange }: { field: Field; value: string; on
       <legend class="field__label">{field.label}</legend>
       {field.options.map((o) => (
         <label key={o.value} class="choice">
-          <input type="radio" name={field.id} value={o.value} checked={value === o.value} disabled={o.done === true} onChange={() => onChange(o.value)} />
+          <input type="radio" name={field.id} value={o.value} checked={value === o.value} disabled={o.done === true || o.locked !== undefined} onChange={() => onChange(o.value)} />
           <span class="choice__text">
             <span class="choice__title">{o.label}{o.done ? <span class="built">Built</span> : null}</span>
             {o.hint ? <span class="choice__hint">{o.hint}</span> : null}

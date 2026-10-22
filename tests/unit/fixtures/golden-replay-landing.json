@@ -125,6 +125,8 @@
       "contacts": 0,
       "events": 0
     },
+    "promo": null,
+    "promoCooldown": 0,
     "cogsPct": 0,
     "priceLadderCents": [
       900,

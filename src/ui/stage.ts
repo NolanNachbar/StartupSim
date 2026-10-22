@@ -86,6 +86,7 @@ export function stageInfo(s: PublicState, b: Business | null): StageInfo {
     ],
     [
       { form: "marketing", label: "Set marketing", why: "Pay to reach people in the group you aim at." },
+      { form: "promotion", label: "Run a promotion", why: "A time-limited offer to win customers. It costs margin, and the people it wins leave sooner." },
       { form: "price", label: "Set your price", why: "What you charge decides how many people buy and how much you keep." },
       { form: "hire", label: "Hire someone", why: "A salesperson reaches people by hand; an operations person lets you serve more customers." },
     ],

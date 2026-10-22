@@ -183,3 +183,58 @@ describe("networking", () => {
     expect(view(asked).network.contacts).toBe(contacts - 3);
   });
 });
+
+describe("promotions", () => {
+  const spec = (id: string) => CATALOG.promotions.location.find((p) => p.id === id)!;
+  const withPage = (seed: number) => play(newRun(seed, 3, { ...gym, startCashCents: 30_000_000 }), { type: "buildTest", kind: "landing-page" }, { type: "setMarketing", channel: 1, level: 3 });
+
+  it("costs money up front, runs for its weeks, then needs a cooldown", () => {
+    const run = withPage(4);
+    const before = view(run).cashCents;
+    const started = play(run, { type: "setPromotion", promo: "grand-opening" });
+    expect(view(started).cashCents).toBe(before - spec("grand-opening").cashCents);
+    expect(view(started).promo?.weeksLeft).toBe(spec("grand-opening").weeks);
+    expect(step(started, { type: "setPromotion", promo: "free-trial" }).ok).toBe(false); // one at a time
+    let r = started;
+    for (let i = 0; i < spec("grand-opening").weeks; i++) r = must(step(r, { type: "wait" }));
+    expect(view(r).promo).toBeNull();
+    expect(view(r).promoCooldown).toBeGreaterThan(0);
+    const again = step(r, { type: "setPromotion", promo: "free-trial" });
+    expect(again.ok).toBe(false);
+  });
+
+  it("needs customers for a referral promotion, and rejects ones that do not exist", () => {
+    const run = withPage(4);
+    const r = step(run, { type: "setPromotion", promo: "bring-a-friend" });
+    expect(!r.ok && r.reason).toBe("promotion-needs-customers");
+    const bad = step(run, { type: "setPromotion", promo: "nope" });
+    expect(!bad.ok && bad.reason).toBe("invalid-promotion");
+    expect(step(newRun(4, 3), { type: "setPromotion", promo: "free-trial" }).ok).toBe(false);
+  });
+
+  it("wins more customers while it runs, and the discount lowers the revenue they bring", () => {
+    let withP = 0;
+    let without = 0;
+    for (let seed = 1; seed <= 8; seed++) {
+      let a = withPage(seed);
+      let b = withPage(seed);
+      a = must(step(a, { type: "setPromotion", promo: "free-trial" }));
+      for (let i = 0; i < 4; i++) {
+        a = must(step(a, { type: "wait" }));
+        b = must(step(b, { type: "wait" }));
+      }
+      withP += view(a).payingCustomers;
+      without += view(b).payingCustomers;
+    }
+    expect(withP).toBeGreaterThan(without);
+    // Per paying customer, revenue is lower while an intro rate runs (half price for the people it won).
+    let a = must(step(withPage(2), { type: "setPromotion", promo: "intro-rate" }));
+    let b = withPage(2);
+    for (let i = 0; i < 3; i++) {
+      a = must(step(a, { type: "wait" }));
+      b = must(step(b, { type: "wait" }));
+    }
+    const perCustomer = (r: ReturnType<typeof newRun>) => view(r).weeklyRevenueCents / Math.max(1, view(r).payingCustomers);
+    expect(perCustomer(a)).toBeLessThan(perCustomer(b));
+  });
+});

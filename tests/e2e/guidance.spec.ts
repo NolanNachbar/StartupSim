@@ -91,3 +91,26 @@ test("difficulty and starting money can be set before you start, and networking 
   await page.getByRole("button", { name: "Choose an action" }).click();
   await expect(page.getByText("People you know").first()).toBeVisible();
 });
+
+test("a gym can run a promotion: it costs money, locks the next one, and shows in the status", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
+  await page.goto("/?seed=3");
+  await page.getByRole("button", { name: "Start a run" }).click();
+  await page.getByRole("radio", { name: /Health and wellness/ }).check();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("radio", { name: /Physical location/ }).check();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Start the company" }).click();
+  await page.getByRole("button", { name: "Choose an action" }).click();
+  await page.getByRole("button", { name: /^Run a promotion/ }).last().click();
+  await expect(page.getByRole("radio", { name: /Grand opening week/ })).toBeVisible();
+  await expect(page.getByText(/Needs 10 customers first/).first()).toBeVisible(); // the referral promotion is locked
+  await page.getByRole("radio", { name: /Grand opening week/ }).check();
+  await page.getByRole("button", { name: "Start it" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Choose an action" }).click();
+  await expect(page.getByText("Promotion").first()).toBeVisible();
+  await page.getByRole("button", { name: /^Run a promotion/ }).last().click();
+  await expect(page.getByText(/is running/).first()).toBeVisible();
+});
