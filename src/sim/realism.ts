@@ -96,6 +96,7 @@ export interface WeekResult {
   readonly promoCooldown: number;
   /** Revenue given up this week to a promotion's discount. */
   readonly discountCents: number;
+  readonly reputation: number;
   readonly notes: readonly string[];
 }
 
@@ -115,7 +116,8 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const rndSpend = RND_LEVELS_CENTS[pub.rndLevel] ?? 0;
   const quality = Math.min(100, pub.qualityPct + (rndSpend > 0 ? (RND_GAIN[pub.rndLevel] ?? 0) : 0));
   const wtpBoost = (wtp: number): number => Math.floor((wtp * (100 + Math.floor(quality / 3))) / 100);
-  const credibility = Math.min(100, Math.max(CREDIBILITY_FLOOR_PCT, progress) + Math.floor(quality / 4));
+  // Reviews and word of mouth: what customers think of you makes the next person more or less ready to trust you.
+  const credibility = Math.min(100, Math.max(CREDIBILITY_FLOOR_PCT, progress) + Math.floor(quality / 4) + Math.floor((pub.reputation - 50) / 5));
 
   const customers = pub.segmentNames.map((_, i) => pub.customersBySegment[i] ?? 0);
   const season = seasonAt(run.industry ?? 1, run.seed, pub.week);
@@ -161,7 +163,8 @@ export function realisticWeek(run: InternalRun): WeekResult {
     if (here === 0) return;
     // A better product keeps people even when it is already finished: quality cuts churn by up to a third.
     const raw = churnedCustomers(here, effective, randInt(run.seed, 1, 10_000, "churn", pub.week, i));
-    const churned = Math.floor(((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100);
+    // happy customers stay: a good name cuts churn by up to 30 percent, a bad one raises it by as much
+    const churned = Math.floor((((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100 * (130 - Math.floor((pub.reputation * 6) / 10))) / 100);
     // a busy month holds more people; a quiet one does not send anyone away
     const ceiling = Math.floor((marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(pub.priceCents, wtpBoost(seg.willingnessToPayCents)))) * (100 + Math.floor(Math.max(0, season.index - 100) / 2))) / 100);
     customers[i] = Math.max(0, Math.min(ceiling, here - churned));
@@ -184,5 +187,11 @@ export function realisticWeek(run: InternalRun): WeekResult {
       notes.push(`${promoSpec.name} is over. People it brought in now pay the full price.`);
     }
   }
-  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, notes };
+  // Reputation drifts toward what you deserve: a better product and a place that is not crowded earn it, a rushed discount crowd
+  // and a full house lose it. It moves a sixth of the way each week, so it is slow to build and slow to repair.
+  const served = customers.reduce((a, b) => a + b, 0);
+  const crowded = capacityOf(model, pub.team.ops) > 0 && served * 100 > capacityOf(model, pub.team.ops) * 90;
+  const deserved = Math.max(0, Math.min(100, 45 + Math.floor(quality / 4) + (progress >= 100 ? 15 : Math.floor(progress / 8)) + 4 * pub.team.ops + (crowded ? -20 : 0) + (promoSpec && promoSpec.dealChurnPct >= 4 ? -5 : 0)));
+  const reputation = pub.reputation + Math.trunc((deserved - pub.reputation) / 6);
+  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, reputation, notes };
 }

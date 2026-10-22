@@ -238,3 +238,25 @@ describe("promotions", () => {
     expect(perCustomer(a)).toBeLessThan(perCustomer(b));
   });
 });
+
+describe("reputation", () => {
+  const run0 = () => newRun(6, 3, { ...gym, startCashCents: 40_000_000 });
+
+  it("starts ordinary, and builds slowly with a good product and a team that serves well", () => {
+    let r = play(run0(), { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "prototype" }, { type: "setRnd", level: 3 }, { type: "hire", role: "ops" });
+    const start = view(r).reputation;
+    for (let i = 0; i < 20; i++) r = must(step(r, { type: "wait" }));
+    expect(view(r).reputation).toBeGreaterThan(start);
+    expect(view(r).reputation).toBeLessThanOrEqual(100);
+  });
+
+  it("is lower when the product is not ready than when it is", () => {
+    let idle = run0();
+    let built = play(run0(), { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "prototype" });
+    for (let i = 0; i < 15; i++) {
+      idle = must(step(idle, { type: "wait" }));
+      built = must(step(built, { type: "wait" }));
+    }
+    expect(view(built).reputation).toBeGreaterThan(view(idle).reputation);
+  });
+});

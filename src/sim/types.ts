@@ -174,6 +174,8 @@ export interface PublicState {
   readonly network: Network;
   /** The promotion running now, or null. */
   readonly promo: Promo | null;
+  /** What customers think of you, 0 to 100 (50 is ordinary). Only with a chosen business. */
+  readonly reputation: number;
   /** The season, for a chosen business (null in the original worlds). */
   readonly season: Season | null;
   /** Weeks until another promotion can start. */

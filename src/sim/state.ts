@@ -46,6 +46,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     books: { startCashCents: startCash, equityRaisedCents: 0, loanReceivedCents: 0, principalRepaidCents: 0, interestCents: 0, salesCashCents: 0, testSalesCents: 0, cogsCents: 0, operatingCents: 0, marketingCents: 0, rndCents: 0, learningCents: 0 },
     network: { contacts: 0, events: 0 },
     promo: null,
+    reputation: 50,
     season: secret.business && industry !== null ? seasonAt(industry, seed, 0) : null,
     promoCooldown: 0,
     cogsPct: secret.business ? COGS_PCT_BY_MODEL[secret.business.model.id] : 0,
