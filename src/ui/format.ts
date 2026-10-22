@@ -44,6 +44,7 @@ const REASONS: Record<IllegalReason, string> = {
   "invalid-build": "Pick something to build.",
   "invalid-channel": "Pick a channel first.",
   "already-built": "You already built that.",
+  "invalid-network": "That is not a way to meet people.",
   "nothing-to-sell": "There is nothing built to sell yet.",
   "invalid-level": "That budget level is not on the list.",
   "hire-limit": "You cannot hire anyone else.",

@@ -47,6 +47,10 @@
 .way__pin { width: 0; height: 0; border: 7px solid transparent; border-top-color: var(--surface); border-bottom-width: 0; margin-top: -1px; }
 .way--below { transform: translate(-50%, 0); }
 .way--below .way__pin { order: -1; border-top-width: 0; border-bottom-width: 7px; border-top-color: transparent; border-bottom-color: var(--verified); margin: 0 0 -1px; }
+.way--below .way__stem { order: 0; margin: -1px 0 0; }
+.way--below .way__name { order: 1; }
+.way--flip .way__pin { border-bottom-color: var(--surface); }
+.way--flip.way--on .way__pin, .way--flip.way--focus .way__pin { border-bottom-color: var(--primary); }
 .way--hq .way__name { background: var(--verified); color: #ffffff; }
 .way--hq .way__pin { border-top-color: var(--verified); }
 .way--on .way__name, .way--focus .way__name { background: var(--primary); color: var(--on-primary); }
@@ -382,3 +386,24 @@
 .books td { text-align: right; font-weight: 700; padding: var(--s-1) 0; white-space: nowrap; }
 .books tr + tr th, .books tr + tr td { border-top: 1px solid var(--line); }
 .books__total th { font-weight: 700; }
+
+/* The stage's goals: what the next stage asks of you, ticked off as you do it. */
+.stage__goal-title { margin: 0; font-weight: 700; }
+.stage__goals { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.goal { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: var(--s-2); align-items: center; }
+.goal__box { display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--line); border-radius: 6px; font-size: 1rem; line-height: 1; background: var(--surface); }
+.goal--done .goal__box { background: var(--verified); border-color: var(--verified); color: var(--on-primary); }
+.goal--done .goal__text { color: var(--ink-soft); text-decoration: line-through; }
+.button--small { min-height: 44px; padding: var(--s-1) var(--s-3); font-size: 1rem; }
+.status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2) var(--s-4); margin: 0; padding: var(--s-3); background: var(--surface-raised); border-radius: var(--radius-chip); }
+.status dt { color: var(--ink-soft); }
+.status dd { margin: 0; font-weight: 700; }
+.built { display: inline-block; margin-left: var(--s-2); padding: 0 var(--s-2); border: 2px solid var(--verified); border-radius: 6px; color: var(--verified); font-weight: 700; }
+
+/* A repeated interview question: what they said last time, and better questions to ask next. */
+.followup { display: grid; gap: var(--s-2); margin-top: var(--s-2); padding: var(--s-3); border: 2px dashed var(--line); border-radius: var(--radius-chip); }
+.followup p { margin: 0; }
+.followup__title { font-weight: 700; }
+.followup__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.notebook__tabs { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.notebook__tabs .button[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }

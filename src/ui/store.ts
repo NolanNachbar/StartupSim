@@ -24,6 +24,7 @@ export type Screen =
   | { name: "report" }
   | { name: "notes"; from: Screen }
   | { name: "books"; from: Screen }
+  | { name: "notebook"; from: Screen }
   | { name: "help"; from: Screen }
   | { name: "menu"; from: Screen };
 
@@ -374,6 +375,7 @@ export function back(): void {
     case "menu": go(s.from); break;
     case "notes": go(s.from); break;
     case "books": go(s.from); break;
+    case "notebook": go(s.from); break;
     case "help": go(s.from); break;
     default: break;
   }
@@ -422,6 +424,16 @@ export function openMenu(): void {
   const s = screen.value;
   if (s.name === "menu") return;
   go({ name: "menu", from: s });
+}
+
+/** The group the notebook is filtered to (null: all groups). */
+export const notebookGroup = signal<number | null>(null);
+
+export function openNotebook(segment: number | null = null): void {
+  const s = screen.value;
+  if (s.name === "notebook") return;
+  notebookGroup.value = segment;
+  go({ name: "notebook", from: s });
 }
 
 export function openBooks(): void {

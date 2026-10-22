@@ -116,3 +116,19 @@ export function roleInfo(b: Business | null, role: Role): { label: string; what:
   const ops = m === "software" ? "Support agent" : hire.charAt(0).toUpperCase() + hire.slice(1);
   return { label: ops, what: m === "software" ? "looks after customers, so you can serve far more of them" : "serves customers, so the business can hold more of them" };
 }
+
+/** After a question has been asked, what is worth asking next and why. The reason names what it digs into. */
+export const FOLLOW_UPS: Readonly<Record<string, readonly { readonly topic: string; readonly why: string }[]>> = {
+  "last-time": [{ topic: "cost", why: "Find out what that moment cost them." }, { topic: "tried", why: "Find out what they did about it." }],
+  cost: [{ topic: "tried", why: "Ask what they tried to fix it." }, { topic: "pay-today", why: "Ask whether they would pay to make it go away." }],
+  tried: [{ topic: "switch", why: "Ask whether they would give up what they use now." }, { topic: "who", why: "Ask who else has a say." }],
+  who: [{ topic: "pay-today", why: "Ask whether they would pay today." }, { topic: "deposit", why: "Ask for a deposit: money is the real test." }],
+  "pay-today": [{ topic: "deposit", why: "A yes costs nothing. Ask them to put money down." }, { topic: "pre-order", why: "Ask them to pre-order." }],
+  "pre-order": [{ topic: "deposit", why: "Ask for a deposit to hold their place." }, { topic: "switch", why: "Ask what they would give up to use it." }],
+  deposit: [{ topic: "who", why: "Ask who else must agree." }, { topic: "feedback", why: "Ask what would change their mind." }],
+  "would-use": [{ topic: "pay-today", why: "Using it for free is not paying for it. Ask about paying." }, { topic: "last-time", why: "Ask about the last time they had the problem." }],
+  useful: [{ topic: "pay-today", why: "Ask whether they would pay." }, { topic: "tried", why: "Ask what they already tried." }],
+  switch: [{ topic: "pay-today", why: "Ask whether they would pay today." }, { topic: "cost", why: "Ask what the problem costs them now." }],
+  pitch: [{ topic: "feedback", why: "Ask what they would change." }, { topic: "pay-today", why: "Ask whether they would pay." }],
+  feedback: [{ topic: "pre-order", why: "Ask them to pre-order." }, { topic: "who", why: "Ask who else would need to agree." }],
+};

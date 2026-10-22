@@ -23,6 +23,8 @@ export interface Option {
   readonly value: string;
   readonly label: string;
   readonly hint?: string;
+  /** Already done: shown with a Built tag and cannot be chosen again. */
+  readonly done?: boolean;
 }
 
 export interface Field {
@@ -104,19 +106,28 @@ export const FORMS: readonly FormDef[] = [
     blurb: "Make something customers can react to.",
     intro: (s) =>
       `Make something customers can react to. A landing page is what lets you ask people to pay in a test. Prototypes and concierge versions add to the product itself, which is ${s.productProgressPct} percent built now; at 100 percent it is launched and customers can really use it.`,
-    fields: () => [
-      {
-        id: "kind",
-        label: "What to build",
-        kind: "radio",
-        options: (Object.keys(CATALOG.builds) as BuildKind[]).map((k) => ({
-          value: k,
-          label: buildCopy(biz())[k].label,
-          hint: `${buildCopy(biz())[k].hint} ${money(CATALOG.builds[k].cashCents)} and ${CATALOG.builds[k].weeks} ${CATALOG.builds[k].weeks === 1 ? "week" : "weeks"}; adds ${CATALOG.builds[k].progressPct} percent to the product.`,
-        })),
-        initial: "landing-page",
-      },
-    ],
+    fields: (s) => {
+      const kinds = Object.keys(CATALOG.builds) as BuildKind[];
+      const doneKind = (k: BuildKind): boolean => (k === "landing-page" ? s.landingPageBuilt : s.productProgressPct >= 100);
+      return [
+        {
+          id: "kind",
+          label: "What to build",
+          kind: "radio",
+          options: kinds.map((k) => ({
+            value: k,
+            label: buildCopy(biz())[k].label,
+            done: doneKind(k),
+            hint: `${buildCopy(biz())[k].hint} ${money(CATALOG.builds[k].cashCents)} and ${CATALOG.builds[k].weeks} ${CATALOG.builds[k].weeks === 1 ? "week" : "weeks"}. ${
+              k === "landing-page"
+                ? `${s.landingPageBuilt ? "Already built: you can run paid tests." : "Built once. It is what lets you ask people to pay in a paid test."} Adds ${CATALOG.builds[k].progressPct} percent to the product.`
+                : `Adds ${CATALOG.builds[k].progressPct} percent to the product (${s.productProgressPct} percent now). You can build it again until the product is 100 percent.`
+            }`,
+          })),
+          initial: kinds.find((k) => !doneKind(k)) ?? "landing-page",
+        },
+      ];
+    },
     submit: "Build it",
     build: (v) => ({ type: "buildTest", kind: (v.kind ?? "landing-page") as BuildKind }),
     listed: () => true,

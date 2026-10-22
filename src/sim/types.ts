@@ -104,6 +104,13 @@ export interface Marketing {
   readonly target?: number | null;
 }
 
+/** The people you have met who will take your call: warm introductions and the odd referral. Only with a chosen business. */
+export interface Network {
+  readonly contacts: number;
+  /** Networking events attended. */
+  readonly events: number;
+}
+
 export interface Team {
   readonly builder: number;
   readonly seller: number;
@@ -146,6 +153,7 @@ export interface PublicState {
   readonly landingPageBuilt: boolean;
   readonly ledger: Ledger;
   readonly books: Books;
+  readonly network: Network;
   /** The week of the first paid test that produced a payment. */
   readonly firstPaymentWeek: number | null;
   /** Weeks spent raising money. */
@@ -258,6 +266,7 @@ export type Action =
   | { readonly type: "setMarketing"; readonly channel: number | null; readonly level: number; readonly target?: number | null }
   | { readonly type: "hire"; readonly role?: import("./realism").Role }
   | { readonly type: "setRnd"; readonly level: number }
+  | { readonly type: "network"; readonly kind: "coffee" | "meetup" | "conference" }
   | { readonly type: "respondOffer"; readonly accept: boolean }
   | { readonly type: ReservedActionType };
 
@@ -277,6 +286,7 @@ export type IllegalReason =
   | "invalid-role"
   | "role-limit"
   | "invalid-target"
+  | "invalid-network"
   | "no-offer"
   | "investors-want-proof"
   | "insufficient-cash"
@@ -296,6 +306,10 @@ export interface Save {
   idea?: string;
   /** The player's own customer groups and wording, when they changed the defaults. */
   custom?: import("./business").Custom;
+  /** An index into DIFFICULTIES. Absent for Normal. */
+  difficulty?: number;
+  /** The starting money in cents, when the player set it. */
+  startCash?: number;
   actions: Action[];
 }
 

@@ -4,11 +4,11 @@
 import { isActionShape } from "./actions";
 import { step } from "./reducer";
 import { initialRun, type InternalRun } from "./state";
-import { COMBOS, MAX_IDEA, MODELS, cleanCustom, cleanIdea, type BusinessChoice, type Custom } from "./business";
+import { COMBOS, DIFFICULTIES, DIFFICULTY_DEFAULT, MAX_IDEA, MODELS, cleanCustom, cleanIdea, cleanStartCash, type BusinessChoice, type Custom } from "./business";
 import { INDUSTRIES } from "./world";
 import type { Action, LoadError, Save } from "./types";
 
-export const SIM_VERSION = 5;
+export const SIM_VERSION = 6;
 
 const MAX_SEED = 0xffffffff;
 
@@ -19,7 +19,7 @@ export function toSave(run: InternalRun): Save {
   const base = { simVersion: SIM_VERSION, seed: run.seed, actions: run.actions.map((a) => ({ ...a })) };
   if (run.industry === null) return base;
   if (run.business === null) return { ...base, industry: run.industry };
-  return { ...base, industry: run.industry, model: run.business.model, idea: run.business.idea, ...(run.business.custom ? { custom: run.business.custom } : {}) };
+  return { ...base, industry: run.industry, model: run.business.model, idea: run.business.idea, ...(run.business.custom ? { custom: run.business.custom } : {}), ...(run.business.difficulty !== undefined && run.business.difficulty !== DIFFICULTY_DEFAULT ? { difficulty: run.business.difficulty } : {}), ...(run.business.startCashCents !== undefined ? { startCash: run.business.startCashCents } : {}) };
 }
 
 export type LoadResult =
@@ -34,7 +34,7 @@ type Checked =
 function check(input: unknown): Checked {
   try {
     if (typeof input !== "object" || input === null) return { ok: false, reason: "invalid" };
-    const { simVersion, seed, actions, industry, model, idea, custom } = input as { simVersion?: unknown; seed?: unknown; actions?: unknown; industry?: unknown; model?: unknown; idea?: unknown; custom?: unknown };
+    const { simVersion, seed, actions, industry, model, idea, custom, difficulty, startCash } = input as { simVersion?: unknown; seed?: unknown; actions?: unknown; industry?: unknown; model?: unknown; idea?: unknown; custom?: unknown; difficulty?: unknown; startCash?: unknown };
     if (!Number.isSafeInteger(simVersion)) return { ok: false, reason: "invalid" };
     if (typeof seed !== "number" || !Number.isInteger(seed) || seed < 0 || seed > MAX_SEED) {
       return { ok: false, reason: "invalid" };
@@ -53,7 +53,10 @@ function check(input: unknown): Checked {
       }
       const own = custom === undefined ? undefined : typeof custom === "object" && custom !== null ? cleanCustom(custom as Custom) : null;
       if (own === null) return { ok: false, reason: "invalid" };
-      business = { model, idea: cleaned, ...(own ? { custom: own } : {}) };
+      if (difficulty !== undefined && (typeof difficulty !== "number" || !Number.isInteger(difficulty) || difficulty < 0 || difficulty >= DIFFICULTIES.length)) return { ok: false, reason: "invalid" };
+      const cash = startCash === undefined ? undefined : cleanStartCash(startCash);
+      if (startCash !== undefined && cash === undefined) return { ok: false, reason: "invalid" };
+      business = { model, idea: cleaned, ...(own ? { custom: own } : {}), ...(difficulty !== undefined ? { difficulty: difficulty as number } : {}), ...(cash !== undefined ? { startCashCents: cash } : {}) };
     }
     if (simVersion !== SIM_VERSION) return { ok: false, reason: "version-mismatch" };
     // Copy so later changes to the caller's objects cannot affect the replay.

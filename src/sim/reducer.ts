@@ -7,7 +7,7 @@
 // A tick: marketing wins customers, churn takes some, the market ceiling caps them, revenue accrues,
 // late payers delay some cash, costs and loan repayments go out, the week advances, then end checks.
 import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, topicsMatch } from "./actions";
-import { BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
+import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
@@ -95,6 +95,8 @@ function canonical(action: Action): Action {
       return Object.freeze({ type: "hire", ...(action.role ? { role: action.role } : {}) });
     case "setRnd":
       return Object.freeze({ type: "setRnd", level: action.level });
+    case "network":
+      return Object.freeze({ type: "network", kind: action.kind });
     case "respondOffer":
       return Object.freeze({ type: "respondOffer", accept: action.accept });
     default:
@@ -276,7 +278,8 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       if (run.pub.raisesUsed >= 1 && !run.pub.hypotheses.some((h) => h.state === "verified")) {
         return fail("investors-want-proof");
       }
-      const weeks = randInt(run.seed, 3, 9, "raise", run.pub.raisesUsed);
+      // Knowing people shortens the search for an investor.
+      const weeks = Math.max(2, randInt(run.seed, 3, 9, "raise", run.pub.raisesUsed) - (run.secret.business && run.pub.network.contacts >= 5 ? 2 : 0));
       const advanced = advance(run, weeks);
       const after = withPub(advanced, { raiseWeeks: run.pub.raiseWeeks + (advanced.pub.week - run.pub.week) });
       if (after.pub.status !== "running") return ok(recorded(after, action));
@@ -303,6 +306,8 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       }
       if (!isQuestionTriple(action.questions) || !topicsMatch(action.questions, action.topics)) return fail("invalid-questions");
       if (run.pub.cashCents < INTERVIEW_ROUND_CASH_CENTS) return fail("insufficient-cash");
+      // People you have met pick up the phone: each one makes a call certain to be answered, and is then spent.
+      const warm = run.secret.business ? Math.min(WARM_PER_ROUND, run.pub.network.contacts) : 0;
       const round = runInterviewRound({
         secret: run.secret,
         seed: run.seed,
@@ -312,10 +317,12 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         questions: action.questions,
         ...(action.topics ? { topics: action.topics } : {}),
         priceCents: run.pub.priceCents,
+        ...(warm > 0 ? { warm } : {}),
       });
       const answered = round.filter((e) => e.outcome === "completed").length;
       const paid = withPub(run, {
         cashCents: run.pub.cashCents - INTERVIEW_ROUND_CASH_CENTS,
+        ...(warm > 0 ? { network: { ...run.pub.network, contacts: run.pub.network.contacts - warm } } : {}),
         books: { ...run.pub.books, learningCents: run.pub.books.learningCents + INTERVIEW_ROUND_CASH_CENTS },
         ...withEvidence(run.pub, round),
         log: withLog(run.pub, `Interview round: ${answered} of ${round.length} answered.`),
@@ -418,7 +425,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         const salary = run.pub.weeklyBurnCents + HIRE_LOADED_WEEKLY_CENTS;
         if (run.pub.cashCents < salary) return fail("insufficient-cash");
         // Finding the right person takes weeks of the founder's time.
-        const hired = advance(run, HIRE_SEARCH_WEEKS);
+        const hired = advance(run, Math.max(2, HIRE_SEARCH_WEEKS - (run.pub.network.contacts >= 3 ? 1 : 0)));
         if (hired.pub.status !== "running") return ok(recorded(hired, action));
         const team = { ...hired.pub.team, [role]: hired.pub.team[role] + 1 };
         return ok(
@@ -443,6 +450,22 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
           action,
         ),
       );
+    }
+
+    case "network": {
+      if (!run.secret.business) return fail("not-implemented");
+      if (!(NETWORK_KINDS as readonly string[]).includes(action.kind)) return fail("invalid-network");
+      const spec = NETWORK_OPTIONS[action.kind];
+      if (run.pub.cashCents < spec.cashCents) return fail("insufficient-cash");
+      // Meeting people takes your weeks; who you meet is down to the day.
+      const met = randInt(run.seed, spec.min, spec.max, "net", run.pub.network.events);
+      const paid = withPub(run, {
+        cashCents: run.pub.cashCents - spec.cashCents,
+        books: { ...run.pub.books, learningCents: run.pub.books.learningCents + spec.cashCents },
+        network: { contacts: run.pub.network.contacts + met, events: run.pub.network.events + 1 },
+        log: withLog(run.pub, `Networking: you met ${met} ${met === 1 ? "person" : "people"} who will take your call.`),
+      });
+      return ok(recorded(advance(paid, spec.weeks), action));
     }
 
     case "setRnd": {

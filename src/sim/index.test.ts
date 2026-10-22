@@ -4,9 +4,9 @@ import * as sim from "./index";
 describe("public API (src/sim/index.ts)", () => {
   it("exports exactly the documented functions and constants", () => {
     expect(Object.keys(sim).sort()).toEqual(
-      ["BUSINESS_LIST", "BUSINESS_MODELS", "CATALOG", "MAX_IDEA_LENGTH", "cleanCustom", "cleanIdea", "describeModel", "matchPack", "INDUSTRY_LIST", "SIM_VERSION", "fromSave", "legalActions", "newRun", "report", "statements", "step", "toSave", "view"].sort(),
+      ["BUSINESS_LIST", "BUSINESS_MODELS", "CATALOG", "DIFFICULTY_LIST", "MAX_IDEA_LENGTH", "START_CASH_RANGE", "cleanCustom", "cleanDifficulty", "cleanIdea", "cleanStartCash", "describeModel", "matchPack", "INDUSTRY_LIST", "SIM_VERSION", "fromSave", "legalActions", "newRun", "report", "statements", "step", "toSave", "view"].sort(),
     );
-    expect(sim.SIM_VERSION).toBe(5);
+    expect(sim.SIM_VERSION).toBe(6);
   });
 
   it("newRun rejects seeds that are not integers in [0, 0xFFFFFFFF]", () => {
@@ -26,7 +26,7 @@ describe("public API (src/sim/index.ts)", () => {
     if (!r.ok) return;
     run = r.run;
     expect(sim.view(run).week).toBe(1);
-    expect(sim.toSave(run)).toEqual({ simVersion: 5, seed: 42, actions: [{ type: "wait" }] });
+    expect(sim.toSave(run)).toEqual({ simVersion: 6, seed: 42, actions: [{ type: "wait" }] });
   });
 
   it("gives no report while a run is going and a report once it has ended", () => {

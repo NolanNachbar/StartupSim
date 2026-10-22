@@ -3,6 +3,7 @@
 // this, so their results never change. Integer math only, like the rest of the sim.
 import { ACQUISITION_DIVISOR, BUDGET_LEVELS_CENTS, CREDIBILITY_FLOOR_PCT, acquiredCustomers, churnedCustomers, conversionPct, marketCeiling, marketingLeads, priceRatioPct } from "./runway";
 import { randInt } from "./rng";
+import { DIFFICULTIES, DIFFICULTY_DEFAULT } from "./business";
 import type { InternalRun } from "./state";
 import type { ModelId } from "./business";
 import { weatherPctAt } from "./world";
@@ -68,6 +69,18 @@ export const BUILD_LABEL_BY_MODEL: Readonly<Record<ModelId, Readonly<Record<stri
   product: { "landing-page": "a pre-order page", concierge: "a hand-made batch", prototype: "a small production run" },
 };
 
+export type NetworkKind = "coffee" | "meetup" | "conference";
+
+/** Ways to meet people: what it costs, how long it takes, and how many people you can hope to meet. */
+export const NETWORK_OPTIONS: Readonly<Record<NetworkKind, { readonly cashCents: number; readonly weeks: number; readonly min: number; readonly max: number }>> = {
+  coffee: { cashCents: 5_000, weeks: 1, min: 1, max: 2 },
+  meetup: { cashCents: 15_000, weeks: 1, min: 2, max: 4 },
+  conference: { cashCents: 150_000, weeks: 2, min: 4, max: 8 },
+};
+export const NETWORK_KINDS: readonly NetworkKind[] = ["coffee", "meetup", "conference"];
+/** The most warm introductions that help one round of interviews. */
+export const WARM_PER_ROUND = 3;
+
 export const capacityOf = (model: ModelId, ops: number): number => CAPACITY_BY_MODEL[model].base + CAPACITY_BY_MODEL[model].perOps * ops;
 
 export interface WeekResult {
@@ -83,6 +96,7 @@ export interface WeekResult {
 export function realisticWeek(run: InternalRun): WeekResult {
   const { secret, pub } = run;
   const model = secret.business?.model.id ?? "software";
+  const level = DIFFICULTIES[secret.business?.difficulty ?? DIFFICULTY_DEFAULT] ?? (DIFFICULTIES[DIFFICULTY_DEFAULT] as (typeof DIFFICULTIES)[number]);
   const notes: string[] = [];
 
   let progress = pub.productProgressPct;
@@ -107,7 +121,9 @@ export function realisticWeek(run: InternalRun): WeekResult {
     const buyPct = Math.floor((conversionPct(priceRatioPct(pub.priceCents, wtpBoost(targetSeg.willingnessToPayCents))) * credibility) / 100);
     const paidLeads = channel && marketingSpend > 0 ? marketingLeads(marketingSpend, channel.costPerLeadCents, pub.team.seller) : 0;
     const handLeads = pub.landingPageBuilt ? SELLER_OUTREACH_LEADS * pub.team.seller : 0;
-    const leads = paidLeads + handLeads;
+    // contacts you have made send people your way: one lead a week for every three
+    const referralLeads = Math.floor(pub.network.contacts / 3);
+    const leads = Math.floor(((paidLeads + handLeads) * level.leadsPct) / 100) + referralLeads;
     if (leads > 0) {
       const acquired = acquiredCustomers({
         leads,
@@ -131,7 +147,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
     if (here === 0) return;
     // A better product keeps people even when it is already finished: quality cuts churn by up to a third.
     const raw = churnedCustomers(here, effective, randInt(run.seed, 1, 10_000, "churn", pub.week, i));
-    const churned = raw - Math.floor((raw * quality) / 300);
+    const churned = Math.floor(((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100);
     const ceiling = marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(pub.priceCents, wtpBoost(seg.willingnessToPayCents))));
     customers[i] = Math.max(0, Math.min(ceiling, here - churned));
   });

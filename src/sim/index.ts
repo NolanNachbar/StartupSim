@@ -1,12 +1,12 @@
 // Public API of the simulation. src/ui may import only from here (enforced by ESLint).
-import { COMBOS, MAX_IDEA, MODELS, cleanCustom, cleanIdea, describeModel, matchPack, type Business, type BusinessChoice, type Combo, type Custom, type ModelInfo } from "./business";
+import { COMBOS, DIFFICULTIES, MAX_IDEA, MAX_START_CASH_CENTS, MIN_START_CASH_CENTS, MODELS, cleanCustom, cleanDifficulty, cleanIdea, cleanStartCash, describeModel, matchPack, type Business, type BusinessChoice, type Combo, type Custom, type Difficulty, type ModelInfo } from "./business";
 // `Run` is opaque: it carries the hidden world, but the type gives the UI no way to read it.
 import { legalActions as legalActionsInternal } from "./actions";
 import { step as stepInternal } from "./reducer";
 import { fromSave as fromSaveInternal, SIM_VERSION, toSave as toSaveInternal } from "./save";
 import { initialRun, type InternalRun } from "./state";
 import { PRICE_LADDER_CENTS, QUESTION_BANK, QUESTION_TYPES } from "./actions";
-import { BUILDER_PROGRESS_PCT, MAX_TEAM, RND_GAIN, RND_LEVELS_CENTS, ROLES, ROLE_CAP, SELLER_OUTREACH_LEADS } from "./realism";
+import { BUILDER_PROGRESS_PCT, MAX_TEAM, NETWORK_KINDS, NETWORK_OPTIONS, RND_GAIN, RND_LEVELS_CENTS, ROLES, ROLE_CAP, SELLER_OUTREACH_LEADS } from "./realism";
 import {
   BUDGET_LEVELS_CENTS,
   BUILD_TABLE,
@@ -68,6 +68,8 @@ export const CATALOG = {
   /** The team roles, how many of each, and how many in all. */
   roles: ROLES,
   roleCap: ROLE_CAP,
+  networkKinds: NETWORK_KINDS,
+  networkOptions: NETWORK_OPTIONS,
   maxTeam: MAX_TEAM,
   builderProgressPct: BUILDER_PROGRESS_PCT,
   sellerOutreachLeads: SELLER_OUTREACH_LEADS,
@@ -94,8 +96,10 @@ const outside = (run: InternalRun): Run => run as unknown as Run;
 export const BUSINESS_LIST: readonly (readonly Combo[])[] = COMBOS;
 export const BUSINESS_MODELS: readonly ModelInfo[] = MODELS;
 export const MAX_IDEA_LENGTH = MAX_IDEA;
-export { cleanCustom, cleanIdea, describeModel, matchPack };
-export type { Business, BusinessChoice, Combo, Custom, ModelInfo };
+export const DIFFICULTY_LIST: readonly Difficulty[] = DIFFICULTIES;
+export const START_CASH_RANGE = { minCents: MIN_START_CASH_CENTS, maxCents: MAX_START_CASH_CENTS, stepCents: 50_000 } as const;
+export { cleanCustom, cleanDifficulty, cleanIdea, cleanStartCash, describeModel, matchPack };
+export type { Business, BusinessChoice, Combo, Custom, Difficulty, ModelInfo };
 
 /** The markets a company can start in: public descriptions only. The numbers behind them stay hidden. */
 export const INDUSTRY_LIST: readonly { readonly name: string; readonly blurb: string }[] = INDUSTRIES.map((i) => ({ name: i.name, blurb: i.blurb }));
@@ -115,7 +119,9 @@ export function newRun(seed: number, industry?: number, business?: BusinessChoic
     throw new RangeError("business needs an industry, a model index and an idea of at least three characters");
   }
   const custom = business ? cleanCustom(business.custom) : undefined;
-  return outside(initialRun(seed, industry ?? null, business ? { model: business.model, idea: cleanIdea(business.idea) as string, ...(custom ? { custom } : {}) } : null));
+  const difficulty = business?.difficulty === undefined ? undefined : cleanDifficulty(business.difficulty);
+  const startCash = business?.startCashCents === undefined ? undefined : cleanStartCash(business.startCashCents);
+  return outside(initialRun(seed, industry ?? null, business ? { model: business.model, idea: cleanIdea(business.idea) as string, ...(custom ? { custom } : {}), ...(difficulty !== undefined ? { difficulty } : {}), ...(startCash !== undefined ? { startCashCents: startCash } : {}) } : null));
 }
 
 export function legalActions(run: Run): readonly Action[] {

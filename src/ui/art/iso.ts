@@ -550,29 +550,34 @@ export interface Plate {
  * sideways (its pointer stays on its building), then rise on a stem (`dy`); the cheapest free spot wins.
  * `minTop` is the highest a plate may reach (just below the HUD).
  */
-export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 0, compact = false): (Plate & { dx: number; dy: number })[] {
+export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 0, compact = false, maxBottom = Infinity): (Plate & { dx: number; dy: number; flip: boolean })[] {
   // measured: bold 16 px type with 24 px of side padding (16 in the compact screen, whose badges are smaller)
   const widthOf = (p: Plate): number => p.width ?? Math.max(compact ? 32 : 40, p.name.length * 8.6 + (compact ? 16 : 24));
   const height = compact ? 26 : 30; // 22 px of line plus the padding above and below
   const pin = 7;
   // A building so near the HUD that its plate would rise under it: the pointer lands lower, on the roof.
   const plates = items.map((item) => (item.below ? item : { ...item, top: Math.max(item.top, minTop + height + pin) }));
-  const pos = plates.map(() => ({ dx: 0, dy: 0 }));
-  const box = (i: number, dx: number, dy: number) => {
+  const pos = plates.map(() => ({ dx: 0, dy: 0, flip: false }));
+  const box = (i: number, dx: number, dy: number, flip: boolean) => {
     const p = plates[i] as Plate;
     const half = widthOf(p) / 2;
     if (p.below) return { l: p.x - half, r: p.x + half, t: p.top + pin, b: p.top + pin + height, px: p.x, anchor: p.top };
+    // flipped: the plate hangs below its building and points up at it, like the company's
+    if (flip) return { l: p.x + dx - half, r: p.x + dx + half, t: p.top + pin + dy, b: p.top + pin + dy + height, px: p.x, anchor: p.top };
     const bottom = p.top - pin - dy;
     return { l: p.x + dx - half, r: p.x + dx + half, t: bottom - height, b: bottom, px: p.x, anchor: p.top };
   };
   // How many plates and pointers a spot collides with, plus how far it moves: cheapest wins, zero collisions is free.
-  const costAt = (i: number, dx: number, dy: number): number => {
-    const me = box(i, dx, dy);
+  const costAt = (i: number, dx: number, dy: number, flip: boolean): number => {
+    const me = box(i, dx, dy, flip);
     if (me.l < 8 || me.r > screenW - 8) return Infinity;
-    let hits = me.t < minTop ? 3 : 0;
+    if (me.t < minTop) return Infinity; // never under the HUD
+    if (flip && me.b > maxBottom) return Infinity; // nor, hanging below its building, under the panel
+    let hits = 0;
     plates.forEach((_, j) => {
       if (j === i) return;
-      const q = box(j, (pos[j] as { dx: number }).dx, (pos[j] as { dy: number }).dy);
+      const o = pos[j] as { dx: number; dy: number; flip: boolean };
+      const q = box(j, o.dx, o.dy, o.flip);
       const plateHitsPlate = me.r + 4 > q.l && me.l - 4 < q.r && me.t - 2 < q.b && me.b + 2 > q.t;
       const plateHitsLine = q.px > me.l - 4 && q.px < me.r + 4 && q.anchor > me.t - 2 && q.b < me.b + 2;
       const lineHitsPlate = me.px > q.l - 4 && me.px < q.r + 4 && me.anchor > q.t - 2 && me.b < q.b + 2;
@@ -580,34 +585,53 @@ export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 
       if (plateHitsPlate) hits += 20;
       else if (plateHitsLine || lineHitsPlate) hits++;
     });
-    return hits * 10000 + Math.abs(dx) + dy * 1.4;
+    return hits * 10000 + Math.abs(dx) + dy * 1.4 + (flip ? 30 : 0);
   };
   // Re-place each plate against all the others, a few passes, until nothing moves: an early choice can be undone.
-  const order = plates.map((_, i) => i).sort((a, b) => (plates[a] as Plate).top - (plates[b] as Plate).top);
-  for (let pass = 0; pass < 6; pass++) {
-    let moved = false;
-    for (const i of order) {
-      if ((plates[i] as Plate).below) continue; // fixed in place
-      let best = { dx: (pos[i] as { dx: number }).dx, dy: (pos[i] as { dy: number }).dy, cost: costAt(i, (pos[i] as { dx: number }).dx, (pos[i] as { dy: number }).dy) };
-      for (let lift = 0; lift < 7; lift++) {
-        const dy = lift * (height + 4);
-        for (let step = 0; step < 48; step++) {
-          for (const sign of step === 0 ? [1] : [1, -1]) {
-            const dx = sign * step * 8;
-            const c = costAt(i, dx, dy);
-            if (c < best.cost - 0.001) best = { dx, dy, cost: c };
+  // A crowded map can trap one order in a bad corner, so a few orders are tried and the best layout is kept.
+  const solve = (order: number[]): number => {
+    for (let pass = 0; pass < 6; pass++) {
+      let moved = false;
+      for (const i of order) {
+        if ((plates[i] as Plate).below) continue; // fixed in place
+        const cur0 = pos[i] as { dx: number; dy: number; flip: boolean };
+        let best = { dx: cur0.dx, dy: cur0.dy, flip: cur0.flip, cost: costAt(i, cur0.dx, cur0.dy, cur0.flip) };
+        for (const flip of [false, true]) {
+          for (let lift = 0; lift < 7; lift++) {
+            const dy = lift * (height + 4);
+            for (let step = 0; step < 48; step++) {
+              for (const sign of step === 0 ? [1] : [1, -1]) {
+                const dx = sign * step * 8;
+                const c = costAt(i, dx, dy, flip);
+                if (c < best.cost - 0.001) best = { dx, dy, flip, cost: c };
+              }
+            }
           }
         }
+        if (best.dx !== cur0.dx || best.dy !== cur0.dy || best.flip !== cur0.flip) {
+          pos[i] = { dx: best.dx, dy: best.dy, flip: best.flip };
+          moved = true;
+        }
       }
-      const cur = pos[i] as { dx: number; dy: number };
-      if (best.dx !== cur.dx || best.dy !== cur.dy) {
-        pos[i] = { dx: best.dx, dy: best.dy };
-        moved = true;
-      }
+      if (!moved) break;
     }
-    if (!moved) break;
+    return plates.reduce((sum, _p, i) => sum + Math.floor(costAt(i, (pos[i] as { dx: number }).dx, (pos[i] as { dy: number }).dy, (pos[i] as { flip: boolean }).flip) / 10000), 0);
+  };
+  const idx = plates.map((_, i) => i);
+  const orders = [idx.slice().sort((x, y) => (plates[x] as Plate).top - (plates[y] as Plate).top), idx.slice().sort((x, y) => (plates[y] as Plate).top - (plates[x] as Plate).top), idx.slice().sort((x, y) => (plates[x] as Plate).x - (plates[y] as Plate).x), idx.slice().sort((x, y) => widthOf(plates[y] as Plate) - widthOf(plates[x] as Plate))];
+  let bestLayout = pos.map((q) => ({ ...q }));
+  let bestHits = Infinity;
+  for (const order of orders) {
+    pos.forEach((_q, i) => (pos[i] = { dx: 0, dy: 0, flip: false }));
+    const hits = solve(order);
+    if (hits < bestHits) {
+      bestHits = hits;
+      bestLayout = pos.map((q) => ({ ...q }));
+    }
+    if (hits === 0) break;
   }
-  return plates.map((p, i) => ({ ...p, dx: (pos[i] as { dx: number }).dx, dy: (pos[i] as { dy: number }).dy }));
+  bestLayout.forEach((q, i) => (pos[i] = q));
+  return plates.map((p, i) => ({ ...p, dx: (pos[i] as { dx: number }).dx, dy: (pos[i] as { dy: number }).dy, flip: (pos[i] as { flip: boolean }).flip }));
 }
 
 /**

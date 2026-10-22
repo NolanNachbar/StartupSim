@@ -1,10 +1,10 @@
 import type { Business, Evidence, PublicState } from "../../sim";
-import { roleInfo, type Role } from "../business";
+import { buildCopy, roleInfo, type Role } from "../business";
 import { CATALOG } from "../../sim";
 import { STAGE_COUNT, stageInfo } from "../stage";
 import { money, questionLabel, tagExplain, tagLabel } from "../format";
 import { Panel } from "../panel";
-import { askedWording, currentBusiness, go, last, openBooks } from "../store";
+import { askedWording, currentBusiness, go, last, openBooks, openNotebook } from "../store";
 
 function Interview({ e, asked }: { e: Extract<Evidence, { kind: "interview" }>; asked: string | undefined }) {
   const who = e.customer === "friend" ? "A friend of yours" : e.customer === "stranger" ? "A stranger" : "No one";
@@ -49,11 +49,11 @@ function Other({ e, after }: { e: Evidence; after: PublicState }) {
 }
 
 /** What the player just did, in a sentence. */
-function didWhat(action: { type: string; role?: string }, b: Business | null): string {
+function didWhat(action: { type: string; role?: string; kind?: string }, b: Business | null): string {
   switch (action.type) {
     case "wait": return "You waited a week.";
     case "interview": return "You held a round of customer interviews.";
-    case "buildTest": return "You worked on getting ready.";
+    case "buildTest": return action.kind ? `You built: ${buildCopy(b)[action.kind as keyof ReturnType<typeof buildCopy>].label}.` : "You worked on getting ready.";
     case "pickChannel": return "You tested a channel.";
     case "chargeTest": return "You ran a paid test.";
     case "setPrice": return "You changed your price.";
@@ -122,6 +122,7 @@ export function Result() {
       <Panel />
       <footer class="actions">
         <button type="button" class="button button--primary" onClick={() => go({ name: "week" })}>Continue</button>
+        <button type="button" class="button" onClick={() => openNotebook()}>What you have learned</button>
         <button type="button" class="button" onClick={openBooks}>Financials</button>
       </footer>
     </>

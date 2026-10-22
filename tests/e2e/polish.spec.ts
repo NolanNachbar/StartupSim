@@ -39,7 +39,8 @@ test("tab order follows the reading order: banner controls, then content, then a
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
   // Nothing uses a positive tabindex, so tab order is DOM order.
-  expect(await page.locator("[tabindex]:not([tabindex='-1'])").count()).toBe(0);
+  // (tabindex 0 on a scrolling panel is fine: it lets the keyboard scroll it, in DOM order.)
+  expect(await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("[tabindex]")).filter((e) => e.tabIndex > 0).length)).toBe(0);
   const order = await page.evaluate(() =>
     Array.from(document.querySelectorAll<HTMLElement>("button, input, select, a[href]")).map((e) => (e.textContent ?? "").trim().slice(0, 24)),
   );

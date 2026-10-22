@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { QUESTION_BANK } from "./actions";
 import { CAPACITY_BY_MODEL, HIRE_SEARCH_WEEKS, RND_LEVELS_CENTS, capacityOf } from "./realism";
-import { newRun, step, view } from "./index";
+import { CATALOG, cleanStartCash, fromSave, newRun, step, toSave, view } from "./index";
 import type { Action } from "./types";
 
 const gym = { model: 2, idea: "a small strength-training gym" };
@@ -123,5 +123,63 @@ describe("a full business", () => {
       expect(v.payingCustomers).toBeLessThanOrEqual(v.capacity ?? Infinity);
     }
     expect(peak).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("difficulty and starting money", () => {
+  it("scales the starting cash and costs, and keeps Normal exactly as tuned", () => {
+    const at = (difficulty?: number) => view(newRun(5, 3, { ...gym, ...(difficulty === undefined ? {} : { difficulty }) }));
+    expect(at(1)).toEqual(at());
+    expect(at(0).cashCents).toBeGreaterThan(at(1).cashCents);
+    expect(at(3).cashCents).toBeLessThan(at(1).cashCents);
+    expect(at(3).weeklyBurnCents).toBeGreaterThan(at(0).weeklyBurnCents);
+  });
+
+  it("lets the player set the money, in $500 steps, and survives a save", () => {
+    const run = newRun(5, 3, { ...gym, startCashCents: 7_500_000 });
+    expect(view(run).cashCents).toBe(7_500_000);
+    const loaded = fromSave(JSON.parse(JSON.stringify(toSave(run))));
+    expect(loaded.ok && view(loaded.run).cashCents).toBe(7_500_000);
+    expect(cleanStartCash(1_000)).toBeUndefined();
+    expect(cleanStartCash(5_000_000_000)).toBeUndefined();
+    expect(cleanStartCash(7_512_345)).toBe(7_500_000);
+  });
+
+  it("makes customers harder to win and keep on Brutal", () => {
+    const total = (difficulty: number): number => {
+      let sum = 0;
+      for (let seed = 1; seed <= 8; seed++) {
+        let r = newRun(seed, 3, { ...gym, difficulty, startCashCents: 50_000_000 });
+        r = play(r, { type: "buildTest", kind: "landing-page" }, { type: "setMarketing", channel: 1, level: 3 });
+        for (let i = 0; i < 8; i++) r = must(step(r, { type: "wait" }));
+        sum += view(r).payingCustomers;
+      }
+      return sum;
+    };
+    expect(total(0)).toBeGreaterThan(total(3));
+  });
+});
+
+describe("networking", () => {
+  it("costs money and weeks, and the people you meet are kept", () => {
+    const run = newRun(5, 3, gym);
+    const after = play(run, { type: "network", kind: "meetup" });
+    const v = view(after);
+    expect(v.cashCents).toBeLessThan(view(run).cashCents - 15_000 + 1);
+    expect(v.week).toBe(CATALOG.networkOptions.meetup.weeks);
+    expect(v.network.contacts).toBeGreaterThanOrEqual(2);
+    expect(v.network.contacts).toBeLessThanOrEqual(4);
+    expect(step(newRun(5, 3), { type: "network", kind: "coffee" }).ok).toBe(false); // not in the original worlds
+  });
+
+  it("turns contacts into warm interviews that always get an answer, then uses them up", () => {
+    let run = newRun(5, 3, gym);
+    for (let i = 0; i < 3; i++) run = play(run, { type: "network", kind: "conference" });
+    const contacts = view(run).network.contacts;
+    expect(contacts).toBeGreaterThanOrEqual(3);
+    const asked = play(run, { type: "interview", segment: 0, questions: ["past-behavior", "past-behavior", "past-behavior"] });
+    const round = view(asked).evidence.filter((e) => e.kind === "interview");
+    expect(round.every((e) => e.kind === "interview" && e.outcome !== "no-response")).toBe(true);
+    expect(view(asked).network.contacts).toBe(contacts - 3);
   });
 });

@@ -157,9 +157,47 @@ const RAW: readonly (readonly RawCombo[])[] = [
 export const COMBOS: readonly (readonly Combo[])[] = RAW.map((row, i) => row.map((c, m) => ({ ...c, kinds: KINDS[i]?.[m] ?? [] })));
 
 /** The player's choice: a model, and an idea in their own words. */
+/** How hard the market is. Normal (index 1) is the balance every other number was tuned for. */
+export interface Difficulty {
+  readonly name: string;
+  readonly blurb: string;
+  /** Percent of the usual starting money (unless the player sets their own). */
+  readonly cashPct: number;
+  /** Percent of the usual leads that marketing and outreach reach. */
+  readonly leadsPct: number;
+  /** Percent of the usual customer churn. */
+  readonly churnPct: number;
+  /** Percent of the usual running costs. */
+  readonly burnPct: number;
+}
+
+export const DIFFICULTIES: readonly Difficulty[] = [
+  { name: "Relaxed", blurb: "More money, friendlier customers and lower costs. Good for learning the game.", cashPct: 150, leadsPct: 130, churnPct: 70, burnPct: 85 },
+  { name: "Normal", blurb: "The market as it usually is.", cashPct: 100, leadsPct: 100, churnPct: 100, burnPct: 100 },
+  { name: "Hard", blurb: "Less money, pickier customers, costs creep up.", cashPct: 80, leadsPct: 85, churnPct: 125, burnPct: 110 },
+  { name: "Brutal", blurb: "A crowded market and a thin wallet. Most runs end in a crash.", cashPct: 65, leadsPct: 70, churnPct: 150, burnPct: 120 },
+];
+export const DIFFICULTY_DEFAULT = 1;
+export const MIN_START_CASH_CENTS = 500_000;
+export const MAX_START_CASH_CENTS = 100_000_000;
+
+/** A difficulty index, or the default when it is not one. */
+export const cleanDifficulty = (n: unknown): number => (typeof n === "number" && Number.isInteger(n) && n >= 0 && n < DIFFICULTIES.length ? n : DIFFICULTY_DEFAULT);
+
+/** Starting money the player sets, in whole $500 steps between $5,000 and $1,000,000; undefined when not a usable amount. */
+export function cleanStartCash(n: unknown): number | undefined {
+  if (typeof n !== "number" || !Number.isFinite(n)) return undefined;
+  const stepped = Math.round(n / 50_000) * 50_000;
+  return stepped >= MIN_START_CASH_CENTS && stepped <= MAX_START_CASH_CENTS ? stepped : undefined;
+}
+
 export interface BusinessChoice {
   readonly model: number;
   readonly idea: string;
+  /** An index into DIFFICULTIES (Normal when left out). */
+  readonly difficulty?: number;
+  /** The money the player starts with, in cents, when they set it themselves. */
+  readonly startCashCents?: number;
   /** The player's own version of who the customers are and what they say: anything left out comes from the pack. */
   readonly custom?: Custom;
 }
@@ -197,6 +235,8 @@ export function cleanCustom(c: Custom | undefined): Custom | undefined {
 
 /** A business as the sim and the UI use it: the combo for this industry and model, with the player's idea. */
 export interface Business extends Combo {
+  readonly difficulty?: number;
+  readonly startCashCents?: number;
   readonly model: ModelInfo;
   /** The idea, as the player wrote it, as a noun phrase. */
   readonly idea: string;
@@ -222,7 +262,7 @@ export function businessFor(industry: number | null, choice: BusinessChoice | nu
   const idea = cleanIdea(choice.idea);
   if (!combo || !model || !idea) return null;
   const custom = cleanCustom(choice.custom);
-  return { ...combo, ...(custom?.segmentNames ? { segmentNames: custom.segmentNames } : {}), ...(custom?.situation ? { situation: custom.situation } : {}), ...(custom?.cost ? { cost: custom.cost } : {}), ...(custom?.workaround ? { workaround: custom.workaround } : {}), model, idea };
+  return { ...combo, ...(custom?.segmentNames ? { segmentNames: custom.segmentNames } : {}), ...(custom?.situation ? { situation: custom.situation } : {}), ...(custom?.cost ? { cost: custom.cost } : {}), ...(custom?.workaround ? { workaround: custom.workaround } : {}), ...(choice.difficulty !== undefined && cleanDifficulty(choice.difficulty) !== DIFFICULTY_DEFAULT ? { difficulty: cleanDifficulty(choice.difficulty) } : {}), ...(cleanStartCash(choice.startCashCents) !== undefined ? { startCashCents: cleanStartCash(choice.startCashCents) as number } : {}), model, idea };
 }
 
 /** "a gym, a yoga studio or a physiotherapy clinic". */

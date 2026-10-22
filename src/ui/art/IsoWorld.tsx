@@ -447,7 +447,10 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, vanAt, home, s
       { key: "hq", index: null as number | null, hq: true, below: true, name: home || "Your company", x: project(city.hq, tw, origin).x, top: project(city.hq, tw, origin).y + tw / 8, width: widthOf(home || "Your company") },
     ];
     // a plate never rides up under the HUD
-    return spreadPlates(raw, w, (h < 520 ? 72 : w >= 600 ? 150 : 154) + 6, h < 520);
+    // (the HUD's real height when it is on the page: it grows with a two-digit pivot count or a cash change)
+    const hudBottom = typeof document === "undefined" ? 0 : (document.querySelector(".strip")?.getBoundingClientRect().bottom ?? 0);
+    const panelTop = typeof document === "undefined" ? Infinity : (document.querySelector(".plate")?.getBoundingClientRect().top ?? Infinity);
+    return spreadPlates(raw, w, Math.max(h < 520 ? 72 : w >= 600 ? 150 : 154, Math.ceil(hudBottom)) + 6, h < 520, panelTop > 0 ? panelTop - 4 : Infinity);
   }, [city, names, home, sprites, tw, origin, w, h, fontTick]);
   return (
     <div class="world" aria-hidden="false">
@@ -458,7 +461,7 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, vanAt, home, s
           {plates.map((pl) => (
             <div
               key={pl.key}
-              class={`way${pl.hq ? " way--hq way--below" : ""}${pl.index !== null && selected === pl.index ? " way--on" : ""}${pl.index !== null && focus === pl.index ? " way--focus" : ""}`}
+              class={`way${pl.hq ? " way--hq way--below" : pl.flip ? " way--flip way--below" : ""}${pl.index !== null && selected === pl.index ? " way--on" : ""}${pl.index !== null && focus === pl.index ? " way--focus" : ""}`}
               style={{ left: `${pl.x}px`, top: `${pl.top}px`, zIndex: Math.round(pl.top), "--dx": `${pl.dx}px`, "--dy": `${pl.dy}px` }}
               onClick={pl.index !== null ? () => onSelect?.(pl.index as number) : undefined}
             >

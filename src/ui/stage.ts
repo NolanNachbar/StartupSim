@@ -1,6 +1,6 @@
 // The stage the company is in, what it means, and what you can do in it. Derived only from public state, and written in
 // the words of the chosen business. It explains what each option is for; it never says which one to pick.
-import type { Business, PublicState } from "../sim";
+import { CATALOG, type Business, type PublicState } from "../sim";
 import type { FormId } from "./forms";
 
 export const STAGE_COUNT = 5;
@@ -12,7 +12,26 @@ export interface StageStep {
   readonly why: string;
 }
 
+/** One thing the stage asks of you before the next stage, and whether it is done now. */
+export interface StageGoal {
+  readonly label: string;
+  readonly done: boolean;
+  /** The action that does it, when there is one. */
+  readonly form?: FormId;
+}
+
+/** Whether an action cannot work yet, and what to do first. Rules live in the sim; this only explains them. */
+export function lockedReason(form: FormId, s: PublicState): { reason: string; first: FormId } | null {
+  if (form === "charge" && !s.landingPageBuilt) {
+    return { reason: "Not yet: there is nothing built to sell. Build the first test (a page people can pay on), then return to this.", first: "build" };
+  }
+  return null;
+}
+
 export interface StageInfo {
+  /** What you need to do to reach the next stage ("" on the last). */
+  readonly exitTitle: string;
+  readonly goals: readonly StageGoal[];
   readonly index: number;
   readonly name: string;
   readonly names: readonly string[];
@@ -76,5 +95,27 @@ export function stageInfo(s: PublicState, b: Business | null): StageInfo {
     ],
   ];
   const short = ["Nothing is proven yet.", "You are learning what people want.", place ? "Time to set the place up." : "Time to get it ready.", place ? "Open. Now people need to come." : "Ready. Now find customers.", "People are paying."][index] as string;
-  return { index, name: names[index] as string, names, what, short, steps: steps[index] as readonly StageStep[] };
+  const next = names[index + 1];
+  const goals: readonly (readonly StageGoal[])[] = [
+    [
+      { label: "Hold a round of customer interviews with one group", done: s.evidence.some((e) => e.kind === "interview"), form: "interview" },
+      { label: "Or test a channel to see who responds", done: s.evidence.some((e) => e.kind === "channel-test"), form: "test-channel" },
+    ],
+    [
+      { label: "Build the first test, a page people can pay on", done: s.landingPageBuilt, form: "build" },
+      { label: "Or get a first payment from a paid test", done: s.firstPaymentWeek !== null, form: "charge" },
+    ],
+    [
+      { label: `Get ${place ? "the place" : "the product"} to 100 percent (now ${s.productProgressPct} percent)`, done: s.productProgressPct >= 100, form: "build" },
+      { label: "A builder on your team adds to it every week without you", done: s.team.builder > 0, form: "hire" },
+    ],
+    [
+      { label: "Win your first paying customer: aim marketing at a group, or charge a paid test", done: s.payingCustomers > 0, form: "marketing" },
+    ],
+    [
+      { label: `Cover your costs ${CATALOG.landingStreakWeeks} weeks in a row (${s.profitableStreakWeeks} so far)`, done: s.profitableStreakWeeks >= CATALOG.landingStreakWeeks, form: "price" },
+    ],
+  ];
+  const exitTitle = next ? (index === 1 ? `To reach ${next}, do either:` : index === 0 ? `To reach ${next}, do either:` : `To reach ${next}:`) : "";
+  return { index, name: names[index] as string, names, what, short, steps: steps[index] as readonly StageStep[], exitTitle: index === 4 ? `To land the company (the win):` : exitTitle, goals: goals[index] as readonly StageGoal[] };
 }

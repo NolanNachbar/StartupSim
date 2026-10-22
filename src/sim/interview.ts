@@ -148,6 +148,8 @@ export interface RoundInput {
   /** What each question is about (QUESTION_BANK). Asking the same thing twice in a round tells you less the second time. */
   readonly topics?: readonly string[];
   readonly priceCents: number;
+  /** People you have met whose calls are certain to be answered (the first this many questions). */
+  readonly warm?: number;
 }
 
 export function runInterviewRound(input: RoundInput): InterviewEvidence[] {
@@ -164,7 +166,8 @@ function converse(input: RoundInput, question: QuestionType, slot: number, topic
   const key = ["iv", index, slot] as const;
 
   const friend = randChance(seed, FRIEND_CHANCE, ...key, "friend");
-  const responds = friend || randInt(seed, 1, 100, ...key, "reach") <= seg.reachability;
+  const warm = slot < (input.warm ?? 0);
+  const responds = friend || warm || randInt(seed, 1, 100, ...key, "reach") <= seg.reachability;
   if (!responds) {
     return { ...base, customer: "none", outcome: "no-response", tag: null, painReading: null, committed: null, quote: "No reply." };
   }

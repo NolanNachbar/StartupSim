@@ -5,9 +5,9 @@ import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { hypothesisLabel, money } from "./format";
 import { spriteUrl } from "./art/city";
 import { pathProgress } from "./guide";
-import { currentBusiness, last, markCalloutShown, openForm, openHelp, openMenu, screen, selected, settings, shownCallouts, startPivots, state } from "./store";
-import { STAGE_COUNT, stageInfo } from "./stage";
-import type { Hypothesis, PublicState } from "../sim";
+import { currentBusiness, last, markCalloutShown, openForm, openNotebook, openHelp, openMenu, screen, selected, settings, shownCallouts, startPivots, state } from "./store";
+import { STAGE_COUNT, lockedReason, stageInfo } from "./stage";
+import { CATALOG, type Hypothesis, type PublicState } from "../sim";
 
 export function Instrument({ caption, value }: { caption: string; value: string }) {
   return (
@@ -175,7 +175,6 @@ export function CashChange() {
 /** The five stages: the one you are in named large, every stage numbered and labelled, and what the stage means. */
 export function StageBar({ s, compact = false }: { s: PublicState; compact?: boolean }) {
   const info = stageInfo(s, currentBusiness());
-  const next = info.names[info.index + 1];
   return (
     <div class="stage">
       <p class="stage__now">
@@ -190,8 +189,43 @@ export function StageBar({ s, compact = false }: { s: PublicState; compact?: boo
           </li>
         ))}
       </ol>
-      <p class="stage__what">{`${compact ? info.short : info.what}${next ? ` Next stage: ${next}.` : ""}`}</p>
+      {compact ? null : <p class="stage__what">{info.what}</p>}
+      {compact ? null : <p class="stage__goal-title">{info.exitTitle}</p>}
+      <ul class="stage__goals">
+        {(compact ? info.goals.filter((g) => !g.done).slice(0, 1) : info.goals).map((g) => {
+          const lock = g.form ? lockedReason(g.form, s) : null;
+          const target = lock ? lock.first : g.form;
+          return (
+            <li key={g.label} class={g.done ? "goal goal--done" : "goal"}>
+              <span class="goal__box" aria-hidden="true">{g.done ? "\u2713" : ""}</span>
+              <span class="goal__text">{compact ? `Next: ${g.label}` : g.label}<span class="sr-only">{g.done ? ", done" : ", not done"}</span></span>
+              {!g.done && target ? <button type="button" class="button button--small" onClick={() => openForm(target)}>{lock ? "Build first" : "Do it"}</button> : null}
+            </li>
+          );
+        })}
+      </ul>
     </div>
+  );
+}
+
+/** Where the company stands, in plain numbers: cash and how long it lasts, product, customers, money in and out. */
+export function StatusCard({ s }: { s: PublicState }) {
+  const marketing = s.marketing.channel === null ? 0 : (CATALOG.budgetLevelsCents[s.marketing.level] ?? 0);
+  const goods = Math.floor((s.weeklyRevenueCents * s.cogsPct) / 100);
+  const costs = s.weeklyBurnCents + marketing + (CATALOG.rndLevelsCents[s.rndLevel] ?? 0) + goods;
+  const net = s.weeklyRevenueCents - costs;
+  const weeks = net >= 0 ? null : Math.floor(s.cashCents / -net);
+  return (
+    <dl class="status" aria-label="Where your company stands">
+      <dt>Cash</dt><dd>{money(s.cashCents)}</dd>
+      <dt>Money in a week</dt><dd>{money(s.weeklyRevenueCents)}</dd>
+      <dt>Money out a week</dt><dd>{money(costs)}</dd>
+      <dt>Cash lasts</dt><dd>{weeks === null ? "You are not losing cash" : `${weeks} ${weeks === 1 ? "week" : "weeks"} at this rate`}</dd>
+      <dt>Product ready</dt><dd>{`${s.productProgressPct} percent`}</dd>
+      <dt>Paying customers</dt><dd>{String(s.payingCustomers)}</dd>
+      <dt>Team</dt><dd>{s.hires === 0 ? "Just you" : `${s.hires} ${s.hires === 1 ? "person" : "people"} besides you`}</dd>
+      <dt>What you know</dt><dd>{`${s.evidence.length} ${s.evidence.length === 1 ? "result" : "results"}`}</dd>
+    </dl>
   );
 }
 
@@ -219,6 +253,11 @@ export function GroupActions({ s, index }: { s: PublicState; index: number }) {
             </button>
           </li>
         ))}
+        <li>
+          <button type="button" class="button button--row" onClick={() => openNotebook(index)}>
+            <span class="row__text"><span class="row__title">{`What you have learned about ${name}`}</span><span class="row__hint">Every interview and test with this group, and the questions you have not asked yet.</span></span>
+          </button>
+        </li>
       </ul>
     </section>
   );
