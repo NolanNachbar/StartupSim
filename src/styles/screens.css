@@ -407,3 +407,5 @@
 .followup__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
 .notebook__tabs { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .notebook__tabs .button[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+
+.range { width: 100%; min-height: 44px; accent-color: var(--primary); }

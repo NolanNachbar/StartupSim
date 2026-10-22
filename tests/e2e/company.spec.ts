@@ -226,5 +226,5 @@ test("a typed idea suggests a closer match, and the customers and wording can be
   await expect(page.getByRole("button", { name: /Amateur boxers/ }).first()).toBeVisible();
   await page.getByRole("button", { name: "Choose an action" }).click();
   await page.getByRole("button", { name: /Interview a customer/ }).last().click();
-  await expect(page.getByRole("combobox").first()).toContainText("a boxing gym");
+  await expect(page.getByRole("checkbox", { name: /a boxing gym/ }).first()).toBeVisible();
 });

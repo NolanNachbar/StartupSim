@@ -72,6 +72,7 @@ export function stageInfo(s: PublicState, b: Business | null): StageInfo {
     [
       { form: "interview", label: "Interview people", why: "Hold three conversations with one customer group. The questions you ask decide what you learn." },
       { form: "test-channel", label: "Test a channel", why: `Spend a little to see which group responds when you put ${idea} in front of them.` },
+      { form: "network", label: "Network", why: "Meet people who will take your call: warm interviews that always get answered, and introductions." },
     ],
     [
       { form: "charge", label: "Charge for a test", why: "Ask real people to pay. A payment counts for more than a compliment." },

@@ -1,6 +1,8 @@
 import { BUSINESS_LIST, BUSINESS_MODELS, INDUSTRY_LIST, MAX_IDEA_LENGTH, describeModel, matchPack, view } from "../../sim";
 import { THEME_LABEL, themeFor } from "../art/iso";
 import { MAX_NAME } from "../names";
+import { DIFFICULTY_LIST, newRun } from "../../sim";
+import { money } from "../format";
 import { back, challengeBusiness, challengeIndustry, challengeSeed, company, draft, exampleIdea, savedRun, setupStep, startCompany, suggestAnotherName } from "../store";
 
 /**
@@ -146,11 +148,53 @@ export function Setup() {
             <button type="button" class="button button--quiet" onClick={suggestAnotherName}>Suggest another name</button>
           </div>
         </div>
+        <PlayOptionsFields />
       </main>
       <footer class="actions">
         <button type="button" class="button button--primary" onClick={startCompany}>Start the company</button>
         <button type="button" class="button" onClick={back}>Back</button>
       </footer>
+    </>
+  );
+}
+
+/** Starting money, in steps a person can actually hit with a thumb: $5,000 to $1,000,000. */
+const CASH_STEPS: readonly number[] = [5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 300, 500, 750, 1000].map((k) => k * 100_000);
+
+/** The difficulty slider and the starting money slider. Left alone, they give the usual game. */
+function PlayOptionsFields() {
+  const d = draft.value;
+  const level = d.play?.difficulty ?? 1;
+  const usual = (() => {
+    try {
+      return view(newRun(1, d.industry, { model: d.model, idea: d.idea.trim().length >= 3 ? d.idea : "a business", difficulty: level })).cashCents;
+    } catch {
+      return 3_000_000;
+    }
+  })();
+  const chosen = d.play?.startCashCents ?? usual;
+  const nearest = CASH_STEPS.reduce((best, c, i) => (Math.abs(c - chosen) < Math.abs((CASH_STEPS[best] as number) - chosen) ? i : best), 0);
+  const set = (patch: { difficulty?: number; startCashCents?: number | null }) => {
+    const play = { ...(d.play ?? {}) } as { difficulty?: number; startCashCents?: number };
+    if (patch.difficulty !== undefined) play.difficulty = patch.difficulty;
+    if (patch.startCashCents === null) delete play.startCashCents;
+    else if (patch.startCashCents !== undefined) play.startCashCents = patch.startCashCents;
+    draft.value = { ...d, play };
+  };
+  const info = DIFFICULTY_LIST[level];
+  return (
+    <>
+      <div class="field">
+        <label class="field__label" for="difficulty">{`Difficulty: ${info?.name ?? "Normal"}`}</label>
+        <input id="difficulty" class="range" type="range" min={0} max={DIFFICULTY_LIST.length - 1} step={1} value={level} aria-valuetext={info?.name} onInput={(e) => set({ difficulty: Number((e.currentTarget as HTMLInputElement).value) })} />
+        <p class="panel__text">{info?.blurb}</p>
+      </div>
+      <div class="field">
+        <label class="field__label" for="start-cash">{`Starting money: ${money(chosen)}`}</label>
+        <input id="start-cash" class="range" type="range" min={0} max={CASH_STEPS.length - 1} step={1} value={nearest} aria-valuetext={money(CASH_STEPS[nearest] ?? chosen)} onInput={(e) => set({ startCashCents: CASH_STEPS[Number((e.currentTarget as HTMLInputElement).value)] as number })} />
+        <p class="panel__text">{d.play?.startCashCents === undefined ? `The usual for this business on ${info?.name ?? "Normal"}.` : `The usual is ${money(usual)}. More money gives you more time to learn; less makes every choice count.`}</p>
+        {d.play?.startCashCents !== undefined ? <button type="button" class="button button--quiet" onClick={() => set({ startCashCents: null })}>{`Use the usual ${money(usual)}`}</button> : null}
+      </div>
     </>
   );
 }

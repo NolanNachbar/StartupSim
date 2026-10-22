@@ -19,7 +19,7 @@ export function Actions() {
         </button>
         <h2 class="board__sub">What you can do in this stage</h2>
         <ul class="menu-list">
-          {stageInfo(s, currentBusiness()).steps.map((st) => (
+          {stageInfo(s, currentBusiness()).steps.filter((st) => FORMS.find((f) => f.id === st.form)?.listed(s) !== false).map((st) => (
             <li key={st.form + st.label}>
               <button type="button" class="button button--row" onClick={() => openForm(lockedReason(st.form, s)?.first ?? st.form)}>
                 <span class="row__text"><span class="row__title">{st.label}</span><span class="row__hint">{lockedReason(st.form, s)?.reason ?? st.why}</span></span>

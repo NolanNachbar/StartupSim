@@ -224,6 +224,7 @@ export function StatusCard({ s }: { s: PublicState }) {
       <dt>Product ready</dt><dd>{`${s.productProgressPct} percent`}</dd>
       <dt>Paying customers</dt><dd>{String(s.payingCustomers)}</dd>
       <dt>Team</dt><dd>{s.hires === 0 ? "Just you" : `${s.hires} ${s.hires === 1 ? "person" : "people"} besides you`}</dd>
+      {s.capacity !== null ? (<><dt>People you know</dt><dd>{String(s.network.contacts)}</dd></>) : null}
       <dt>What you know</dt><dd>{`${s.evidence.length} ${s.evidence.length === 1 ? "result" : "results"}`}</dd>
     </dl>
   );

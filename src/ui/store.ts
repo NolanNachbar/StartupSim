@@ -2,7 +2,7 @@
 // this file only calls `step` and `view` and remembers what to show.
 import { computed, signal } from "@preact/signals";
 import {
-  BUSINESS_LIST, INDUSTRY_LIST, cleanCustom, cleanIdea, newRun, type Custom, report as reportFor, step, toSave, view,
+  BUSINESS_LIST, INDUSTRY_LIST, cleanCustom, cleanDifficulty, cleanIdea, cleanStartCash, newRun, type Custom, report as reportFor, step, toSave, view,
   type Action, type PublicState, type Report, type Run,
 } from "../sim";
 import { describeStep, reasonText, type StepDescription } from "./format";
@@ -59,12 +59,17 @@ export const challengeSeed = signal<number | null>(null);
 export const currentSeed = signal(0);
 export const challengeIndustry = signal<number | null>(null);
 /** A shared link can name the business model and idea too. */
-export const challengeBusiness = signal<{ model: number; idea: string; custom?: Custom } | null>(null);
+/** How hard the market is and how much money you start with, when the player (or a shared link) set them. */
+export interface PlayOptions {
+  difficulty?: number;
+  startCashCents?: number;
+}
+export const challengeBusiness = signal<{ model: number; idea: string; custom?: Custom; play?: PlayOptions } | null>(null);
 /** The company being run: its name and market. */
-export const company = signal<{ name: string; industry: number; model: number; idea: string; custom?: Custom }>({ name: "", industry: 0, model: 0, idea: "" });
+export const company = signal<{ name: string; industry: number; model: number; idea: string; custom?: Custom; play?: PlayOptions }>({ name: "", industry: 0, model: 0, idea: "" });
 /** The setup form. */
 /** The setup form. `custom` holds the player's own wording once they change anything under "Make it yours". */
-export const draft = signal<{ name: string; industry: number; model: number; idea: string; custom?: { groups: string; situation: string; workaround: string } }>({ name: "", industry: 0, model: 0, idea: "" });
+export const draft = signal<{ name: string; industry: number; model: number; idea: string; custom?: { groups: string; situation: string; workaround: string }; play?: PlayOptions }>({ name: "", industry: 0, model: 0, idea: "" });
 /** Which of the four setup pages is showing: 1 industry, 2 business model, 3 idea, 4 name. */
 export const setupStep = signal<1 | 2 | 3 | 4>(1);
 /** The wording of the questions asked in the interview round just held, in order (shown on the result). */
@@ -127,7 +132,10 @@ export function init(search: string): void {
       } catch {
         custom = undefined;
       }
-      challengeBusiness.value = { model: modelNum, idea, ...(custom ? { custom } : {}) };
+      const level = cleanDifficulty(Number.parseInt(params.get("difficulty") ?? "", 10));
+      const cash = cleanStartCash(Number.parseInt(params.get("cash") ?? "", 10) * 100);
+      const play: PlayOptions = { ...(params.get("difficulty") !== null ? { difficulty: level } : {}), ...(cash !== undefined ? { startCashCents: cash } : {}) };
+      challengeBusiness.value = { model: modelNum, idea, ...(custom ? { custom } : {}), ...(Object.keys(play).length > 0 ? { play } : {}) };
     }
   }
   notes.value = loadNotes(storage);
@@ -139,7 +147,7 @@ export function init(search: string): void {
     const meta = storage.getJson("runway.company");
     const saveIndustry = toSave(loaded.run).industry ?? 0;
     const savedName = meta && typeof meta === "object" && typeof (meta as { name?: unknown }).name === "string" ? cleanName((meta as { name: string }).name) : null;
-    company.value = { name: savedName ?? suggestName(toSave(loaded.run).seed), industry: saveIndustry, model: toSave(loaded.run).model ?? 0, idea: toSave(loaded.run).idea ?? "", ...(toSave(loaded.run).custom ? { custom: toSave(loaded.run).custom as Custom } : {}) };
+    company.value = { name: savedName ?? suggestName(toSave(loaded.run).seed), industry: saveIndustry, model: toSave(loaded.run).model ?? 0, idea: toSave(loaded.run).idea ?? "", ...(toSave(loaded.run).custom ? { custom: toSave(loaded.run).custom as Custom } : {}), ...(toSave(loaded.run).difficulty !== undefined || toSave(loaded.run).startCash !== undefined ? { play: { ...(toSave(loaded.run).difficulty !== undefined ? { difficulty: toSave(loaded.run).difficulty as number } : {}), ...(toSave(loaded.run).startCash !== undefined ? { startCashCents: toSave(loaded.run).startCash as number } : {}) } } : {}) };
     currentSeed.value = toSave(loaded.run).seed;
   }
   if (loaded.kind === "corrupt") {
@@ -229,6 +237,7 @@ export function openSetup(): void {
     industry,
     model,
     idea: chosen?.idea ?? exampleIdea(industry, draft.value.model),
+    ...(chosen?.play ? { play: chosen.play } : {}),
     ...(shared && pack ? { custom: { groups: (shared.segmentNames ?? pack.segmentNames).join("\n"), situation: shared.situation ?? pack.situation, workaround: shared.workaround ?? pack.workaround } } : {}),
   };
   // a shared link that names the industry (and the business) skips the pages it already answers
@@ -270,14 +279,14 @@ export function startCompany(): void {
           ...(typed.workaround.trim() && typed.workaround.trim() !== pack.workaround ? { workaround: typed.workaround.trim() } : {}),
         }
       : undefined;
-  takeOff(seed, draft.value.industry, draft.value.model, idea, name, custom && Object.keys(custom).length > 0 ? custom : undefined);
+  takeOff(seed, draft.value.industry, draft.value.model, idea, name, custom && Object.keys(custom).length > 0 ? custom : undefined, draft.value.play);
 }
 
-export function takeOff(seed: number, industry: number, model: number, idea: string, name: string, custom?: Custom): void {
-  const next = newRun(seed, industry, { model, idea, ...(custom ? { custom } : {}) });
+export function takeOff(seed: number, industry: number, model: number, idea: string, name: string, custom?: Custom, play?: PlayOptions): void {
+  const next = newRun(seed, industry, { model, idea, ...(custom ? { custom } : {}), ...(play?.difficulty !== undefined ? { difficulty: play.difficulty } : {}), ...(play?.startCashCents !== undefined ? { startCashCents: play.startCashCents } : {}) });
   run.value = next;
   currentSeed.value = seed;
-  company.value = { name, industry, model, idea, ...(custom ? { custom } : {}) };
+  company.value = { name, industry, model, idea, ...(custom ? { custom } : {}), ...(play && Object.keys(play).length > 0 ? { play } : {}) };
   storage.setJson("runway.company", { name });
   shareNotice.value = null;
   savedRun.value = null;
@@ -448,13 +457,13 @@ export function openNotes(): void {
 }
 
 /** A link that starts anyone in the same world. */
-export function challengeLink(seed: number, industry: number, model: number, idea: string, custom?: Custom): string {
-  const extra = custom ? `&custom=${encodeURIComponent(JSON.stringify(custom))}` : "";
+export function challengeLink(seed: number, industry: number, model: number, idea: string, custom?: Custom, play?: PlayOptions): string {
+  const extra = `${custom ? `&custom=${encodeURIComponent(JSON.stringify(custom))}` : ""}${play?.difficulty !== undefined ? `&difficulty=${play.difficulty}` : ""}${play?.startCashCents !== undefined ? `&cash=${play.startCashCents / 100}` : ""}`;
   return `${location.origin}${location.pathname}?play=${seed}&industry=${industry}&model=${model}&idea=${encodeURIComponent(idea)}${extra}`;
 }
 
 export async function copyChallengeLink(): Promise<void> {
-  const link = challengeLink(currentSeed.value, company.value.industry, company.value.model, company.value.idea, company.value.custom);
+  const link = challengeLink(currentSeed.value, company.value.industry, company.value.model, company.value.idea, company.value.custom, company.value.play);
   try {
     await navigator.clipboard.writeText(link);
     shareNotice.value = `Link copied: ${link}`;

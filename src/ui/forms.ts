@@ -17,7 +17,7 @@ const typicalPrice = (b: ReturnType<typeof currentBusiness>): string =>
   })[b?.model.id ?? "software"];
 
 export type FormId =
-  | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer";
+  | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer" | "network";
 
 export interface Option {
   readonly value: string;
@@ -152,6 +152,29 @@ export const FORMS: readonly FormDef[] = [
     submit: "Charge for a test",
     build: (v) => ({ type: "chargeTest", segment: num(v, "segment"), channel: num(v, "channel") }),
     listed: () => true,
+  },
+  {
+    id: "network",
+    title: "Network",
+    blurb: "Meet people who will take your call, introduce you and send you customers.",
+    intro: (s) =>
+      `Meeting people costs cash and your weeks. Each person you meet will take your call: every one makes an interview call certain to be answered (up to three a round), every three bring you a lead each week, three speed up a hire and five help you find an investor. You know ${s.network.contacts} ${s.network.contacts === 1 ? "person" : "people"} now.`,
+    fields: () => [
+      {
+        id: "kind",
+        label: "How to meet people",
+        kind: "radio",
+        options: CATALOG.networkKinds.map((k) => {
+          const o = CATALOG.networkOptions[k];
+          const label = k === "coffee" ? "Coffee with local owners" : k === "meetup" ? "An industry meetup or business breakfast" : "An industry conference";
+          return { value: k, label, hint: `${money(o.cashCents)} and ${o.weeks} ${o.weeks === 1 ? "week" : "weeks"}. You can hope to meet ${o.min} to ${o.max} people.` };
+        }),
+        initial: "meetup",
+      },
+    ],
+    submit: "Go and meet people",
+    build: (v) => ({ type: "network", kind: (v.kind ?? "meetup") as "coffee" | "meetup" | "conference" }),
+    listed: (s) => s.capacity !== null,
   },
   {
     id: "price",

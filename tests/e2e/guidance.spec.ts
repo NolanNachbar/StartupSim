@@ -70,3 +70,24 @@ test("interview questions are a checklist: ticked three at a time, already-asked
   await page.getByRole("button", { name: /Ask this instead/ }).first().click();
   await expect(page.getByText("3 of 3 chosen")).toBeVisible();
 });
+
+test("difficulty and starting money can be set before you start, and networking adds people you know", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("runway.settings", JSON.stringify({ callouts: false, reduceMotion: true, sound: false })));
+  await page.goto("/?seed=3");
+  await page.getByRole("button", { name: "Start a run" }).click();
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByLabel(/^Difficulty:/)).toBeVisible();
+  await page.getByLabel(/^Difficulty:/).fill("3");
+  await expect(page.getByText("Difficulty: Brutal")).toBeVisible();
+  await page.getByLabel(/^Starting money:/).fill("0");
+  await expect(page.getByText("Starting money: $5,000")).toBeVisible();
+  await page.getByRole("button", { name: "Start the company" }).click();
+  await expect(page.locator(".strip")).toContainText("$5,000");
+  await page.getByRole("button", { name: "Choose an action" }).click();
+  await page.getByRole("button", { name: "Network" }).last().click();
+  await page.getByRole("radio", { name: /Coffee/ }).check();
+  await page.getByRole("button", { name: "Go and meet people" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Choose an action" }).click();
+  await expect(page.getByText("People you know").first()).toBeVisible();
+});
