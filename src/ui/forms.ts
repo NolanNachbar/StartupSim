@@ -17,7 +17,7 @@ const typicalPrice = (s: PublicState): string => {
 };
 
 export type FormId =
-  | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer" | "network" | "promotion";
+  | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer" | "network" | "promotion" | "fire";
 
 export interface Option {
   readonly value: string;
@@ -286,7 +286,7 @@ export const FORMS: readonly FormDef[] = [
     intro: (s) =>
       s.capacity === null
         ? `A contractor costs ${money(CATALOG.hireWeeklyCents)} every week, shortens every build by a week and adds 25 percent to the leads your marketing reaches. You have hired ${s.hires} of ${CATALOG.maxHires} you can.`
-        : `Finding the right person takes a week of your time. Each person costs ${money(CATALOG.hireWeeklyCents)} every week, so your weekly costs (${costsOf(biz())}) would go from ${money(s.weeklyBurnCents)} to ${money(s.weeklyBurnCents + CATALOG.hireWeeklyCents)} before marketing. You have ${s.hires} of ${CATALOG.maxTeam} people (at most ${CATALOG.roleCap} in each role). The team works at the same time as you, so you can talk to customers while they work.`,
+        : `Whether to hire is a real decision. Finding the right person takes about ${CATALOG.hireSearchWeeks} weeks of your time, and they are only a quarter as useful in their first week and fully useful in the fourth. Each costs their pay plus payroll tax and benefits every week, so your weekly costs (${costsOf(biz())}) go up before they earn anything back. You have ${s.hires} of ${CATALOG.maxTeam} people (at most ${CATALOG.roleCap} in each role), and you need a month of the new payroll in the bank. Some people quit once they are settled in. Letting someone go costs ${CATALOG.severanceWeeks} weeks of their pay.`,
     fields: (s) =>
       s.capacity === null
         ? []
@@ -299,7 +299,10 @@ export const FORMS: readonly FormDef[] = [
                 const info = roleInfo(biz(), r);
                 const have = s.team[r];
                 const effect = r === "builder" ? `Adds ${CATALOG.builderProgressPct} percent to what you are getting ready, every week.` : r === "seller" ? `Reaches ${CATALOG.sellerOutreachLeads} people by hand every week, once you have something to sell, and makes marketing reach 25 percent more.` : `Raises the most customers you can serve (now ${s.capacity}).`;
-                return { value: r, label: `${info.label} (${have} of ${CATALOG.roleCap})`, hint: `Someone who ${info.what}. ${effect}` };
+                const wage = s.wages[r];
+                const after = s.weeklyBurnCents + wage;
+                const weeks = Math.floor(s.cashCents / after);
+                return { value: r, label: `${info.label} (${have} of ${CATALOG.roleCap}), ${money(wage)} a week`, hint: `Someone who ${info.what}. ${effect} Your running costs would go from ${money(s.weeklyBurnCents)} to ${money(after)} a week: your cash would cover ${weeks} ${weeks === 1 ? "week" : "weeks"} of them with no income at all.` };
               }),
               initial: "builder",
             },
@@ -307,6 +310,24 @@ export const FORMS: readonly FormDef[] = [
     submit: "Hire",
     build: (v, s) => (s.capacity === null ? { type: "hire" } : { type: "hire", role: (v.role ?? "builder") as Role }),
     listed: () => true,
+  },
+  {
+    id: "fire",
+    title: "Let someone go",
+    blurb: "End a job. It costs severance, and it lowers your weekly costs.",
+    intro: (s) => `Letting someone go costs ${CATALOG.severanceWeeks} weeks of their pay, and you lose what they did for you. It lowers your costs from now on. You have ${s.hires} ${s.hires === 1 ? "person" : "people"} on the team.`,
+    fields: (s) => [
+      {
+        id: "role",
+        label: "Who to let go",
+        kind: "radio",
+        options: (CATALOG.roles as readonly Role[]).map((r) => ({ value: r, label: `${roleInfo(biz(), r).label} (${s.team[r]})`, hint: `${money(CATALOG.severanceWeeks * s.wages[r])} to let one go; saves ${money(s.wages[r])} a week.`, ...(s.team[r] < 1 ? { locked: "Nobody in this role." } : {}) })),
+        initial: (CATALOG.roles as readonly Role[]).find((r) => s.team[r] > 0) ?? "builder",
+      },
+    ],
+    submit: "Let them go",
+    build: (v) => ({ type: "fire", role: (v.role ?? "builder") as Role }),
+    listed: (s) => s.capacity !== null && s.hires > 0,
   },
   {
     id: "rnd",

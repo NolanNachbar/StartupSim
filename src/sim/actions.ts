@@ -63,6 +63,7 @@ const KNOWN_TYPES: ReadonlySet<string> = new Set([
   "setMarketing",
   "hire",
   "setRnd",
+  "fire",
   "network",
   "setPromotion",
   "respondOffer",
@@ -98,6 +99,7 @@ export function isActionShape(x: unknown): x is Action {
     return role === undefined || (typeof role === "string" && (ROLES as readonly string[]).includes(role));
   }
   if (x.type === "setRnd") return Number.isInteger((x as { level?: unknown }).level);
+  if (x.type === "fire") return (ROLES as readonly unknown[]).includes((x as { role?: unknown }).role);
   if (x.type === "setPromotion") {
     const { promo } = x as { promo?: unknown };
     return promo === null || typeof promo === "string";

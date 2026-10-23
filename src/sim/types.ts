@@ -194,6 +194,10 @@ export interface PublicState {
   readonly hires: number;
   /** The team by role (the roles of a chosen business: someone who builds, someone who sells, someone who serves customers). */
   readonly team: Team;
+  /** When each person on the team started (a chosen business): new people take weeks to get up to speed. */
+  readonly hiredAt: readonly { readonly role: "builder" | "seller" | "ops"; readonly week: number }[];
+  /** What each role costs a week in this business (cents, salary plus payroll tax and benefits). */
+  readonly wages: Readonly<Record<"builder" | "seller" | "ops", number>>;
   /** Weekly R&D budget level, 0 for none. */
   readonly rndLevel: number;
   /** What R&D has built up, 0 to 100: a better product that converts and keeps more customers. */
@@ -299,6 +303,7 @@ export type Action =
   | { readonly type: "setMarketing"; readonly channel: number | null; readonly level: number; readonly target?: number | null }
   | { readonly type: "hire"; readonly role?: import("./realism").Role }
   | { readonly type: "setRnd"; readonly level: number }
+  | { readonly type: "fire"; readonly role: import("./realism").Role }
   | { readonly type: "setPromotion"; readonly promo: string | null }
   | { readonly type: "network"; readonly kind: "coffee" | "meetup" | "conference" }
   | { readonly type: "respondOffer"; readonly accept: boolean }
@@ -321,6 +326,7 @@ export type IllegalReason =
   | "role-limit"
   | "invalid-target"
   | "invalid-network"
+  | "nobody-to-let-go"
   | "invalid-promotion"
   | "promotion-active"
   | "promotion-needs-customers"

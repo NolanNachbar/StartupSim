@@ -44,6 +44,7 @@ const REASONS: Record<IllegalReason, string> = {
   "invalid-build": "Pick something to build.",
   "invalid-channel": "Pick a channel first.",
   "already-built": "You already built that.",
+  "nobody-to-let-go": "You have nobody in that role to let go.",
   "invalid-network": "That is not a way to meet people.",
   "invalid-promotion": "That promotion does not exist.",
   "promotion-active": "A promotion is already running, or has only just ended. Wait for it to finish.",

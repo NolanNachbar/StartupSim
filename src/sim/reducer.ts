@@ -10,7 +10,7 @@ import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, top
 import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
 import { MONTH_NAMES, seasonAt } from "./seasons";
 import { monthlyOf } from "./billing";
-import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
+import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_SEARCH_WEEKS, QUIT_CHANCE_PCT, SEVERANCE_WEEKS, wageOf, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
@@ -41,7 +41,7 @@ import {
   priceRatioPct,
   weeklyRevenue,
 } from "./runway";
-import { randInt } from "./rng";
+import { randChance, randInt } from "./rng";
 import type { InternalRun } from "./state";
 import type { Action, EndReason, Evidence, IllegalReason, LoanOffer, LogEntry, PublicState, Receivable, RunStatus } from "./types";
 import { weatherPctAt } from "./world";
@@ -99,6 +99,8 @@ function canonical(action: Action): Action {
       return Object.freeze({ type: "setRnd", level: action.level });
     case "network":
       return Object.freeze({ type: "network", kind: action.kind });
+    case "fire":
+      return Object.freeze({ type: "fire", role: action.role });
     case "setPromotion":
       return Object.freeze({ type: "setPromotion", promo: action.promo });
     case "respondOffer":
@@ -199,6 +201,24 @@ function tick(run: InternalRun): InternalRun {
     note(`It is ${MONTH_NAMES[season.month]}: ${season.index > pub.season.index ? "a busier" : "a quieter"} time for this market (${season.index} percent of an average month).`);
   }
 
+  // People quit now and then, once they have settled in (a month at least). It costs you the person and the search again.
+  let team = pub.team;
+  let hiredAt = pub.hiredAt;
+  let burnNow = pub.weeklyBurnCents;
+  let hiresNow = pub.hires;
+  if (fuller && run.secret.business) {
+    for (const role of ROLES) {
+      const settled = hiredAt.findIndex((h) => h.role === role && week - h.week >= 12);
+      if (settled >= 0 && randChance(run.seed, QUIT_CHANCE_PCT / 100, "quit", week, role)) {
+        team = { ...team, [role]: team[role] - 1 };
+        hiredAt = hiredAt.filter((_, i) => i !== settled);
+        burnNow -= wageOf(run.secret.business.model.id, role);
+        hiresNow -= 1;
+        note(`Someone on your team quit (${role === "builder" ? "the one who builds" : role === "seller" ? "the one who sells" : "the one who serves customers"}). You have to find and train a replacement.`);
+      }
+    }
+  }
+
   // A cash offer appears once, when the runway is nearly gone, and lapses after a few weeks.
   let offer: LoanOffer | null = pub.offer;
   let offersShown = pub.offersShown;
@@ -225,9 +245,13 @@ function tick(run: InternalRun): InternalRun {
       week,
       status,
       endReason,
+      team,
+      hiredAt,
+      hires: hiresNow,
+      weeklyBurnCents: burnNow,
       cashCents,
       payingCustomers,
-      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality, promo: fuller.promo, promoCooldown: fuller.promoCooldown, reputation: fuller.reputation, ...(fuller.rivalOpened ? { rivalSince: week } : {}), season } : {}),
+      ...(fuller ? { customersBySegment: fuller.customers, productProgressPct: fuller.progress, qualityPct: fuller.quality, promo: fuller.promo, promoCooldown: fuller.promoCooldown, reputation: fuller.reputation, capacity: fuller.capacity, ...(fuller.rivalOpened ? { rivalSince: week } : {}), season } : {}),
       weeklyRevenueCents,
       profitableStreakWeeks,
       pivotsRemaining: runway,
@@ -427,14 +451,45 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       return ok(recorded(withPub(run, { marketing: { channel, level } }), action));
     }
 
+    case "fire": {
+      if (!run.secret.business) return fail("not-implemented");
+      const role = action.role;
+      if (!(ROLES as readonly string[]).includes(role)) return fail("invalid-role");
+      if (run.pub.team[role] < 1) return fail("nobody-to-let-go");
+      const wage = wageOf(run.secret.business.model.id, role);
+      const severance = SEVERANCE_WEEKS * wage;
+      if (run.pub.cashCents < severance) return fail("insufficient-cash");
+      // The newest person in the role goes (the least settled in).
+      const at = [...run.pub.hiredAt].map((h, i) => ({ h, i })).filter((x) => x.h.role === role).pop();
+      const hiredAt = run.pub.hiredAt.filter((_, i) => i !== at?.i);
+      const team = { ...run.pub.team, [role]: run.pub.team[role] - 1 };
+      return ok(
+        recorded(
+          withPub(run, {
+            cashCents: run.pub.cashCents - severance,
+            books: { ...run.pub.books, operatingCents: run.pub.books.operatingCents + severance },
+            hires: run.pub.hires - 1,
+            team,
+            hiredAt,
+            weeklyBurnCents: run.pub.weeklyBurnCents - wage,
+            capacity: capacityOf(run.secret.business.model.id, team.ops),
+            log: withLog(run.pub, `You let someone go (${SEVERANCE_WEEKS} weeks of pay).`),
+          }),
+          action,
+        ),
+      );
+    }
+
     case "hire": {
       if (run.secret.business) {
         const role = action.role;
         if (!role || !(ROLES as readonly string[]).includes(role)) return fail("invalid-role");
         if (run.pub.hires >= MAX_TEAM) return fail("hire-limit");
         if (run.pub.team[role] >= ROLE_CAP) return fail("role-limit");
-        const salary = run.pub.weeklyBurnCents + HIRE_LOADED_WEEKLY_CENTS;
-        if (run.pub.cashCents < salary) return fail("insufficient-cash");
+        const model = run.secret.business.model.id;
+        const wage = wageOf(model, role);
+        // A founder who hires without a month of the new payroll in the bank is gambling: the sim will not let it.
+        if (run.pub.cashCents < (run.pub.weeklyBurnCents + wage) * 4) return fail("insufficient-cash");
         // Finding the right person takes weeks of the founder's time.
         const hired = advance(run, Math.max(2, HIRE_SEARCH_WEEKS - (run.pub.network.contacts >= 3 ? 1 : 0)));
         if (hired.pub.status !== "running") return ok(recorded(hired, action));
@@ -444,8 +499,9 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
             withPub(hired, {
               hires: hired.pub.hires + 1,
               team,
-              weeklyBurnCents: hired.pub.weeklyBurnCents + HIRE_LOADED_WEEKLY_CENTS,
-              capacity: capacityOf(hired.secret.business?.model.id ?? "software", team.ops),
+              hiredAt: [...hired.pub.hiredAt, { role, week: hired.pub.week }],
+              weeklyBurnCents: hired.pub.weeklyBurnCents + wage,
+              capacity: capacityOf(model, team.ops),
               log: withLog(hired.pub, `Hired a ${role === "builder" ? "builder" : role === "seller" ? "salesperson" : "operations person"}.`),
             }),
             action,

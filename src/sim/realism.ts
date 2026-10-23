@@ -64,6 +64,34 @@ export const PRICE_LADDER_BY_MODEL: Readonly<Record<ModelId, readonly number[]>>
 export const HIRE_SEARCH_WEEKS = 3;
 export const HIRE_LOADED_WEEKLY_CENTS = 120_000;
 
+/**
+ * What a person in each role costs a week, salary plus payroll tax and benefits (about 30 percent on top), by kind of
+ * business. A developer costs several times a cleaner. Rough US figures (BLS medians, loaded): see realism-pass-3.md.
+ */
+export const WAGE_BY_MODEL: Readonly<Record<ModelId, Readonly<Record<Role, number>>>> = {
+  software: { builder: 300_000, seller: 180_000, ops: 110_000 },
+  service: { builder: 140_000, seller: 150_000, ops: 110_000 },
+  location: { builder: 130_000, seller: 110_000, ops: 100_000 },
+  product: { builder: 110_000, seller: 140_000, ops: 90_000 },
+};
+export const wageOf = (model: ModelId, role: Role): number => WAGE_BY_MODEL[model][role];
+
+/** A new person is a quarter useful in their first week and fully useful in the fourth. */
+export const RAMP_WEEKS = 4;
+export interface Hire {
+  readonly role: Role;
+  /** The week they started. */
+  readonly week: number;
+}
+/** How much of a role's team is working at full speed now, in percent of one person each (a new hire counts a quarter, then half...). */
+export function workingPct(hires: readonly Hire[], role: Role, week: number): number {
+  return hires.filter((h) => h.role === role).reduce((sum, h) => sum + Math.min(100, (100 / RAMP_WEEKS) * (week - h.week + 1)), 0);
+}
+/** Each week a person might quit: about one in a hundred, and only once they have settled in. */
+export const QUIT_CHANCE_PCT = 1.2;
+/** Letting someone go costs this many weeks of their pay. */
+export const SEVERANCE_WEEKS = 2;
+
 /** A loan for a business costs about half a year of interest over its term, not more than the loan itself. */
 export const BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS = 240_000;
 
@@ -105,6 +133,8 @@ export const NETWORK_KINDS: readonly NetworkKind[] = ["coffee", "meetup", "confe
 export const WARM_PER_ROUND = 3;
 
 export const capacityOf = (model: ModelId, ops: number): number => CAPACITY_BY_MODEL[model].base + CAPACITY_BY_MODEL[model].perOps * ops;
+/** The same, counting people still settling in as part of a person (opsPct is 100 per fully working person). */
+export const capacityOfPct = (model: ModelId, opsPct: number): number => CAPACITY_BY_MODEL[model].base + Math.floor((CAPACITY_BY_MODEL[model].perOps * opsPct) / 100);
 
 export interface WeekResult {
   readonly progress: number;
@@ -119,6 +149,8 @@ export interface WeekResult {
   readonly discountCents: number;
   readonly reputation: number;
   readonly rivalOpened: boolean;
+  /** How many customers the business can serve now, counting people who are still settling in. */
+  readonly capacity: number;
   readonly notes: readonly string[];
 }
 
@@ -131,7 +163,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
 
   let progress = pub.productProgressPct;
   if (pub.team.builder > 0 && progress < 100) {
-    progress = Math.min(100, progress + BUILDER_PROGRESS_PCT * pub.team.builder);
+    progress = Math.min(100, progress + Math.floor((BUILDER_PROGRESS_PCT * workingPct(pub.hiredAt, "builder", pub.week)) / 100));
     if (progress >= 100) notes.push("Your builders finished the product.");
   }
 
@@ -142,6 +174,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const credibility = Math.min(100, Math.max(CREDIBILITY_FLOOR_PCT, progress) + Math.floor(quality / 4) + Math.floor((pub.reputation - 50) / 5));
 
   const customers = pub.segmentNames.map((_, i) => pub.customersBySegment[i] ?? 0);
+  const capacity = capacityOfPct(model, workingPct(pub.hiredAt, "ops", pub.week));
   const season = seasonAt(run.industry ?? 1, run.seed, pub.week);
   // A rival nearby takes some of the people you would have reached and tempts some of the ones you have. A better product
   // blunts it: at full quality it hurts half as much.
@@ -158,7 +191,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
     const baseBuy = Math.floor((conversionPct(priceRatioPct(monthlyOf(pub.priceCents, pub.billing), wtpBoost(targetSeg.willingnessToPayCents))) * credibility) / 100);
     const buyPct = promoSpec ? Math.max(0, Math.floor((baseBuy * (100 + promoSpec.convLiftPct)) / 100)) : baseBuy;
     const paidLeads = channel && marketingSpend > 0 ? marketingLeads(marketingSpend, channel.costPerLeadCents, pub.team.seller) : 0;
-    const handLeads = pub.landingPageBuilt ? SELLER_OUTREACH_LEADS * pub.team.seller : 0;
+    const handLeads = pub.landingPageBuilt ? Math.floor((SELLER_OUTREACH_LEADS * workingPct(pub.hiredAt, "seller", pub.week)) / 100) : 0;
     // contacts you have made send people your way: one lead a week for every three
     const referralLeads = Math.floor(pub.network.contacts / 3);
     const standing = customers.reduce((a, b) => a + b, 0);
@@ -173,7 +206,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
         draw: randInt(run.seed, 1, 100_000_000 * ACQUISITION_DIVISOR, "acq", pub.week),
       });
       // A full business stops selling; it never sends away the customers it already has.
-      const room = Math.max(0, capacityOf(model, pub.team.ops) - customers.reduce((a, b) => a + b, 0));
+      const room = Math.max(0, capacity - customers.reduce((a, b) => a + b, 0));
       const taken = Math.min(acquired, room);
       if (taken < acquired) notes.push(model === "location" ? "The place is full: new people are being turned away." : "You are at capacity: new customers go on a waiting list.");
       customers[target] = (customers[target] ?? 0) + taken;
@@ -215,12 +248,12 @@ export function realisticWeek(run: InternalRun): WeekResult {
   // Reputation drifts toward what you deserve: a better product and a place that is not crowded earn it, a rushed discount crowd
   // and a full house lose it. It moves a sixth of the way each week, so it is slow to build and slow to repair.
   const served = customers.reduce((a, b) => a + b, 0);
-  const crowded = capacityOf(model, pub.team.ops) > 0 && served * 100 > capacityOf(model, pub.team.ops) * 90;
-  const deserved = Math.max(0, Math.min(100, 45 + Math.floor(quality / 4) + (progress >= 100 ? 15 : Math.floor(progress / 8)) + 4 * pub.team.ops + (crowded ? -20 : 0) + (promoSpec && promoSpec.dealChurnPct >= 4 ? -5 : 0)));
+  const crowded = capacity > 0 && served * 100 > capacity * 90;
+  const deserved = Math.max(0, Math.min(100, 45 + Math.floor(quality / 4) + (progress >= 100 ? 15 : Math.floor(progress / 8)) + Math.floor((4 * workingPct(pub.hiredAt, "ops", pub.week)) / 100) + (crowded ? -20 : 0) + (promoSpec && promoSpec.dealChurnPct >= 4 ? -5 : 0)));
   const reputation = pub.reputation + Math.trunc((deserved - pub.reputation) / 6);
   const rivalOpened = pub.rivalSince === null && pub.week + 1 >= rivalWeekOf(run.seed) && secret.business !== null;
   if (rivalOpened) notes.push(`${cap(secret.business.kinds[0] ?? "a competitor")} has opened nearby, aimed at your customers. Expect fewer people to find you and some to be tempted away. A better product and a good name soften it.`);
-  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, reputation, rivalOpened, notes };
+  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, reputation, rivalOpened, capacity, notes };
 }
 
 const cap = (s: string): string => {

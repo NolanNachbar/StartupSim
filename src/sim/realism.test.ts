@@ -287,3 +287,61 @@ describe("what building costs", () => {
     expect(place.progressPct).toBeGreaterThanOrEqual(60);
   });
 });
+
+describe("the people you hire", () => {
+  const rich = (choice: typeof gym) => newRun(7, 3, { ...choice, startCashCents: 60_000_000 });
+
+  it("cost what the role costs in this kind of business: a developer far more than a cleaner", () => {
+    const dev = view(play(rich(app), { type: "hire", role: "builder" })).weeklyBurnCents - view(rich(app)).weeklyBurnCents;
+    const crew = view(play(rich(gym), { type: "hire", role: "ops" })).weeklyBurnCents - view(rich(gym)).weeklyBurnCents;
+    expect(dev).toBeGreaterThan(crew * 2);
+    expect(view(rich(gym)).wages.builder).toBeGreaterThan(0);
+  });
+
+  it("will not let you hire without a month of the new payroll in the bank", () => {
+    const poor = newRun(7, 3, { ...gym, startCashCents: 1_000_000 });
+    const r = step(poor, { type: "hire", role: "ops" });
+    expect(!r.ok && r.reason).toBe("insufficient-cash");
+  });
+
+  it("takes weeks to get up to speed: a new builder adds less to the product at first", () => {
+    let r = play(rich(gym), { type: "hire", role: "builder" });
+    const before = view(r).productProgressPct;
+    r = must(step(r, { type: "wait" }));
+    const first = view(r).productProgressPct - before;
+    for (let i = 0; i < 4; i++) r = must(step(r, { type: "wait" }));
+    const mid = view(r).productProgressPct;
+    r = must(step(r, { type: "wait" }));
+    const later = view(r).productProgressPct - mid;
+    expect(first).toBeLessThan(later);
+  });
+
+  it("lets you let someone go for two weeks of their pay, and not someone you never hired", () => {
+    const hired = play(rich(gym), { type: "hire", role: "ops" });
+    const cash = view(hired).cashCents;
+    const gone = must(step(hired, { type: "fire", role: "ops" }));
+    expect(view(gone).team.ops).toBe(0);
+    expect(view(gone).cashCents).toBe(cash - 2 * view(hired).wages.ops);
+    expect(view(gone).weeklyBurnCents).toBeLessThan(view(hired).weeklyBurnCents);
+    const none = step(rich(gym), { type: "fire", role: "ops" });
+    expect(!none.ok && none.reason).toBe("nobody-to-let-go");
+  });
+
+  it("sometimes quits once settled in, and the payroll falls with them", () => {
+    let quits = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      let r = newRun(seed, 3, { ...gym, startCashCents: 90_000_000 });
+      r = must(step(r, { type: "hire", role: "ops" }));
+      for (let i = 0; i < 80 && view(r).status === "running"; i++) {
+        r = must(step(r, { type: "wait" }));
+        if (view(r).team.ops === 0) {
+          quits += 1;
+          expect(view(r).weeklyBurnCents).toBeLessThan(view(newRun(seed, 3, { ...gym, startCashCents: 90_000_000 })).weeklyBurnCents + 1);
+          break;
+        }
+      }
+    }
+    expect(quits).toBeGreaterThan(0);
+    expect(quits).toBeLessThan(40);
+  });
+});

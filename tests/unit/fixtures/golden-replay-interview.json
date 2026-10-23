@@ -65,6 +65,12 @@
       "rndCents": 0,
       "learningCents": 90000
     },
+    "hiredAt": [],
+    "wages": {
+      "builder": 0,
+      "seller": 0,
+      "ops": 0
+    },
     "network": {
       "contacts": 0,
       "events": 0

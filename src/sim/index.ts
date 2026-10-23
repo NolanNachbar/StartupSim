@@ -9,6 +9,7 @@ import { PRICE_LADDER_CENTS, QUESTION_BANK, QUESTION_TYPES } from "./actions";
 import { PROMOTION_COOLDOWN_WEEKS, PROMOTIONS_BY_MODEL } from "./promotions";
 import { MONTH_NAMES as MONTHS } from "./seasons";
 import { UNIT_LABEL, UNIT_NOUN, type Billing } from "./billing";
+import { HIRE_SEARCH_WEEKS, SEVERANCE_WEEKS } from "./realism";
 import { BUILDER_PROGRESS_PCT, MAX_TEAM, NETWORK_KINDS, NETWORK_OPTIONS, RND_GAIN, RND_LEVELS_CENTS, ROLES, ROLE_CAP, SELLER_OUTREACH_LEADS } from "./realism";
 import {
   BUDGET_LEVELS_CENTS,
@@ -85,6 +86,8 @@ export const CATALOG = {
   channelTestBudgetCents: CHANNEL_TEST_BUDGET_CENTS,
   budgetLevelsCents: BUDGET_LEVELS_CENTS,
   hireWeeklyCents: HIRE_WEEKLY_CENTS,
+  hireSearchWeeks: HIRE_SEARCH_WEEKS,
+  severanceWeeks: SEVERANCE_WEEKS,
   maxHires: MAX_HIRES,
   maxRaises: MAX_RAISES,
   raiseAmountCents: RAISE_AMOUNT_CENTS,
