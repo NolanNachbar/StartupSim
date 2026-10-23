@@ -41,10 +41,14 @@ const keep = (lines: readonly Line[]): readonly Line[] => lines.filter((l) => l.
 export function statementsOf(pub: PublicState): Statements {
   const b = pub.books;
   const owed = pub.receivables.reduce((a, r) => a + r.amountCents, 0);
-  const revenueCents = pub.ledger.revenueCents + b.testSalesCents;
+  // Money taken for something not yet delivered is a deposit you owe until the product is ready, not revenue.
+  const delivered = pub.productProgressPct >= 100 || !pub.billing;
+  const deposits = delivered ? 0 : b.testSalesCents;
+  const earnedTests = delivered ? b.testSalesCents : 0;
+  const revenueCents = pub.ledger.revenueCents + earnedTests;
   const revenue = keep([
     { label: "Customer sales", cents: pub.ledger.revenueCents },
-    { label: "Paid tests", cents: b.testSalesCents },
+    { label: "Paid tests", cents: earnedTests },
   ]);
   const expenses = keep([
     { label: "Running the company", cents: b.operatingCents },
@@ -75,7 +79,10 @@ export function statementsOf(pub: PublicState): Statements {
     { label: "Cash", cents: pub.cashCents },
     { label: "Owed to you by customers", cents: owed },
   ]);
-  const liabilities = keep([{ label: "Loan still to repay", cents: b.loanReceivedCents - b.principalRepaidCents }]);
+  const liabilities = keep([
+    { label: "Loan still to repay", cents: b.loanReceivedCents - b.principalRepaidCents },
+    { label: "Paid in advance, not yet delivered", cents: deposits },
+  ]);
   const equity = keep([
     { label: "Money you started with", cents: b.startCashCents },
     { label: "Money from investors", cents: b.equityRaisedCents },

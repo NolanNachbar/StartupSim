@@ -62,7 +62,7 @@ describe("the economics of each kind of business", () => {
   it("physical kinds pay for goods, a place needs the most money to open, and each kind sells at its own prices", () => {
     expect(COGS_PCT_BY_MODEL.location).toBeGreaterThanOrEqual(25);
     expect(COGS_PCT_BY_MODEL.product).toBeGreaterThanOrEqual(25);
-    expect(COGS_PCT_BY_MODEL.service).toBe(0);
+    expect(COGS_PCT_BY_MODEL.service).toBeLessThanOrEqual(5); // only card fees: your own time is not a cost of goods
     expect(START_CASH_BY_MODEL.location).toBeGreaterThan(START_CASH_BY_MODEL.product);
     expect(START_CASH_BY_MODEL.product).toBeGreaterThan(START_CASH_BY_MODEL.software);
     for (const m of BUSINESS_MODELS) expect(PRICE_LADDER_BY_MODEL[m.id], m.name).toContain(START_PRICE_BY_MODEL[m.id]);

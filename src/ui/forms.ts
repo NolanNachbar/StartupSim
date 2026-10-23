@@ -387,7 +387,7 @@ export const FORMS: readonly FormDef[] = [
     blurb: "A lender has made an offer. Accept or decline.",
     intro: (s) =>
       s.offer
-        ? `A lender offers ${money(s.offer.amountCents)} now. You repay ${money(s.offer.weeklyRepaymentCents)} a week for ${s.offer.weeks} weeks. The offer ends in week ${s.offer.expiresWeek}.`
+        ? `A lender offers ${money(s.offer.amountCents)} now. You repay ${money(s.offer.weeklyRepaymentCents)} a week for ${s.offer.weeks} weeks: ${money(s.offer.weeklyRepaymentCents * s.offer.weeks)} in all, about ${Math.round(((s.offer.weeklyRepaymentCents * s.offer.weeks - s.offer.amountCents) * 52 * 100) / (s.offer.amountCents * s.offer.weeks))} percent a year in interest. It is repaid out of your weekly cash whether or not customers come. The offer ends in week ${s.offer.expiresWeek}.`
         : "There is no offer right now.",
     fields: () => [
       {

@@ -49,8 +49,8 @@ export const CAPACITY_BY_MODEL: Readonly<Record<ModelId, { readonly base: number
 /** What a founder starts with: a place needs a lease deposit and a build-out, an app needs little. */
 export const START_CASH_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 3_000_000, service: 2_000_000, location: 15_000_000, product: 5_000_000 };
 
-/** Cost of goods as a percent of revenue: hosting, nothing for your own time, food and supplies, materials and shipping. */
-export const COGS_PCT_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 10, service: 0, location: 30, product: 30 };
+/** Cost of goods as a percent of revenue: hosting, nothing for your own time, food and supplies, materials and shipping, plus about 3 percent for card payments. */
+export const COGS_PCT_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 13, service: 3, location: 33, product: 33 };
 
 /** The prices a founder can try, centred where each kind of business really sells (cents a month). */
 export const PRICE_LADDER_BY_MODEL: Readonly<Record<ModelId, readonly number[]>> = {

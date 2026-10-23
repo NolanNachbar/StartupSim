@@ -226,7 +226,9 @@ function tick(run: InternalRun): InternalRun {
     offer = null;
     note("The cash offer expired.");
   }
-  if (status === "running" && !offer && offersShown === 0 && week >= LOAN_OFFER_MIN_WEEK && runway <= 1) {
+  // A lender wants to see money coming in: a business with no revenue is not offered one.
+  const lendable = !secret.business || weeklyRevenueCents >= 100_000;
+  if (status === "running" && !offer && offersShown === 0 && week >= LOAN_OFFER_MIN_WEEK && runway <= 1 && lendable) {
     offer = {
       amountCents: LOAN_AMOUNT_CENTS,
       weeklyRepaymentCents: secret.business ? BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS : LOAN_WEEKLY_REPAYMENT_CENTS,
@@ -311,8 +313,8 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       if (run.pub.raisesUsed >= 1 && !run.pub.hypotheses.some((h) => h.state === "verified")) {
         return fail("investors-want-proof");
       }
-      // Knowing people shortens the search for an investor.
-      const weeks = Math.max(2, randInt(run.seed, 3, 9, "raise", run.pub.raisesUsed) - (run.secret.business && run.pub.network.contacts >= 5 ? 2 : 0));
+      // Raising takes months of your attention (twelve to twenty-six weeks for a real business, with the costs still running); knowing people shortens the search.
+      const weeks = run.secret.business ? Math.max(8, randInt(run.seed, 12, 26, "raise", run.pub.raisesUsed) - (run.pub.network.contacts >= 5 ? 4 : 0)) : Math.max(2, randInt(run.seed, 3, 9, "raise", run.pub.raisesUsed));
       const advanced = advance(run, weeks);
       const after = withPub(advanced, { raiseWeeks: run.pub.raiseWeeks + (advanced.pub.week - run.pub.week) });
       if (after.pub.status !== "running") return ok(recorded(after, action));
