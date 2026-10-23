@@ -17,7 +17,6 @@ import { runInterviewRound } from "./interview";
 import {
   ACQUISITION_DIVISOR,
   BUDGET_LEVELS_CENTS,
-  BUILD_TABLE,
   CHANNEL_TEST_BUDGET_CENTS,
   CREDIBILITY_FLOOR_PCT,
   HIRE_WEEKLY_CENTS,
@@ -343,11 +342,12 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
 
     case "buildTest": {
       if (!isBuildKind(action.kind)) return fail("invalid-build");
-      const spec = BUILD_TABLE[action.kind];
+      const spec = run.pub.builds[action.kind];
       const alreadyThere = action.kind === "landing-page" ? run.pub.landingPageBuilt : run.pub.productProgressPct >= 100;
       if (alreadyThere) return fail("already-built");
       if (run.pub.cashCents < spec.cashCents) return fail("insufficient-cash");
-      const weeks = Math.max(1, spec.weeks - run.pub.hires);
+      // a team shortens the original worlds' builds; in a chosen business the work takes what it takes (builders add to it each week)
+      const weeks = run.secret.business ? spec.weeks : Math.max(1, spec.weeks - run.pub.hires);
       const after = advance(
         withPub(run, {
           cashCents: run.pub.cashCents - spec.cashCents,

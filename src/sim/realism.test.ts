@@ -243,7 +243,7 @@ describe("reputation", () => {
   const run0 = () => newRun(6, 3, { ...gym, startCashCents: 40_000_000 });
 
   it("starts ordinary, and builds slowly with a good product and a team that serves well", () => {
-    let r = play(run0(), { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "prototype" }, { type: "setRnd", level: 3 }, { type: "hire", role: "ops" });
+    let r = play(run0(), { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "concierge" }, { type: "setRnd", level: 3 }, { type: "hire", role: "ops" });
     const start = view(r).reputation;
     for (let i = 0; i < 20; i++) r = must(step(r, { type: "wait" }));
     expect(view(r).reputation).toBeGreaterThan(start);
@@ -252,7 +252,7 @@ describe("reputation", () => {
 
   it("is lower when the product is not ready than when it is", () => {
     let idle = run0();
-    let built = play(run0(), { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "prototype" });
+    let built = play(run0(), { type: "buildTest", kind: "prototype" }, { type: "buildTest", kind: "concierge" });
     for (let i = 0; i < 15; i++) {
       idle = must(step(idle, { type: "wait" }));
       built = must(step(built, { type: "wait" }));
@@ -274,5 +274,16 @@ describe("a rival", () => {
     let g = newRun(8, 3);
     for (let i = 0; i < 61 && view(g).status === "running"; i++) g = must(step(g, { type: "wait" }));
     expect(view(g).rivalSince).toBeNull();
+  });
+});
+
+describe("what building costs", () => {
+  it("makes opening a place take months and tens of thousands of dollars, and an app far less", () => {
+    const place = view(newRun(5, 3, gym)).builds.prototype;
+    const app = view(newRun(5, 3, app)).builds.prototype;
+    expect(place.cashCents).toBeGreaterThanOrEqual(3_000_000);
+    expect(place.weeks).toBeGreaterThanOrEqual(6);
+    expect(app.cashCents).toBeLessThan(place.cashCents);
+    expect(place.progressPct).toBeGreaterThanOrEqual(60);
   });
 });

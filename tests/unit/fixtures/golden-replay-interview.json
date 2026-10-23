@@ -85,6 +85,23 @@
       99900
     ],
     "billing": null,
+    "builds": {
+      "landing-page": {
+        "weeks": 1,
+        "cashCents": 30000,
+        "progressPct": 5
+      },
+      "concierge": {
+        "weeks": 2,
+        "cashCents": 80000,
+        "progressPct": 20
+      },
+      "prototype": {
+        "weeks": 3,
+        "cashCents": 250000,
+        "progressPct": 40
+      }
+    },
     "payingCustomers": 0,
     "weeklyRevenueCents": 0,
     "profitableStreakWeeks": 0,

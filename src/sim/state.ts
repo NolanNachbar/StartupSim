@@ -1,7 +1,7 @@
 // Internal run state. Nothing outside src/sim imports this: the public API wraps it as an opaque Run.
 import { DIFFICULTIES, DIFFICULTY_DEFAULT, type BusinessChoice } from "./business";
-import { INTERVIEW_ROUND_CASH_CENTS, PIVOT_COST_CENTS, ROUND_WEEKS, START_CASH_CENTS, TEST_CASH_CENTS, WEEKLY_BURN_CENTS, pivotsRemaining } from "./runway";
-import { BURN_BY_MODEL, COGS_PCT_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, capacityOf } from "./realism";
+import { BUILD_TABLE, INTERVIEW_ROUND_CASH_CENTS, PIVOT_COST_CENTS, ROUND_WEEKS, START_CASH_CENTS, TEST_CASH_CENTS, WEEKLY_BURN_CENTS, pivotsRemaining } from "./runway";
+import { BURN_BY_MODEL, COGS_PCT_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, BUILDS_BY_MODEL, capacityOf } from "./realism";
 import { billingFor, ladderAround, nicePrice } from "./billing";
 import { PRICE_LADDER_CENTS } from "./actions";
 import { hypothesesFrom } from "./hypotheses";
@@ -56,6 +56,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     cogsPct: secret.business ? COGS_PCT_BY_MODEL[secret.business.model.id] : 0,
     priceLadderCents: secret.business ? ladderAround(startPrice) : PRICE_LADDER_CENTS,
     billing,
+    builds: secret.business ? BUILDS_BY_MODEL[secret.business.model.id] : BUILD_TABLE,
     payingCustomers: 0,
     weeklyRevenueCents: 0,
     profitableStreakWeeks: 0,

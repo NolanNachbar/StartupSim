@@ -109,7 +109,7 @@ export const FORMS: readonly FormDef[] = [
     intro: (s) =>
       `Make something customers can react to. A landing page is what lets you ask people to pay in a test. Prototypes and concierge versions add to the product itself, which is ${s.productProgressPct} percent built now; at 100 percent it is launched and customers can really use it.`,
     fields: (s) => {
-      const kinds = Object.keys(CATALOG.builds) as BuildKind[];
+      const kinds = Object.keys(s.builds) as BuildKind[];
       const doneKind = (k: BuildKind): boolean => (k === "landing-page" ? s.landingPageBuilt : s.productProgressPct >= 100);
       return [
         {
@@ -120,10 +120,10 @@ export const FORMS: readonly FormDef[] = [
             value: k,
             label: buildCopy(biz())[k].label,
             done: doneKind(k),
-            hint: `${buildCopy(biz())[k].hint} ${money(CATALOG.builds[k].cashCents)} and ${CATALOG.builds[k].weeks} ${CATALOG.builds[k].weeks === 1 ? "week" : "weeks"}. ${
+            hint: `${buildCopy(biz())[k].hint} ${money(s.builds[k].cashCents)} and ${s.builds[k].weeks} ${s.builds[k].weeks === 1 ? "week" : "weeks"}. ${
               k === "landing-page"
-                ? `${s.landingPageBuilt ? "Already built: you can run paid tests." : "Built once. It is what lets you ask people to pay in a paid test."} Adds ${CATALOG.builds[k].progressPct} percent to the product.`
-                : `Adds ${CATALOG.builds[k].progressPct} percent to the product (${s.productProgressPct} percent now). You can build it again until the product is 100 percent.`
+                ? `${s.landingPageBuilt ? "Already built: you can run paid tests." : "Built once. It is what lets you ask people to pay in a paid test."} Adds ${s.builds[k].progressPct} percent to the product.`
+                : `Adds ${s.builds[k].progressPct} percent to the product (${s.productProgressPct} percent now). You can build it again until the product is 100 percent.`
             }`,
           })),
           initial: kinds.find((k) => !doneKind(k)) ?? "landing-page",

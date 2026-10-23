@@ -132,7 +132,7 @@ export function legalActions(run: InternalRun): readonly Action[] {
     }
   }
   for (const kind of BUILD_KINDS) {
-    const cost = BUILD_TABLE[kind].cashCents;
+    const cost = pub.builds[kind].cashCents;
     const alreadyThere = kind === "landing-page" ? pub.landingPageBuilt : pub.productProgressPct >= 100;
     if (!alreadyThere && pub.cashCents >= cost) actions.push({ type: "buildTest", kind });
   }

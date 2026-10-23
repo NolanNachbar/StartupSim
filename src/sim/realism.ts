@@ -47,7 +47,7 @@ export const CAPACITY_BY_MODEL: Readonly<Record<ModelId, { readonly base: number
 };
 
 /** What a founder starts with: a place needs a lease deposit and a build-out, an app needs little. */
-export const START_CASH_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 3_000_000, service: 2_000_000, location: 10_000_000, product: 5_000_000 };
+export const START_CASH_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 3_000_000, service: 2_000_000, location: 15_000_000, product: 5_000_000 };
 
 /** Cost of goods as a percent of revenue: hosting, nothing for your own time, food and supplies, materials and shipping. */
 export const COGS_PCT_BY_MODEL: Readonly<Record<ModelId, number>> = { software: 10, service: 0, location: 30, product: 30 };
@@ -73,6 +73,23 @@ export const BUILD_LABEL_BY_MODEL: Readonly<Record<ModelId, Readonly<Record<stri
   service: { "landing-page": "an offer page", concierge: "a first batch of clients served by hand", prototype: "a repeatable package" },
   location: { "landing-page": "a trial pass and sign-up page", concierge: "a small first run", prototype: "the fitted-out space" },
   product: { "landing-page": "a pre-order page", concierge: "a hand-made batch", prototype: "a small production run" },
+};
+
+/**
+ * What each build costs, how long it takes and how much of the product it finishes, by kind of business. Opening a
+ * place is the big one: a lease deposit, a fit-out and equipment run to tens of thousands of dollars and take months.
+ */
+export interface BuildSpec {
+  readonly weeks: number;
+  readonly cashCents: number;
+  readonly progressPct: number;
+}
+export type BuildSpecs = Readonly<Record<"landing-page" | "concierge" | "prototype", BuildSpec>>;
+export const BUILDS_BY_MODEL: Readonly<Record<ModelId, BuildSpecs>> = {
+  software: { "landing-page": { weeks: 1, cashCents: 30_000, progressPct: 5 }, concierge: { weeks: 2, cashCents: 80_000, progressPct: 15 }, prototype: { weeks: 3, cashCents: 250_000, progressPct: 25 } },
+  service: { "landing-page": { weeks: 1, cashCents: 30_000, progressPct: 5 }, concierge: { weeks: 2, cashCents: 50_000, progressPct: 25 }, prototype: { weeks: 3, cashCents: 150_000, progressPct: 30 } },
+  location: { "landing-page": { weeks: 1, cashCents: 150_000, progressPct: 5 }, concierge: { weeks: 2, cashCents: 800_000, progressPct: 15 }, prototype: { weeks: 8, cashCents: 6_000_000, progressPct: 80 } },
+  product: { "landing-page": { weeks: 1, cashCents: 30_000, progressPct: 5 }, concierge: { weeks: 2, cashCents: 200_000, progressPct: 25 }, prototype: { weeks: 4, cashCents: 1_000_000, progressPct: 50 } },
 };
 
 export type NetworkKind = "coffee" | "meetup" | "conference";

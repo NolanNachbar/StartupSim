@@ -4,7 +4,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { BUSINESS_MODELS, newRun, view } from "../../src/sim";
-import { CAPACITY_BY_MODEL, BURN_BY_MODEL, COGS_PCT_BY_MODEL, HIRE_LOADED_WEEKLY_CENTS, PRICE_LADDER_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, ROLES, type Role } from "../../src/sim/realism";
+import { BUILDS_BY_MODEL, CAPACITY_BY_MODEL, BURN_BY_MODEL, COGS_PCT_BY_MODEL, HIRE_LOADED_WEEKLY_CENTS, PRICE_LADDER_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, ROLES, type Role } from "../../src/sim/realism";
 
 const weeklyPerCustomer = (priceCents: number): number => Math.floor((priceCents * 12) / 52);
 
@@ -18,7 +18,7 @@ describe("the economics of each kind of business", () => {
     const breakEven = Math.ceil(burn / perCustomer);
     const cap = CAPACITY_BY_MODEL[id];
     const withHire = Math.ceil((burn + HIRE_LOADED_WEEKLY_CENTS) / perCustomer);
-    return { i, id, name: m.name, price, burn, perCustomer, breakEven, capBase: cap.base, capOne: cap.base + cap.perOps, withHire, runwayWeeks: Math.floor(START_CASH_BY_MODEL[id] / burn) };
+    return { i, id, name: m.name, price, burn, perCustomer, breakEven, capBase: cap.base, capOne: cap.base + cap.perOps, withHire, runwayWeeks: Math.floor((START_CASH_BY_MODEL[id] - BUILDS_BY_MODEL[id].prototype.cashCents) / burn) };
   });
 
   it("can reach break-even before it hits its customer limit, at the price it starts at", () => {
@@ -28,7 +28,7 @@ describe("the economics of each kind of business", () => {
   it("is not trivially easy: break-even needs a real number of customers, and cash lasts a plausible time", () => {
     for (const r of rows) {
       expect(r.breakEven, `${r.name}: it should take more than a couple of customers`).toBeGreaterThanOrEqual(3);
-      expect(r.runwayWeeks, `${r.name}: the starting cash lasts between 3 and 12 months at cost, with no income`).toBeGreaterThanOrEqual(12);
+      expect(r.runwayWeeks, `${r.name}: what is left after the big build lasts between 3 and 12 months at cost, with no income`).toBeGreaterThanOrEqual(12);
       expect(r.runwayWeeks).toBeLessThanOrEqual(52);
     }
   });
