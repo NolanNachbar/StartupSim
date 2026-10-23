@@ -6,3 +6,8 @@ All art in this folder is by Kenney (www.kenney.nl), released under Creative Com
 - fx/*.webp: Kenney Particle Pack (CC0)
 
 The interface font, Plus Jakarta Sans (SIL Open Font License 1.1), ships through the Fontsource package.
+
+
+## Fonts
+
+Chillax and General Sans: Indian Type Foundry, via Fontshare, free for personal and commercial use and embedding under the ITF Free Font License (https://www.fontshare.com/licenses/itf-free-font-license). Files in `src/assets/fonts`.

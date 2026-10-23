@@ -31,30 +31,27 @@
 .way__name {
   min-width: 40px;
   text-align: center;
-  padding: var(--s-1) var(--s-3);
-  background: var(--surface);
+  padding: 2px var(--s-3);
+  background: var(--sign);
+  border: 3px solid var(--outline);
   border-radius: var(--radius-chip);
-  box-shadow: 0 4px 12px rgba(38, 42, 68, 0.22);
+  box-shadow: 0 3px 0 var(--outline);
+  font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 700;
-  line-height: 22px;
+  font-weight: 600;
+  line-height: 20px;
   white-space: nowrap;
   transform: translateX(var(--dx, 0px));
 }
-.way__stem { width: 3px; height: var(--dy, 0px); margin-bottom: -1px; background: var(--surface); }
-.way--hq .way__stem { background: var(--verified); }
-.way--on .way__stem, .way--focus .way__stem { background: var(--primary); }
-.way__pin { width: 0; height: 0; border: 7px solid transparent; border-top-color: var(--surface); border-bottom-width: 0; margin-top: -1px; }
+/* A signboard on a post: the post is the plate's pointer, and a stem lifts the board when the map is crowded. */
+.way__stem { width: 5px; height: var(--dy, 0px); margin-bottom: -1px; background: var(--outline); }
+.way__pin { width: 5px; height: 7px; background: var(--outline); margin-top: -1px; }
 .way--below { transform: translate(-50%, 0); }
-.way--below .way__pin { order: -1; border-top-width: 0; border-bottom-width: 7px; border-top-color: transparent; border-bottom-color: var(--verified); margin: 0 0 -1px; }
+.way--below .way__pin { order: -1; margin: 0 0 -1px; }
 .way--below .way__stem { order: 0; margin: -1px 0 0; }
 .way--below .way__name { order: 1; }
-.way--flip .way__pin { border-bottom-color: var(--surface); }
-.way--flip.way--on .way__pin, .way--flip.way--focus .way__pin { border-bottom-color: var(--primary); }
 .way--hq .way__name { background: var(--verified); color: #ffffff; }
-.way--hq .way__pin { border-top-color: var(--verified); }
 .way--on .way__name, .way--focus .way__name { background: var(--primary); color: var(--on-primary); }
-.way--on .way__pin, .way--focus .way__pin { border-top-color: var(--primary); }
 
 .veil {
   position: fixed;
@@ -87,7 +84,7 @@
 .notice {
   padding: var(--s-3) var(--s-4);
   background: var(--surface-raised);
-  border: 2px solid var(--line);
+  border: 2px solid var(--outline);
   border-radius: var(--radius-panel);
   display: grid;
   gap: var(--s-2);
@@ -116,6 +113,7 @@
   gap: var(--s-2);
   padding: var(--s-3) var(--s-4);
   background: var(--surface);
+  border: 3px solid var(--outline);
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-panel);
 }
@@ -179,7 +177,7 @@
   min-height: var(--tap);
   padding: 0 var(--s-3);
   background: var(--surface-raised);
-  border: 2px solid var(--line);
+  border: 2px solid var(--outline);
   border-radius: var(--radius-chip);
   max-width: 100%;
 }
@@ -190,7 +188,7 @@
   min-height: var(--tap);
   padding: var(--s-3) var(--s-4);
   background: var(--surface-raised);
-  border: 2px solid var(--line);
+  border: 2px solid var(--outline);
   border-radius: var(--radius-chip);
   cursor: pointer;
 }
@@ -214,7 +212,7 @@
   min-height: 64px;
   padding: var(--s-2) var(--s-3);
   background: var(--surface-raised);
-  border: 2px solid var(--line);
+  border: 2px solid var(--outline);
   border-radius: var(--radius-chip);
   cursor: pointer;
 }
@@ -307,12 +305,12 @@
 
 /* Phone labels keep the 16 px type but trim their side padding, so a crowded map fits them all. */
 @media (max-width: 599px) {
-  .way__name { padding: var(--s-1) var(--s-2); }
+  .way__name { padding: 2px var(--s-2); }
 }
 
-/* Narrow phones (320 px): the van icons would run into the cash figure, so the number carries the count alone. */
+/* Narrow phones (320 px): the pivot lights would run into the cash figure, so the number carries the count alone. */
 @media (max-width: 379px) {
-  .pivots__vans { display: none; }
+  .pivots__lights { display: none; }
   .strip { grid-template-columns: auto minmax(0, 1fr); gap: var(--s-2); }
 }
 
@@ -321,11 +319,11 @@
   .strip { grid-template-columns: auto minmax(0, 1fr); padding: var(--s-2) var(--s-4); margin-top: var(--s-1); }
   .pivots { grid-template-columns: auto auto; align-items: center; column-gap: var(--s-3); }
   .pivots__number { font-size: 2.25rem; line-height: 40px; }
-  .pivots__vans { display: none; }
+  .pivots__lights { display: none; }
   .strip__side { grid-template-columns: repeat(3, auto); align-items: center; justify-content: end; min-width: 0; gap: var(--s-4); }
   .strip__buttons { order: 3; }
   .plate .routes, .plate .path__label, .plate__how { display: none; }
-  .way__name { min-width: 32px; padding: 2px var(--s-2); }
+  .way__name { min-width: 32px; padding: 0 var(--s-2); }
   .plate__head .board__title { font-size: var(--t-md); line-height: 22px; }
 }
 
@@ -353,15 +351,15 @@
 .button--example[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
 
 /* Stage bar, group actions and the cash change on the HUD. */
-.stage { display: grid; gap: var(--s-2); padding: var(--s-3); border: 1px solid var(--line); border-radius: 12px; }
+.stage { display: grid; gap: var(--s-2); padding: 0 0 var(--s-2); border-bottom: 2px solid var(--outline); }
 .stage__now { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-2); }
 .stage__count { font-size: 1rem; color: var(--ink-soft); }
 .stage__title { font-size: 1.25rem; font-weight: 700; }
 .stage__bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s-1); margin: 0; padding: 0; list-style: none; position: relative; }
-.stage__step { display: grid; justify-items: center; gap: var(--s-1); min-width: 0; border-top: 4px solid var(--line); padding-top: var(--s-1); }
+.stage__step { display: grid; justify-items: center; gap: var(--s-1); min-width: 0; border: 2px solid var(--outline); border-radius: 4px; border-top-width: 10px; border-top-color: var(--line); background: var(--surface); padding-top: var(--s-1); }
 .stage__step--done { border-top-color: var(--primary); }
-.stage__step--now { border-top-color: var(--primary); }
-.stage__dot { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); font-size: 1rem; line-height: 1; background: var(--surface); }
+.stage__step--now { border-top-color: var(--amber); }
+.stage__dot { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--outline); font-size: 1rem; line-height: 1; background: var(--surface); }
 .stage__step--done .stage__dot { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
 .stage__step--now .stage__dot { border-color: var(--primary); color: var(--primary); font-weight: 700; }
 .stage__name { display: none; font-size: 1rem; text-align: center; }
@@ -391,7 +389,7 @@
 .stage__goal-title { margin: 0; font-weight: 700; }
 .stage__goals { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
 .goal { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: var(--s-2); align-items: center; }
-.goal__box { display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--line); border-radius: 6px; font-size: 1rem; line-height: 1; background: var(--surface); }
+.goal__box { display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--outline); border-radius: 6px; font-size: 1rem; line-height: 1; background: var(--surface); }
 .goal--done .goal__box { background: var(--verified); border-color: var(--verified); color: var(--on-primary); }
 .goal--done .goal__text { color: var(--ink-soft); text-decoration: line-through; }
 .button--small { min-height: 44px; padding: var(--s-1) var(--s-3); font-size: 1rem; }
@@ -413,9 +411,14 @@
 /* What waiting a week would do, shown before the button that does it. */
 .ahead { display: grid; gap: var(--s-2); }
 .ahead__head { margin: 0; font-family: var(--font-ui); font-weight: 700; font-size: var(--t-lg); }
-.ahead--compact { margin: 0; padding: var(--s-2) var(--s-3); background: var(--surface); border-radius: var(--radius-chip); box-shadow: 0 4px 12px rgba(38, 42, 68, 0.22); font-weight: 700; font-size: 1rem; text-align: center; }
+.ahead--compact { margin: 0; padding: var(--s-2) var(--s-3); background: var(--surface); border-radius: var(--radius-chip); border: 3px solid var(--outline); box-shadow: 0 4px 0 var(--outline); font-family: var(--font-display); font-weight: 600; font-size: 1.0625rem; text-align: center; }
 
 /* On the map the tracker is a thin bar: the numbered steps live on the action screen, so the city keeps its room. */
 .stage--compact .stage__dot { display: none; }
-.stage--compact .stage__step { border-top-width: 8px; padding-top: 0; border-radius: 4px; }
-.stage--compact { padding: var(--s-2) var(--s-3); gap: var(--s-1); }
+.stage--compact .stage__step { border-top-width: 10px; padding-top: 0; }
+.stage--compact { padding: 0 0 var(--s-2); gap: var(--s-1); }
+
+/* Headings and numbers wear the display face; sentences stay in the reading face. */
+.board__sub, .launch__title, .report__head h1, .report__head h2, .entry__head, .group__title, .stage__title, .stage__count { font-family: var(--font-display); }
+.board__sub { font-weight: 700; }
+.stage__title { font-weight: 700; }

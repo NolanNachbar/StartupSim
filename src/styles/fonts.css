@@ -1,0 +1,6 @@
+/* Self-hosted. Chillax and General Sans are Fontshare families (Indian Type Foundry), free for commercial use and
+   embedding under the ITF Free Font License. Nothing loads from another server. */
+@font-face { font-family: "Chillax"; src: url("../assets/fonts/chillax-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Chillax"; src: url("../assets/fonts/chillax-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("../assets/fonts/general-sans-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("../assets/fonts/general-sans-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }

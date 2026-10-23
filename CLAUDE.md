@@ -8,7 +8,7 @@ Idea and research notes live in the parent vault:
 
 ## Stack
 
-Vite, Preact with signals, TypeScript (strict), plain CSS with tokens. No game engine and no 3D in v1. Vitest and fast-check for the simulation, Playwright with axe for the browser, ESLint, Prettier, size-limit. Fonts are self-hosted through Fontsource.
+Vite, Preact with signals, TypeScript (strict), plain CSS with tokens. No game engine and no 3D in v1. Vitest and fast-check for the simulation, Playwright with axe for the browser, ESLint, Prettier, size-limit. Fonts (Chillax and General Sans from Fontshare) are self-hosted in `src/assets/fonts`.
 
 ## Commands
 
@@ -43,7 +43,7 @@ Read DESIGN.md before visual or UI work: it defines the fonts, colors, spacing, 
 aesthetic direction. Ask the user before departing from it. When reviewing or QA-ing
 UI, flag code that doesn't match DESIGN.md.
 
-Short form: an isometric low-poly tech-campus city built from real CC0 Kenney 3D kits, rendered to sprites in Blender (`scripts/blender/render_city.py`), with Plus Jakarta Sans as the one typeface. Light theme, a solid blue primary button, the accident red-orange only on the report, pivots remaining is the largest number, dotted/dashed/solid evidence lines. Never draw scenery, vehicles or logos with CSS or SVG; use the real renders or ship nothing, and never use real brand logos. The game does not coach: Help explains the rules and the path bar shows progress, but nothing says what move to make. Design work goes through the proper design skills (design-consultation, design-shotgun, design-html, frontend-design), never hand-written mockups.
+Short form: an isometric low-poly tech-campus city built from real CC0 Kenney 3D kits, rendered to sprites in Blender (`scripts/blender/render_city.py`), with Chillax (display) and General Sans (reading), self-hosted from `src/assets/fonts` (never a font CDN). Light theme, outlined panels with hard offset shadows, a solid blue primary button, signboard map plates and runway-light pivot gauge, the accident red-orange only on the report, pivots remaining is the largest number, dotted/dashed/solid evidence lines. Never draw scenery, vehicles or logos with CSS or SVG; use the real renders or ship nothing, and never use real brand logos. The game does not coach: Help explains the rules and the path bar shows progress, but nothing says what move to make. Design work goes through the proper design skills (design-consultation, design-shotgun, design-html, frontend-design), never hand-written mockups.
 
 ## Working rules
 

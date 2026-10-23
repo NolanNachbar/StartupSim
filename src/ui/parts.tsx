@@ -3,7 +3,6 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { hypothesisLabel, money } from "./format";
-import { spriteUrl } from "./art/city";
 import { pathProgress } from "./guide";
 import { currentBusiness, last, weekAhead, markCalloutShown, openForm, openNotebook, openHelp, openMenu, screen, selected, settings, shownCallouts, startPivots, state } from "./store";
 import { STAGE_COUNT, lockedReason, stageInfo } from "./stage";
@@ -20,19 +19,16 @@ export function Instrument({ caption, value }: { caption: string; value: string 
   );
 }
 
-/** Pivots remaining: the largest number, with one little delivery van per pivot. */
+/** Pivots remaining: the largest number, with runway edge lights beside it (one lit for every pivot left, up to five). */
 export function Pivots({ count, max }: { count: number; max: number }) {
-  // A two-digit number leaves no room for vans: the number carries the count, so the HUD never runs them into the cash figure.
-  const shown = count >= 10 ? 0 : Math.min(Math.max(max, count), 6);
+  const shown = Math.min(Math.max(max, count, 1), 5);
   return (
     <div class="pivots">
       <span class="instrument__caption">Pivots remaining</span>
       <div class="pivots__row">
         <span class="pivots__number" role="img" aria-label={`${count} of ${Math.max(max, count)}`}>{Math.max(0, count)}</span>
-        <span class="pivots__vans" aria-hidden="true">
-          {Array.from({ length: shown }, (_, i) => (
-            <img key={i} class={i < count ? "van-icon" : "van-icon van-icon--spent"} src={spriteUrl("car-van-0")} alt="" />
-          ))}
+        <span class="pivots__lights" aria-hidden="true">
+          {Array.from({ length: shown }, (_, i) => (<i key={i} class={i < count ? "light" : "light light--off"} />))}
         </span>
       </div>
     </div>

@@ -4,11 +4,14 @@ name: Runway
 description: A tiny startup in a huge buzzing isometric tech campus, rendered from real low-poly 3D kits in warm afternoon light, where a plain accident report is the one loud moment.
 colors:
   primary: "#3556e6"
+  outline: "#1c2140"
+  amber: "#ffb629"
+  sign: "#fffdf6"
   on-primary: "#ffffff"
   primary-pressed: "#2440b8"
-  ink: "#262a44"
-  text: "#262a44"
-  text-muted: "#565c7a"
+  ink: "#1c2140"
+  text: "#1c2140"
+  text-muted: "#4a5070"
   surface: "#ffffff"
   surface-raised: "#f4f6fc"
   line: "#d7dcec"
@@ -24,20 +27,20 @@ colors:
   error: "#b3261e"
 typography:
   display:
-    fontFamily: Plus Jakarta Sans
-    fontWeight: 800
+    fontFamily: Chillax
+    fontWeight: 700
     fontSize: 3.5rem
   heading:
-    fontFamily: Plus Jakarta Sans
+    fontFamily: Chillax
     fontWeight: 700
-    fontSize: 1.25rem
+    fontSize: 1.5rem
   body:
-    fontFamily: Plus Jakarta Sans
+    fontFamily: General Sans
     fontWeight: 500
     fontSize: 1.0625rem
     lineHeight: 1.4
   label:
-    fontFamily: Plus Jakarta Sans
+    fontFamily: General Sans
     fontWeight: 500
     fontSize: 0.875rem
 rounded:
@@ -82,7 +85,7 @@ components:
 
 **Mode per surface:** the campus and the report are Experience; the HUD, action dock and forms are Operate.
 
-**Art sources (all CC0, verified 2026-10-18):** Kenney City Kit (Commercial 2.1, Industrial, Roads, Suburban), Kenney Car Kit and Kenney Nature Kit (3D models, glTF), and Kenney Particle Pack (smoke and fire, PNG). The models are rendered to isometric WebP sprites in Blender 5.2 by `scripts/blender/render_city.py` (orthographic 2:1 camera, warm sun, soft shadows baked per sprite). Font: Plus Jakarta Sans by Tokotype, SIL OFL-1.1, from Fontsource.
+**Art sources (all CC0, verified 2026-10-18):** Kenney City Kit (Commercial 2.1, Industrial, Roads, Suburban), Kenney Car Kit and Kenney Nature Kit (3D models, glTF), and Kenney Particle Pack (smoke and fire, PNG). The models are rendered to isometric WebP sprites in Blender 5.2 by `scripts/blender/render_city.py` (orthographic 2:1 camera, warm sun, soft shadows baked per sprite). Fonts: Chillax (display) and General Sans (reading), Indian Type Foundry via Fontshare, free for commercial use and embedding under the ITF Free Font License, served from this repo (`src/assets/fonts`). Nothing loads from Google or any other server.
 
 **Key characteristics:**
 - The first five seconds: a bright isometric campus, a delivery van on a road climbing into the city, white panels and one blue button.
@@ -101,7 +104,7 @@ Blue is the one primary action per screen. Green means verified (the solid route
 
 ## Typography
 
-One family: Plus Jakarta Sans. 800 for the pivots number and the report headline, 700 for headings, 500 for body and labels. Body is 17 px; anything meant to be read is never below 16 px. Instrument captions (14 px) are the one exception. Loaded from the self-hosted Fontsource package (`@fontsource/plus-jakarta-sans`), `font-display: swap`, Latin subset only. Sentence case, never ALL CAPS.
+Two families, both self-hosted from `src/assets/fonts` (never a font CDN): Chillax 700 for the pivots number, headings, report headline and the cash and week figures, Chillax 600 for buttons and map plates; General Sans 500 for body and labels, 700 for emphasis. Body is 17 px; anything meant to be read is never below 16 px. Instrument captions (14 px) are the one exception. `font-display: swap`. Sentence case, never ALL CAPS.
 
 ## Layout
 
@@ -162,8 +165,9 @@ Rounded to 12 px for panels and buttons, 8 px for chips and fields, full only fo
 |------|----------|-----------|
 | 2026-10-18 | Replaced the aviation-paperwork and Dusk look with a pixel overworld from Kenney 2D assets | Nolan rejected the hand-written CSS/SVG UI as AI slop. gstack's image generator needs an OpenAI key we do not have, so the look came from real licensed art |
 | 2026-10-18 | Replaced the pixel overworld with an isometric low-poly tech campus | Nolan wanted the look of the Silicon Valley title sequence. Real assets: Kenney CC0 3D kits rendered to sprites in Blender. Approved under Nolan's standing delegation while away |
-| 2026-10-18 | Light theme only, one typeface (now Plus Jakarta Sans, OFL-1.1) | A sunny diorama on a phone; one plain, legible family keeps it coherent |
+| 2026-10-18 | Light theme only (the typefaces changed on 2026-10-22: see the next row) | A sunny diorama on a phone; one plain, legible family keeps it coherent |
 | 2026-10-18 | Swapped Bricolage Grotesque for Plus Jakarta Sans | Nolan: the font looked off. Bricolage's quirky letterforms (the y, R and 4) read as odd at heading size; compared Outfit and Plus Jakarta Sans in the real UI and kept the cleaner one |
+| 2026-10-22 | Chillax and General Sans replace Plus Jakarta Sans; white pill plates and van icons replaced by signboards and runway lights | Nolan: the UI looked vibe coded, the font was a common default, the bubbles and van icons felt generic, and he does not want Google-hosted fonts. Chose option A of three Fontshare pairings; fonts are served from the repo |
 | 2026-10-18 | The route vehicle is a delivery van, not a plane | No CC0 aircraft kit exists; the Car Kit is real art and its debris pieces suit the crash. Copy changes from flight to run |
 | 2026-10-18 | The game does not coach; it explains | Nolan: telling the player the exact move makes it not fun. A Help screen and a milestone bar replace a "next move" suggestion |
 | 2026-10-18 | Name your company and choose an industry | Realism. Industries change the sim's hidden economics (optional parameter, original worlds unchanged); the name is display only |
@@ -171,3 +175,15 @@ Rounded to 12 px for panels and buttons, 8 px for chips and fields, full only fo
 | 2026-10-18 | No hand-drawn illustration, no real brand logos | Scenery and vehicles are real renders or absent; the show's logos are trademarks |
 
 | 2026-10-18 | One home and a road per customer group, instead of one road with stops | Nolan: numbered badges and a single route made no sense; the groups are alternatives. Labels are plain names; the company is the building in the middle |
+
+
+## Signage and cardstock (2026-10-22, replaces the white-pill look)
+
+The city is the star, so the interface plays the city's own signage: street signs, a dispatch board. One rule set, used everywhere.
+
+- **Type.** Chillax 600 and 700 for headings, numbers, buttons and plates. General Sans 500 and 700 for every sentence. All text is 16 px or more.
+- **Outlines and shadows.** Panels, buttons and plates carry a 3 px ink outline (`--outline`) and a hard 4 px offset shadow in the same ink, no blur. Corners are 10 px on panels and controls, 6 px on plates and chips. No pills. Buttons press down by their shadow.
+- **Plates.** A map label is a signboard on a short post: ink outline, cream board, post as its pointer, a longer stem when the map is crowded, hanging below its building when there is no room above. Green is your company, blue is the selected group.
+- **Pivot gauge.** The big number stays the largest figure. Beside it, runway edge lights: one amber light for every pivot left (at most five shown), grey when spent. No vehicles, no icons.
+- **Stage tracker.** Five outlined steps: blue on top when done, amber when current, pale when ahead. Numbered dots on the action screen; a thin bar on the map.
+- **Evidence.** Dotted untested, dashed weak, solid verified: unchanged.

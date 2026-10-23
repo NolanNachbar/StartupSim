@@ -340,8 +340,10 @@ const DIR_STEP = { UL: [-1, 0], UR: [0, -1], DR: [1, 0], DL: [0, 1] } as const;
 describe("name plates", () => {
   // The plate stands above its anchor: the pointer (7 px), any stem (dy), then a plate 30 px tall.
   const plate = (key: string, name: string, x: number, top: number) => ({ key, index: 0, hq: false, name, x, top });
-  const box = (p: { name: string; x: number; dx: number; dy: number; top: number }) => {
-    const half = Math.max(40, p.name.length * 8.4 + 16) / 2;
+  // The same geometry the layout uses: a plate stands above its pointer, or (flipped) hangs below its building.
+  const box = (p: { name: string; x: number; dx: number; dy: number; top: number; flip?: boolean }) => {
+    const half = Math.max(40, p.name.length * 8.8 + 30) / 2;
+    if (p.flip) return { l: p.x + p.dx - half, r: p.x + p.dx + half, t: p.top + 7 + p.dy, b: p.top + 7 + p.dy + 30 };
     const bottom = p.top - 7 - p.dy;
     return { l: p.x + p.dx - half, r: p.x + p.dx + half, t: bottom - 30, b: bottom };
   };
@@ -359,7 +361,7 @@ describe("name plates", () => {
         const b = box(q);
         expect(a.r <= b.l || b.r <= a.l || a.b <= b.t || b.b <= a.t).toBe(true);
         // q's pointer is a thin line from the bottom of its plate down to its anchor
-        const covered = q.x > a.l && q.x < a.r && q.top > a.t && b.b < a.b;
+        const covered = !(q as { flip?: boolean }).flip && q.x > a.l && q.x < a.r && q.top > a.t && b.b < a.b;
         expect(covered).toBe(false);
       }
     }

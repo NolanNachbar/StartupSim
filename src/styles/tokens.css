@@ -2,8 +2,8 @@
    One light theme: a sunny isometric tech campus. Colors come from the rendered city. */
 
 :root {
-  --ink: #262a44;
-  --ink-soft: #565c7a;
+  --ink: #1c2140;
+  --ink-soft: #4a5070;
   --surface: #ffffff;
   --surface-raised: #f4f6fc;
   --line: #d7dcec;
@@ -21,7 +21,11 @@
   --warning-ink: #8a5a00;
   --error-ink: #b3261e;
 
-  --font-ui: "Plus Jakarta Sans", "Trebuchet MS", system-ui, sans-serif;
+  --font-ui: "General Sans", "Trebuchet MS", system-ui, sans-serif;
+  --font-display: "Chillax", "Trebuchet MS", system-ui, sans-serif;
+  --outline: #1c2140;
+  --amber: #ffb629;
+  --sign: #fffdf6;
 
   --t-sm: 0.875rem;
   --t-md: 1.0625rem;
@@ -39,11 +43,11 @@
   --s-6: 32px;
   --s-7: 48px;
 
-  --radius-panel: 12px;
-  --radius-control: 12px;
-  --radius-chip: 8px;
-  --shadow-panel: 0 8px 24px rgba(38, 42, 68, 0.18), 0 1px 0 rgba(38, 42, 68, 0.06);
-  --lip: 0 4px 0 var(--primary-pressed);
+  --radius-panel: 10px;
+  --radius-control: 10px;
+  --radius-chip: 6px;
+  --shadow-panel: 0 4px 0 var(--outline);
+  --lip: 0 4px 0 var(--outline);
 
   --gutter: var(--s-2);
   --tap: 44px;

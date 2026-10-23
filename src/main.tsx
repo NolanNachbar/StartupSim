@@ -1,6 +1,4 @@
-import "@fontsource/plus-jakarta-sans/latin-500.css";
-import "@fontsource/plus-jakarta-sans/latin-700.css";
-import "@fontsource/plus-jakarta-sans/latin-800.css";
+import "./styles/fonts.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/screens.css";

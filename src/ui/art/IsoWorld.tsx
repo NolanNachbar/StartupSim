@@ -430,13 +430,14 @@ export function IsoWorld({ hypotheses, names, focus, seed, theme, vanAt, home, s
   // Real plate widths: the text is measured in the loaded font, so the layout matches what the page draws.
   const [fontTick, setFontTick] = useState(0);
   useEffect(() => {
-    void document.fonts?.ready.then(() => setFontTick((t) => t + 1));
+    // Ask for the plate font by name: a canvas measurement does not load it, and "ready" can come before it arrives.
+    void Promise.all([document.fonts?.load('600 16px "Chillax"'), document.fonts?.ready]).then(() => setFontTick((t) => t + 1));
   }, []);
   const plates = useMemo(() => {
     const probe = document.createElement("canvas").getContext("2d");
-    const small = w < 600; // phone labels have 8 px of side padding (see screens.css)
-    if (probe) probe.font = '700 16px "Plus Jakarta Sans", system-ui, sans-serif';
-    const widthOf = (name: string): number | undefined => (probe ? Math.ceil(probe.measureText(name).width) + (small ? 16 : 24) : undefined);
+    const small = w < 600; // phone labels have 8 px of side padding, plus the 3 px outline either side (see screens.css)
+    if (probe) probe.font = '600 16px "Chillax", system-ui, sans-serif';
+    const widthOf = (name: string): number | undefined => (probe ? Math.ceil(probe.measureText(name).width) + (small ? 22 : 30) : undefined);
     const topOf = (c: Cell, sprite: string): number => {
       const m = sprites?.meta[sprite];
       return project(c, tw, origin).y - (m ? (m.ay * tw) / RENDER_TILE_W : tw);

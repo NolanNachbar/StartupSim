@@ -552,8 +552,8 @@ export interface Plate {
  */
 export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 0, compact = false, maxBottom = Infinity): (Plate & { dx: number; dy: number; flip: boolean })[] {
   // measured: bold 16 px type with 24 px of side padding (16 in the compact screen, whose badges are smaller)
-  const widthOf = (p: Plate): number => p.width ?? Math.max(compact ? 32 : 40, p.name.length * 8.6 + (compact ? 16 : 24));
-  const height = compact ? 26 : 30; // 22 px of line plus the padding above and below
+  const widthOf = (p: Plate): number => p.width ?? Math.max(compact ? 32 : 40, p.name.length * 8.8 + (compact ? 22 : 30));
+  const height = compact ? 26 : 30; // 20 px of line plus the padding and the outline above and below
   const pin = 7;
   // A building so near the HUD that its plate would rise under it: the pointer lands lower, on the roof.
   const plates = items.map((item) => (item.below ? item : { ...item, top: Math.max(item.top, minTop + height + pin) }));
@@ -597,8 +597,9 @@ export function spreadPlates(items: readonly Plate[], screenW: number, minTop = 
         const cur0 = pos[i] as { dx: number; dy: number; flip: boolean };
         let best = { dx: cur0.dx, dy: cur0.dy, flip: cur0.flip, cost: costAt(i, cur0.dx, cur0.dy, cur0.flip) };
         for (const flip of [false, true]) {
-          for (let lift = 0; lift < 7; lift++) {
-            const dy = lift * (height + 4);
+          // a plate can rise (or hang lower) in small steps: a 34 px step can miss the one free gap by a hair
+          for (let lift = 0; lift < 40; lift++) {
+            const dy = lift * 6;
             for (let step = 0; step < 48; step++) {
               for (const sign of step === 0 ? [1] : [1, -1]) {
                 const dx = sign * step * 8;
