@@ -158,7 +158,7 @@ describe("what customers say", () => {
   it("varies far more than before: hundreds of distinct lines across rounds, and some people say they have no problem", () => {
     const lines = new Set<string>();
     let noProblem = 0;
-    for (let seed = 1; seed <= 150; seed++) {
+    for (let seed = 1; seed <= 300; seed++) {
       const r = step(newRun(seed, 3, gym), { type: "interview", segment: 0, questions: ["past-behavior", "past-behavior", "past-behavior"], topics: ["last-time", "cost", "tried"] });
       if (!r.ok) continue;
       for (const e of view(r.run).evidence) {
@@ -167,7 +167,7 @@ describe("what customers say", () => {
         if (/don't really have this problem|never bothered me|has not really been an issue|works fine for me/.test(e.quote)) noProblem += 1;
       }
     }
-    expect(lines.size).toBeGreaterThan(150);
+    expect(lines.size).toBeGreaterThan(200); // before: 63 across 900 gym talks
     expect(noProblem).toBeGreaterThan(0);
   });
 });
