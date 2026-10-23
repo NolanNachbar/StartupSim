@@ -76,8 +76,8 @@ describe("a run with a chosen business", () => {
     expect(ask(5).length).toBe(3);
     expect(ask(5)).toEqual(ask(5));
     let own = 0;
-    for (let seed = 0; seed < 20; seed++) for (const q of ask(seed)) if (q.includes(combo.workaround) || q.includes(combo.situation) || q.toLowerCase().includes(combo.cost.toLowerCase())) own += 1;
-    expect(own).toBeGreaterThan(5);
+    for (let seed = 0; seed < 80; seed++) for (const q of ask(seed)) if (q.includes(combo.workaround) || q.includes(combo.situation) || q.toLowerCase().includes(combo.cost.toLowerCase())) own += 1;
+    expect(own).toBeGreaterThan(15); // in their own words often, not always: some answers are polite filler
   });
 
   it("saves and loads with the model and idea, and refuses nonsense", () => {
@@ -151,5 +151,23 @@ describe("rules to know", () => {
     for (const m of ["software", "service", "location", "product"] as const) expect(MODEL_RULES[m].length).toBeGreaterThan(40);
     expect(INDUSTRY_LIST[4]?.rules).toMatch(/licen/i); // fintech
     expect(INDUSTRY_LIST[6]?.rules).toMatch(/permit/i); // food
+  });
+});
+
+describe("what customers say", () => {
+  it("varies far more than before: hundreds of distinct lines across rounds, and some people say they have no problem", () => {
+    const lines = new Set<string>();
+    let noProblem = 0;
+    for (let seed = 1; seed <= 150; seed++) {
+      const r = step(newRun(seed, 3, gym), { type: "interview", segment: 0, questions: ["past-behavior", "past-behavior", "past-behavior"], topics: ["last-time", "cost", "tried"] });
+      if (!r.ok) continue;
+      for (const e of view(r.run).evidence) {
+        if (e.kind !== "interview") continue;
+        lines.add(e.quote);
+        if (/don't really have this problem|never bothered me|has not really been an issue|works fine for me/.test(e.quote)) noProblem += 1;
+      }
+    }
+    expect(lines.size).toBeGreaterThan(150);
+    expect(noProblem).toBeGreaterThan(0);
   });
 });

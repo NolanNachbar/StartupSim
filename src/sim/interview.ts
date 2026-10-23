@@ -46,8 +46,8 @@ function businessQuotes(b: Business): { readonly table: Readonly<Record<Exclude<
     table: {
       "past-behavior": {
         fact: [
-          `The last time was two weeks ago. ${cap(b.cost)}, and I sorted it out with ${b.workaround}.`,
-          `It happened on Tuesday: ${b.situation}. It cost me real money.`,
+          `The last time was {when}. ${cap(b.cost)}, and I sorted it out with ${b.workaround}.`,
+          `It happened {when}: ${b.situation}. It cost me real money.`,
           `We deal with it using ${b.workaround}, and it falls apart every month.`,
         ],
         fluff: QUOTES["past-behavior"].fluff,
@@ -69,6 +69,24 @@ function businessQuotes(b: Business): { readonly table: Readonly<Record<Exclude<
   };
 }
 
+const WHEN = ["last Tuesday", "two weeks ago", "back in March", "last month", "just yesterday", "a few weeks back", "over the holidays", "last Friday", "in the spring"] as const;
+const WHO = ["my partner", "my manager", "my wife", "my business partner", "the office manager", "my husband", "my brother"] as const;
+/** Small human differences in how people say the same thing, so no two rounds read alike. */
+const PREFIXES = ["", "", "", "Let me think. ", "Okay. ", "Hmm. ", "Sure. ", "Honestly? ", "Well. ", "Right. "] as const;
+const SUFFIXES = ["", "", "", " That's about it.", " I'm not sure what else to say.", " That's my honest answer.", " I could go on, but that is the gist.", " Does that help?"] as const;
+/** People who do not have the problem say so; that is real evidence too. */
+const NO_PROBLEM = (b: Business): readonly string[] => [
+  `Honestly, I don't really have this problem. ${cap(b.workaround)} works fine for me.`,
+  "It has not really been an issue for me. I would not pay to fix it.",
+  `I deal with it using ${b.workaround} and it is fine. Maybe it is a problem for someone else.`,
+  "I hear other people complain about it, but it has never bothered me.",
+];
+
+function texture(seed: number, key: readonly (string | number)[], quote: string): string {
+  const filled = quote.replace(/\{when\}/g, randPick(seed, WHEN, ...key, "when")).replace(/\{who\}/g, randPick(seed, WHO, ...key, "who"));
+  return `${randPick(seed, PREFIXES, ...key, "pre")}${filled}${randPick(seed, SUFFIXES, ...key, "suf")}`;
+}
+
 const REPEAT_QUOTES = ["Like I said, it is much the same as I told you.", "I think I already covered that.", "Same answer as before, really."] as const;
 
 /** Answers that depend on what was asked (not only the kind of question), in the business's own words. */
@@ -88,7 +106,7 @@ function topicQuotes(b: Business, topic: string): QuoteTable | null {
       };
     case "who":
       return {
-        fact: [`It falls on whoever is nearest when ${b.situation}, and then we argue about it. I make the call, but I would run it past my partner.`, `I decide, but one other person has to be happy with it, and they care about cost more than I do.`],
+        fact: [`It falls on whoever is nearest when ${b.situation}, and then we argue about it. I make the call, but I would run it past {who}.`, `I decide, but one other person has to be happy with it, and they care about cost more than I do.`],
         fluff: ["It depends who is around.", "A few of us, I suppose."],
         compliment: ["That is a good question. I never thought about it."],
       };
@@ -202,11 +220,13 @@ function converse(input: RoundInput, question: QuestionType, slot: number, topic
     const pool = friend
       ? committed ? COMMITMENT_QUOTES.friendYes : COMMITMENT_QUOTES.friendNo
       : committed ? (byTopic?.yes ?? own?.yes ?? COMMITMENT_QUOTES.yes) : (byTopic?.no ?? own?.no ?? COMMITMENT_QUOTES.no);
-    quote = randPick(seed, pool, ...key, "quote");
+    quote = secret.business ? texture(seed, key, randPick(seed, pool, ...key, "quote")) : randPick(seed, pool, ...key, "quote");
   } else {
     const byTopic = secret.business && topic ? topicQuotes(secret.business, topic) : null;
-    const pool = byTopic?.[tag] ?? (secret.business ? businessQuotes(secret.business).table : QUOTES)[question][tag];
-    quote = repeats > 0 ? randPick(seed, REPEAT_QUOTES, ...key, "quote") : randPick(seed, pool, ...key, "quote");
+    const base = byTopic?.[tag] ?? (secret.business ? businessQuotes(secret.business).table : QUOTES)[question][tag];
+    // someone with no real problem says so, instead of inventing one
+    const pool = secret.business && !needsIt && tag === "fact" ? NO_PROBLEM(secret.business) : base;
+    quote = repeats > 0 ? randPick(seed, REPEAT_QUOTES, ...key, "quote") : (secret.business ? texture(seed, key, randPick(seed, pool, ...key, "quote")) : randPick(seed, pool, ...key, "quote"));
   }
   return { ...base, customer, outcome: "completed", tag, painReading: reading, committed, quote };
 }
