@@ -33,7 +33,7 @@ export function ReportScreen() {
             <dt>Company</dt><dd>{company.value.name}</dd>
             <dt>Market</dt><dd>{INDUSTRY_LIST[company.value.industry]?.name ?? ""}</dd>
             {company.value.idea ? <><dt>Idea</dt><dd>{company.value.idea}</dd></> : null}
-            <dt>World</dt><dd>{String(currentSeed.value)}</dd>
+            <dt>Run number</dt><dd>{String(currentSeed.value)}</dd>
             <dt>Weeks run</dt><dd>{String(state.value?.week ?? 0)}</dd>
             <dt>Outcome</dt><dd>{landed ? "Landed" : r.outcome === "stalled" ? "Stalled" : "Crashed"}</dd>
           </dl>
@@ -70,12 +70,6 @@ export function ReportScreen() {
             <section class="report__section" style={{ "--i": 4 }}>
               <h2>What would have changed the outcome</h2>
               <p>{r.wouldHaveChanged}</p>
-            </section>
-          ) : null}
-          {r.numbers.length > 0 ? (
-            <section class="report__section" style={{ "--i": 5 }}>
-              <h2>The numbers</h2>
-              <p>{r.numbers.join(", ")}</p>
             </section>
           ) : null}
         </article>
