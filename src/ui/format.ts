@@ -1,5 +1,5 @@
 // Words and numbers for the screen. Pure functions; no game rules here.
-import type { DebriefTag, Evidence, HypothesisState, IllegalReason, PublicState, QuestionType } from "../sim";
+import { UNIT_LABEL, type DebriefTag, type Evidence, type HypothesisState, type IllegalReason, type PublicState, type QuestionType } from "../sim";
 
 /** Whole dollars with separators; cents appear only when there are some. Integer math only. */
 export function money(cents: number): string {
@@ -83,3 +83,6 @@ export function countStates(hyps: PublicState["hypotheses"]): string {
   const n = (s: HypothesisState) => hyps.filter((h) => h.state === s).length;
   return `${n("verified")} verified, ${n("weak")} weak, ${n("untested")} untested`;
 }
+
+/** A price in the unit this business bills: "$12 a visit", "$99 a month". */
+export const priceWords = (s: { billing: { unit: "month" | "visit" | "order" | "job" | "night" } | null }, cents: number): string => `${money(cents)} ${s.billing ? UNIT_LABEL[s.billing.unit] : "a month"}`;

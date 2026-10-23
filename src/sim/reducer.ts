@@ -9,6 +9,7 @@
 import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, topicsMatch } from "./actions";
 import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
 import { MONTH_NAMES, seasonAt } from "./seasons";
+import { monthlyOf } from "./billing";
 import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_LOADED_WEEKLY_CENTS, HIRE_SEARCH_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
@@ -128,7 +129,7 @@ function tick(run: InternalRun): InternalRun {
   let acquired = 0;
   if (!fuller && channel && marketingSpend > 0) {
     const credibility = Math.max(CREDIBILITY_FLOOR_PCT, pub.productProgressPct);
-    const buyPct = Math.floor((conversionPct(priceRatioPct(pub.priceCents, segment.willingnessToPayCents)) * credibility) / 100);
+    const buyPct = Math.floor((conversionPct(priceRatioPct(monthlyOf(pub.priceCents, pub.billing), segment.willingnessToPayCents)) * credibility) / 100);
     acquired = acquiredCustomers({
       leads: marketingLeads(marketingSpend, channel.costPerLeadCents, pub.hires),
       fit: channel.fit[pub.focusSegment] ?? 0,
@@ -144,12 +145,12 @@ function tick(run: InternalRun): InternalRun {
   const ceiling = marketCeiling(
     segment.trueDemand,
     weatherPctAt(secret, pub.week),
-    conversionPct(priceRatioPct(pub.priceCents, segment.willingnessToPayCents)),
+    conversionPct(priceRatioPct(monthlyOf(pub.priceCents, pub.billing), segment.willingnessToPayCents)),
   );
   const payingCustomers = fuller ? fuller.customers.reduce((a, b) => a + b, 0) : Math.min(ceiling, withNew - churned);
 
   // Revenue accrues; during a late-payer window part of it arrives weeks later.
-  const weeklyRevenueCents = Math.max(0, weeklyRevenue(payingCustomers, pub.priceCents) - (fuller?.discountCents ?? 0));
+  const weeklyRevenueCents = Math.max(0, weeklyRevenue(payingCustomers, monthlyOf(pub.priceCents, pub.billing)) - (fuller?.discountCents ?? 0));
   const week = pub.week + 1;
   const window = secret.lateWindow;
   const late = window && pub.week >= window.startWeek && pub.week < window.endWeek ? Math.floor((weeklyRevenueCents * window.pct) / 100) : 0;
@@ -325,7 +326,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         segment,
         questions: action.questions,
         ...(action.topics ? { topics: action.topics } : {}),
-        priceCents: run.pub.priceCents,
+        priceCents: monthlyOf(run.pub.priceCents, run.pub.billing),
         ...(warm > 0 ? { warm } : {}),
       });
       const answered = round.filter((e) => e.outcome === "completed").length;
@@ -384,6 +385,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
           ...base,
           index: countOf(run, "chargeTest"),
           priceCents: run.pub.priceCents,
+          monthlyCents: monthlyOf(run.pub.priceCents, run.pub.billing),
           productProgressPct: run.pub.productProgressPct,
         });
         changes = {

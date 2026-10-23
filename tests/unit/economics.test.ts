@@ -74,7 +74,8 @@ describe("the economics of each kind of business", () => {
     const s = view(newRun(3, 3, { model: 2, idea: "a small strength-training gym" }));
     expect(s.team).toEqual({ builder: 0, seller: 0, ops: 0 });
     expect(s.rndLevel).toBe(0);
-    expect(s.priceCents).toBe(START_PRICE_BY_MODEL.location);
+    expect(Math.abs(s.priceCents - START_PRICE_BY_MODEL.location)).toBeLessThan(500); // the menu price nearest a $99 membership
+    expect(s.priceLadderCents).toContain(s.priceCents);
   });
 
   it.runIf(process.env.REPORT === "1")("writes the economics table", () => {

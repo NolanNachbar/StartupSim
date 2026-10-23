@@ -1,20 +1,20 @@
 // The action forms. Each form is data: its fields and how to turn the chosen values into a sim action.
 // Rules live in the sim; a form never decides whether an action is legal, it only builds the action.
-import { CATALOG, type Action, type BuildKind, type PublicState } from "../sim";
+import { CATALOG, UNIT_LABEL, type Action, type BuildKind, type PublicState } from "../sim";
 import { buildCopy, channelCopy, costsOf, ideaOf, questionOptions, questionType, roleInfo, type Role } from "./business";
-import { money } from "./format";
+import { money, priceWords } from "./format";
 import { currentBusiness, formSegment } from "./store";
 
 const biz = currentBusiness;
 
 /** What businesses like this usually charge, so the price you pick is judged against something real. */
-const typicalPrice = (b: ReturnType<typeof currentBusiness>): string =>
-  ({
-    software: "Software and apps usually charge about $10 to $100 a month.",
-    service: "Services such as coaching, repairs or advice usually charge about $200 to $1,000 a month per client.",
-    location: "Memberships and visits at a place usually come to about $30 to $150 a month.",
-    product: "Products and subscriptions usually charge about $20 to $100 a month.",
-  })[b?.model.id ?? "software"];
+const typicalPrice = (s: PublicState): string => {
+  const ladder = s.priceLadderCents;
+  const lo = ladder[1] ?? ladder[0] ?? s.priceCents;
+  const hi = ladder[ladder.length - 2] ?? s.priceCents;
+  const every = s.billing && s.billing.unit !== "month" ? ` A regular customer buys about ${(s.billing.perMonthX10 / 10).toFixed(s.billing.perMonthX10 % 10 === 0 ? 0 : 1)} ${s.billing.perMonthX10 === 10 ? "time" : "times"} a month.` : "";
+  return `Businesses like this usually charge between ${money(lo)} and ${money(hi)} ${s.billing ? UNIT_LABEL[s.billing.unit] : "a month"}.${every}`;
+};
 
 export type FormId =
   | "rnd" | "interview" | "build" | "test-channel" | "charge" | "price" | "marketing" | "hire" | "raise" | "pivot" | "offer" | "network" | "promotion";
@@ -149,7 +149,7 @@ export const FORMS: readonly FormDef[] = [
     title: "Charge for a test",
     blurb: "Ask for real money and see who pays.",
     intro: (s) =>
-      `Ask real leads from one group to pay ${money(s.priceCents)} a month for ${ideaOf(biz())}. Anyone who pays counts as real evidence, and the cash lands in your books as paid-test sales. ${s.landingPageBuilt ? "" : "You cannot run this yet: build the first test (a page people can pay on) from Build a test, then come back."}`.trim(),
+      `Ask real leads from one group to pay ${priceWords(s, s.priceCents)} for ${ideaOf(biz())}. Anyone who pays counts as real evidence, and the cash lands in your books as paid-test sales. ${s.landingPageBuilt ? "" : "You cannot run this yet: build the first test (a page people can pay on) from Build a test, then come back."}`.trim(),
     fields: (s) => [segmentField(s), channelField(s)],
     submit: "Charge for a test",
     build: (v) => ({ type: "chargeTest", segment: num(v, "segment"), channel: num(v, "channel") }),
@@ -225,13 +225,13 @@ export const FORMS: readonly FormDef[] = [
     id: "price",
     title: "Set price",
     blurb: "Change what customers are charged.",
-    intro: (s) => `This is how you make money: every paying customer pays your price each month, so weekly revenue is customers times price. ${typicalPrice(biz())} You charge ${money(s.priceCents)} a month now and have ${s.payingCustomers} paying ${s.payingCustomers === 1 ? "customer" : "customers"}. A price that is too low starves your cash; one that is too high means fewer people buy.`,
+    intro: (s) => `This is how you make money: every paying customer pays your price each time they buy, so weekly revenue is customers times price times how often they buy. ${typicalPrice(s)} You charge ${priceWords(s, s.priceCents)} now and have ${s.payingCustomers} paying ${s.payingCustomers === 1 ? "customer" : "customers"}. A price that is too low starves your cash; one that is too high means fewer people buy.`,
     fields: (s) => [
       {
         id: "price",
-        label: "Monthly price",
+        label: "Price",
         kind: "radio",
-        options: s.priceLadderCents.map((c) => ({ value: String(c), label: `${money(c)} a month` })),
+        options: s.priceLadderCents.map((c) => ({ value: String(c), label: priceWords(s, c) })),
         initial: String(s.priceCents),
       },
     ],

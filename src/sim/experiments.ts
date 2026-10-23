@@ -16,6 +16,8 @@ interface BaseInput {
 
 export interface PaidInput extends BaseInput {
   readonly priceCents: number;
+  /** What the price comes to a month, when the business does not bill a month (conversion compares monthly prices). */
+  readonly monthlyCents?: number;
   readonly productProgressPct: number;
 }
 
@@ -39,9 +41,10 @@ export function runChannelTest(input: BaseInput): ChannelTestEvidence {
 
 export function runPaidTest(input: PaidInput): PaidTestEvidence {
   const { secret, seed, index, week, segment, channel, priceCents, productProgressPct } = input;
+  const monthly = input.monthlyCents ?? priceCents;
   const { seg, fit, leads } = lookup(secret, segment, channel);
   const credibility = Math.max(CREDIBILITY_FLOOR_PCT, productProgressPct);
-  const buyPct = Math.floor((conversionPct(priceRatioPct(priceCents, seg.willingnessToPayCents)) * credibility) / 100);
+  const buyPct = Math.floor((conversionPct(priceRatioPct(monthly, seg.willingnessToPayCents)) * credibility) / 100);
   let payments = 0;
   for (let i = 0; i < leads; i++) {
     const reached = randInt(seed, 1, 100, "pt", index, i, "fit") <= fit;

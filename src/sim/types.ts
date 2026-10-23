@@ -161,6 +161,8 @@ export interface PublicState {
   readonly cogsPct: number;
   /** The prices the founder can set. */
   readonly priceLadderCents: readonly number[];
+  /** How a customer pays (a visit, an order, a job, a night, a month); null in the original worlds, which bill a month. */
+  readonly billing: import("./billing").Billing | null;
   readonly payingCustomers: number;
   readonly weeklyRevenueCents: Cents;
   readonly profitableStreakWeeks: number;

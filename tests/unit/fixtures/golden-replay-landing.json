@@ -140,6 +140,7 @@
       49900,
       99900
     ],
+    "billing": null,
     "payingCustomers": 381,
     "weeklyRevenueCents": 430823,
     "profitableStreakWeeks": 8,

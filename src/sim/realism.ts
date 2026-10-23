@@ -3,6 +3,7 @@
 // this, so their results never change. Integer math only, like the rest of the sim.
 import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
 import { seasonAt } from "./seasons";
+import { monthlyOf } from "./billing";
 
 /** The week a rival opens in a chosen business: somewhere in the first year or so. */
 export const rivalWeekOf = (seed: number): number => randInt(seed, 18, 60, "rival", "week");
@@ -137,7 +138,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const channel = pub.marketing.channel === null ? undefined : secret.channels[pub.marketing.channel];
   const marketingSpend = channel ? (BUDGET_LEVELS_CENTS[pub.marketing.level] ?? 0) : 0;
   if (targetSeg) {
-    const baseBuy = Math.floor((conversionPct(priceRatioPct(pub.priceCents, wtpBoost(targetSeg.willingnessToPayCents))) * credibility) / 100);
+    const baseBuy = Math.floor((conversionPct(priceRatioPct(monthlyOf(pub.priceCents, pub.billing), wtpBoost(targetSeg.willingnessToPayCents))) * credibility) / 100);
     const buyPct = promoSpec ? Math.max(0, Math.floor((baseBuy * (100 + promoSpec.convLiftPct)) / 100)) : baseBuy;
     const paidLeads = channel && marketingSpend > 0 ? marketingLeads(marketingSpend, channel.costPerLeadCents, pub.team.seller) : 0;
     const handLeads = pub.landingPageBuilt ? SELLER_OUTREACH_LEADS * pub.team.seller : 0;
@@ -173,7 +174,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
     // happy customers stay: a good name cuts churn by up to 30 percent, a bad one raises it by as much
     const churned = Math.floor((((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100 * (130 - Math.floor((pub.reputation * 6) / 10)) * (100 + Math.floor((20 * rivalPct) / 100))) / 10_000);
     // a busy month holds more people; a quiet one does not send anyone away
-    const ceiling = Math.floor((marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(pub.priceCents, wtpBoost(seg.willingnessToPayCents)))) * (100 + Math.floor(Math.max(0, season.index - 100) / 2))) / 100);
+    const ceiling = Math.floor((marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(monthlyOf(pub.priceCents, pub.billing), wtpBoost(seg.willingnessToPayCents)))) * (100 + Math.floor(Math.max(0, season.index - 100) / 2))) / 100);
     customers[i] = Math.max(0, Math.min(ceiling, here - churned));
   });
 
@@ -187,7 +188,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
       customers[target] = Math.max(0, (customers[target] ?? 0) - lost);
       promoSignups -= lost;
     }
-    discountCents = Math.floor((weeklyRevenue(Math.min(promoSignups, customers.reduce((a, b) => a + b, 0)), pub.priceCents) * promoSpec.discountPct) / 100);
+    discountCents = Math.floor((weeklyRevenue(Math.min(promoSignups, customers.reduce((a, b) => a + b, 0)), monthlyOf(pub.priceCents, pub.billing)) * promoSpec.discountPct) / 100);
     if (pub.promo.weeksLeft > 1) promo = { id: pub.promo.id, weeksLeft: pub.promo.weeksLeft - 1, signups: promoSignups };
     else {
       promoCooldown = PROMOTION_COOLDOWN_WEEKS;

@@ -2,7 +2,7 @@ import type { Business, Evidence, PublicState } from "../../sim";
 import { buildCopy, roleInfo, type Role } from "../business";
 import { CATALOG } from "../../sim";
 import { STAGE_COUNT, stageInfo } from "../stage";
-import { money, questionLabel, tagExplain, tagLabel } from "../format";
+import { money, priceWords, questionLabel, tagExplain, tagLabel } from "../format";
 import { Panel } from "../panel";
 import { askedWording, currentBusiness, go, last, openBooks, openNotebook } from "../store";
 
@@ -37,7 +37,7 @@ function Other({ e, after }: { e: Evidence; after: PublicState }) {
   if (e.kind === "paid-test") {
     return (
       <li class="entry">
-        <p class="entry__head">{`Paid test: ${after.channels[e.channel]?.name ?? "channel"}, ${money(e.priceCents)} a month`}</p>
+        <p class="entry__head">{`Paid test: ${after.channels[e.channel]?.name ?? "channel"}, ${priceWords(after, e.priceCents)}`}</p>
         <p class="entry__quote">
           {e.payments === 0 ? "No one paid. That is information." : `${e.payments} of ${e.leads} paid.`}
         </p>

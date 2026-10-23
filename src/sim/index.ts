@@ -8,6 +8,7 @@ import { initialRun, type InternalRun } from "./state";
 import { PRICE_LADDER_CENTS, QUESTION_BANK, QUESTION_TYPES } from "./actions";
 import { PROMOTION_COOLDOWN_WEEKS, PROMOTIONS_BY_MODEL } from "./promotions";
 import { MONTH_NAMES as MONTHS } from "./seasons";
+import { UNIT_LABEL, UNIT_NOUN, type Billing } from "./billing";
 import { BUILDER_PROGRESS_PCT, MAX_TEAM, NETWORK_KINDS, NETWORK_OPTIONS, RND_GAIN, RND_LEVELS_CENTS, ROLES, ROLE_CAP, SELLER_OUTREACH_LEADS } from "./realism";
 import {
   BUDGET_LEVELS_CENTS,
@@ -101,6 +102,8 @@ export const BUSINESS_LIST: readonly (readonly Combo[])[] = COMBOS;
 export const BUSINESS_MODELS: readonly ModelInfo[] = MODELS;
 export const MAX_IDEA_LENGTH = MAX_IDEA;
 export const MONTH_NAMES = MONTHS;
+export { UNIT_LABEL, UNIT_NOUN };
+export type { Billing };
 export const DIFFICULTY_LIST: readonly Difficulty[] = DIFFICULTIES;
 export const START_CASH_RANGE = { minCents: MIN_START_CASH_CENTS, maxCents: MAX_START_CASH_CENTS, stepCents: 50_000 } as const;
 export { cleanCustom, cleanDifficulty, cleanIdea, cleanStartCash, describeModel, matchPack };

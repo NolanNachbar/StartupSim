@@ -1,7 +1,8 @@
 // Internal run state. Nothing outside src/sim imports this: the public API wraps it as an opaque Run.
 import { DIFFICULTIES, DIFFICULTY_DEFAULT, type BusinessChoice } from "./business";
 import { INTERVIEW_ROUND_CASH_CENTS, PIVOT_COST_CENTS, ROUND_WEEKS, START_CASH_CENTS, TEST_CASH_CENTS, WEEKLY_BURN_CENTS, pivotsRemaining } from "./runway";
-import { BURN_BY_MODEL, COGS_PCT_BY_MODEL, PRICE_LADDER_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, capacityOf } from "./realism";
+import { BURN_BY_MODEL, COGS_PCT_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, capacityOf } from "./realism";
+import { billingFor, ladderAround, nicePrice } from "./billing";
 import { PRICE_LADDER_CENTS } from "./actions";
 import { hypothesesFrom } from "./hypotheses";
 import { seasonAt } from "./seasons";
@@ -28,6 +29,8 @@ export function initialRun(seed: number, industry: number | null = null, busines
   const startCash = secret.business
     ? (secret.business.startCashCents ?? Math.round((START_CASH_BY_MODEL[secret.business.model.id] * level.cashPct) / 100 / 50_000) * 50_000)
     : START_CASH_CENTS;
+  const billing = secret.business ? billingFor(industry, secret.business.model.id) : null;
+  const startPrice = secret.business && billing ? nicePrice(Math.round((START_PRICE_BY_MODEL[secret.business.model.id] * 10) / billing.perMonthX10)) : START_PRICE_CENTS;
   const burn = secret.business ? Math.round((BURN_BY_MODEL[secret.business.model.id] * level.burnPct) / 100 / 100) * 100 : WEEKLY_BURN_CENTS;
   const pivotCost = secret.business ? INTERVIEW_ROUND_CASH_CENTS + TEST_CASH_CENTS + ROUND_WEEKS * burn : PIVOT_COST_CENTS;
   const pub: PublicState = {
@@ -36,7 +39,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     endReason: null,
     cashCents: startCash,
     weeklyBurnCents: burn,
-    priceCents: secret.business ? START_PRICE_BY_MODEL[secret.business.model.id] : START_PRICE_CENTS,
+    priceCents: startPrice,
     pivotCostCents: pivotCost,
     pivotsRemaining: pivotsRemaining(startCash, pivotCost),
     pivotsUsed: 0,
@@ -51,7 +54,8 @@ export function initialRun(seed: number, industry: number | null = null, busines
     season: secret.business && industry !== null ? seasonAt(industry, seed, 0) : null,
     promoCooldown: 0,
     cogsPct: secret.business ? COGS_PCT_BY_MODEL[secret.business.model.id] : 0,
-    priceLadderCents: secret.business ? PRICE_LADDER_BY_MODEL[secret.business.model.id] : PRICE_LADDER_CENTS,
+    priceLadderCents: secret.business ? ladderAround(startPrice) : PRICE_LADDER_CENTS,
+    billing,
     payingCustomers: 0,
     weeklyRevenueCents: 0,
     profitableStreakWeeks: 0,

@@ -1,6 +1,6 @@
 // The side panel: business readout, the log, and the selected hypothesis.
 import { CATALOG } from "../sim";
-import { hypothesisLabel, money } from "./format";
+import { hypothesisLabel, money, priceWords } from "./format";
 import { stageInfo } from "./stage";
 import { Section } from "./parts";
 import { currentBusiness, selected, sheetOpen, state } from "./store";
@@ -26,7 +26,7 @@ export function Panel({ idle }: { idle?: boolean }) {
     <aside class={`${idle ? "panel panel--board" : "panel"}${sheetOpen.value ? " panel--open" : ""}`} aria-label="Log and details">
       <Section title="Business" id="biz-h">
         <dl class="facts">
-          <dt>Price</dt><dd>{`${money(s.priceCents)} a month`}</dd>
+          <dt>Price</dt><dd>{priceWords(s, s.priceCents)}</dd>
           <dt>Paying customers</dt><dd>{String(s.payingCustomers)}</dd>
           <dt>Revenue</dt><dd>{`${money(s.weeklyRevenueCents)} a week`}</dd>
           <dt>Costs</dt><dd>{`${money(s.weeklyBurnCents + (CATALOG.budgetLevelsCents[s.marketing.level] ?? 0))} a week`}</dd>

@@ -54,7 +54,14 @@ export function playValidator(seed: number, options: ValidatorOptions = {}): { r
   };
 
   // A founder prices for the kind of business: a coaching client or a gym member pays more than an app user.
-  const price = options.price ?? (options.business && (options.business.model === 1) ? 49900 : undefined);
+  // a service is priced like one (about $499 a month at its usual rate of work); the nearest menu price in the business's own unit
+  const target = options.business && options.business.model === 1 ? 49_900 : undefined;
+  const pub0 = run.pub;
+  const price =
+    options.price ??
+    (target !== undefined && pub0.billing
+      ? pub0.priceLadderCents.reduce((best, c) => (Math.abs((c * pub0.billing!.perMonthX10) / 10 - target) < Math.abs((best * pub0.billing!.perMonthX10) / 10 - target) ? c : best), pub0.priceCents)
+      : undefined);
   if (price !== undefined) act({ type: "setPrice", priceCents: price });
   act({ type: "raiseMoney" });
   const n = run.pub.segmentNames.length;
