@@ -1,7 +1,7 @@
 import { BUSINESS_LIST, BUSINESS_MODELS, INDUSTRY_LIST, MAX_IDEA_LENGTH, describeModel, matchPack, view } from "../../sim";
 import { THEME_LABEL, themeFor } from "../art/iso";
 import { MAX_NAME } from "../names";
-import { DIFFICULTY_LIST, newRun } from "../../sim";
+import { DIFFICULTY_LIST, MODEL_RULES, newRun } from "../../sim";
 import { money } from "../format";
 import { back, challengeBusiness, challengeIndustry, challengeSeed, company, draft, exampleIdea, savedRun, setupStep, startCompany, suggestAnotherName } from "../store";
 
@@ -93,6 +93,7 @@ export function Setup() {
           <h1 class="board__title" tabIndex={-1}>What is your idea?</h1>
           <p class="board__lede">{`${model?.name ?? ""} in ${industry?.name ?? ""}. Say what you would sell or do in your own words, or start from an example.`}</p>
           {replaces}
+          <p class="panel__text">{`Before you open: ${industry?.rules ?? ""} ${model ? MODEL_RULES[model.id] : ""}`}</p>
           <div class="field">
             <label class="field__label" for="idea">Your idea</label>
             <input id="idea" class="select" type="text" value={d.idea} maxLength={MAX_IDEA_LENGTH} autocomplete="off" spellcheck={false} placeholder="for example, a small strength-training gym" onInput={(e) => (draft.value = { ...draft.value, idea: (e.currentTarget as HTMLInputElement).value })} />

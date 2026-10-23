@@ -143,3 +143,13 @@ describe("matching an idea keeps the kind of business the player chose", () => {
     expect(m === null || m.model === 2).toBe(true);
   });
 });
+
+describe("rules to know", () => {
+  it("every industry says what a real founder must get right before opening", async () => {
+    const { INDUSTRY_LIST, MODEL_RULES } = await import("./index");
+    for (const i of INDUSTRY_LIST) expect(i.rules.length, i.name).toBeGreaterThan(40);
+    for (const m of ["software", "service", "location", "product"] as const) expect(MODEL_RULES[m].length).toBeGreaterThan(40);
+    expect(INDUSTRY_LIST[4]?.rules).toMatch(/licen/i); // fintech
+    expect(INDUSTRY_LIST[6]?.rules).toMatch(/permit/i); // food
+  });
+});

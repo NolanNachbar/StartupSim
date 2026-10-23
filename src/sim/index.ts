@@ -9,6 +9,7 @@ import { PRICE_LADDER_CENTS, QUESTION_BANK, QUESTION_TYPES } from "./actions";
 import { PROMOTION_COOLDOWN_WEEKS, PROMOTIONS_BY_MODEL } from "./promotions";
 import { MONTH_NAMES as MONTHS } from "./seasons";
 import { UNIT_LABEL, UNIT_NOUN, type Billing } from "./billing";
+import { RULES_BY_INDUSTRY, RULES_BY_MODEL } from "./rules";
 import { HIRE_SEARCH_WEEKS, SEVERANCE_WEEKS } from "./realism";
 import { BUILDER_PROGRESS_PCT, MAX_TEAM, NETWORK_KINDS, NETWORK_OPTIONS, RND_GAIN, RND_LEVELS_CENTS, ROLES, ROLE_CAP, SELLER_OUTREACH_LEADS } from "./realism";
 import {
@@ -113,7 +114,9 @@ export { cleanCustom, cleanDifficulty, cleanIdea, cleanStartCash, describeModel,
 export type { Business, BusinessChoice, Combo, Custom, Difficulty, ModelInfo };
 
 /** The markets a company can start in: public descriptions only. The numbers behind them stay hidden. */
-export const INDUSTRY_LIST: readonly { readonly name: string; readonly blurb: string }[] = INDUSTRIES.map((i) => ({ name: i.name, blurb: i.blurb }));
+export const INDUSTRY_LIST: readonly { readonly name: string; readonly blurb: string; readonly rules: string }[] = INDUSTRIES.map((i, n) => ({ name: i.name, blurb: i.blurb, rules: RULES_BY_INDUSTRY[n] ?? "" }));
+/** What a real founder of each kind of business has to know before opening (one sentence each). */
+export const MODEL_RULES = RULES_BY_MODEL;
 
 /**
  * Start a run. The seed must be an integer in [0, 0xFFFFFFFF], otherwise RangeError. `industry` is an index into
