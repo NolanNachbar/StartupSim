@@ -280,10 +280,10 @@ describe("a rival", () => {
 describe("what building costs", () => {
   it("makes opening a place take months and tens of thousands of dollars, and an app far less", () => {
     const place = view(newRun(5, 3, gym)).builds.prototype;
-    const app = view(newRun(5, 3, app)).builds.prototype;
+    const small = view(newRun(5, 3, app)).builds.prototype;
     expect(place.cashCents).toBeGreaterThanOrEqual(3_000_000);
     expect(place.weeks).toBeGreaterThanOrEqual(6);
-    expect(app.cashCents).toBeLessThan(place.cashCents);
+    expect(small.cashCents).toBeLessThan(place.cashCents);
     expect(place.progressPct).toBeGreaterThanOrEqual(60);
   });
 });
