@@ -119,3 +119,11 @@ realistic loan pricing; channel learning; refunds and taxes.
 Explain why pivots change (cash divided by pivot cost) and the jump on a loan; ask different questions per group; one paid-test
 wording across report and log; explain the accident report numbers (world, "The numbers" row); build report verbs per business
 kind (trial pass, fit-out, run it small); wedding-style ideas matching groups; a prompt to set marketing after many empty weeks.
+
+## Size budget (2026-10-23)
+
+The app JavaScript budget went from 80 kB to 92 kB gzipped. Why: the game grew from one generic world to 14 industries by 4 kinds
+of business with their own customers, channels, promotions, calendars, rules, wages and billing, plus financial statements,
+the notebook and the networking, hiring and promotion actions. The first-load performance test (under 1.5 MB, interactive
+under 2 s on a throttled phone) and Lighthouse still pass. Not weakened to hide a regression: the growth is content that
+was asked for. Raise it again only for the same reason.

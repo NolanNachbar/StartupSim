@@ -3,7 +3,7 @@
     "name": "app javascript (gzip)",
     "path": "dist/assets/*.js",
     "gzip": true,
-    "limit": "80 kB"
+    "limit": "92 kB"
   },
   {
     "name": "app css (gzip)",
