@@ -9,7 +9,7 @@ describe("industries", () => {
     expect(INDUSTRY_LIST.length).toBe(INDUSTRIES.length);
     expect(INDUSTRY_LIST.length).toBeGreaterThanOrEqual(5);
     for (const i of INDUSTRY_LIST) {
-      expect(Object.keys(i).sort()).toEqual(["blurb", "name"]);
+      expect(Object.keys(i).sort()).toEqual(["blurb", "name", "rules"]);
       expect(i.name.length).toBeGreaterThan(3);
       expect(i.blurb).not.toMatch(/\d/);
     }
