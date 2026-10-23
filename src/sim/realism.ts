@@ -241,7 +241,11 @@ export function realisticWeek(run: InternalRun): WeekResult {
     const churned = Math.floor((((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100 * (130 - Math.floor((pub.reputation * 6) / 10)) * (100 + Math.floor((20 * rivalPct) / 100))) / 10_000);
     // a busy month holds more people; a quiet one does not send anyone away
     const ceiling = Math.floor((marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(monthlyOf(pub.priceCents, pub.billing), wtpBoost(seg.willingnessToPayCents)))) * (100 + Math.floor(Math.max(0, season.index - 100) / 2))) / 100);
-    customers[i] = Math.max(0, Math.min(ceiling, here - churned));
+    // Customers do not all vanish the week you raise the price: the market's ceiling pulls them down by at most a fifth a week
+    // (people who already buy from you put up with some of a rise, then leave as it sinks in).
+    const stay = here - churned;
+    const pulled = Math.max(Math.min(ceiling, stay), stay - Math.max(1, Math.ceil(stay / 5)));
+    customers[i] = Math.max(0, pulled);
   });
 
   // Newcomers leave faster than regulars: a share of everyone who joined in the last twelve weeks goes each week.

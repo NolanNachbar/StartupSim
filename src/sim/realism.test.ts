@@ -376,3 +376,22 @@ describe("newcomers leave faster", () => {
     expect(loss(gym)).toBeGreaterThan(loss({ model: 1, idea: "a one to one coaching service" }));
   });
 });
+
+describe("raising the price", () => {
+  it("loses customers gradually, not all in one week", () => {
+    let tested = 0;
+    for (let seed = 1; seed <= 12 && tested < 2; seed++) {
+      let r = play(newRun(seed, 3, { ...app, startCashCents: 40_000_000 }), { type: "buildTest", kind: "landing-page" }, { type: "setMarketing", channel: 0, level: 3 });
+      for (let i = 0; i < 10; i++) r = must(step(r, { type: "wait" }));
+      const before = view(r).payingCustomers;
+      if (before < 15) continue;
+      tested += 1;
+      const top = Math.max(...view(r).priceLadderCents);
+      r = must(step(r, { type: "setPrice", priceCents: top }));
+      r = must(step(r, { type: "setMarketing", channel: null, level: 0 }));
+      r = must(step(r, { type: "wait" }));
+      expect(view(r).payingCustomers).toBeGreaterThan(Math.floor(before * 0.6));
+    }
+    expect(tested).toBeGreaterThan(0);
+  });
+});
