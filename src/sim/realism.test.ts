@@ -345,3 +345,34 @@ describe("the people you hire", () => {
     expect(quits).toBeLessThan(40);
   });
 });
+
+describe("newcomers leave faster", () => {
+  it("tracks the people who joined in the last weeks, who never outnumber the customers, and ages them out", () => {
+    let checked = 0;
+    for (let seed = 1; seed <= 12 && checked < 3; seed++) {
+      let r = play(newRun(seed, 3, { ...gym, startCashCents: 40_000_000 }), { type: "buildTest", kind: "landing-page" }, { type: "setMarketing", channel: 0, level: 3 });
+      for (let i = 0; i < 6; i++) r = must(step(r, { type: "wait" }));
+      const v = view(r);
+      if (v.payingCustomers === 0) continue;
+      checked += 1;
+      expect(v.cohorts.length).toBeGreaterThan(0);
+      expect(v.cohorts.reduce((a, c) => a + c.n, 0)).toBeLessThanOrEqual(v.payingCustomers);
+      r = must(step(r, { type: "setMarketing", channel: null, level: 0 }));
+      for (let i = 0; i < 16; i++) r = must(step(r, { type: "wait" }));
+      expect(view(r).cohorts.length).toBe(0);
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it("is harsher on a gym than on a service, for the same people", () => {
+    const loss = (choice: { model: number; idea: string }) => {
+      let r = play(newRun(4, 3, { ...choice, startCashCents: 40_000_000 }), { type: "buildTest", kind: "landing-page" }, { type: "setMarketing", channel: 0, level: 3 });
+      for (let i = 0; i < 6; i++) r = must(step(r, { type: "wait" }));
+      const peak = view(r).payingCustomers;
+      r = must(step(r, { type: "setMarketing", channel: null, level: 0 }));
+      for (let i = 0; i < 10; i++) r = must(step(r, { type: "wait" }));
+      return peak === 0 ? 0 : (peak - view(r).payingCustomers) / peak;
+    };
+    expect(loss(gym)).toBeGreaterThan(loss({ model: 1, idea: "a one to one coaching service" }));
+  });
+});

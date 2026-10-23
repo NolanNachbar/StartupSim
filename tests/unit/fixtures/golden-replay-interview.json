@@ -65,6 +65,7 @@
       "rndCents": 0,
       "learningCents": 90000
     },
+    "cohorts": [],
     "hiredAt": [],
     "wages": {
       "builder": 0,

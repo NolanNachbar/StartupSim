@@ -194,6 +194,8 @@ export interface PublicState {
   readonly hires: number;
   /** The team by role (the roles of a chosen business: someone who builds, someone who sells, someone who serves customers). */
   readonly team: Team;
+  /** Recent weeks' new customers, kept to model how newcomers leave faster than regulars. */
+  readonly cohorts: readonly { readonly week: number; readonly n: number }[];
   /** When each person on the team started (a chosen business): new people take weeks to get up to speed. */
   readonly hiredAt: readonly { readonly role: "builder" | "seller" | "ops"; readonly week: number }[];
   /** What each role costs a week in this business (cents, salary plus payroll tax and benefits). */

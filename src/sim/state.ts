@@ -47,6 +47,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     equityGivenPct: 0,
     productProgressPct: 0,
     books: { startCashCents: startCash, equityRaisedCents: 0, loanReceivedCents: 0, principalRepaidCents: 0, interestCents: 0, salesCashCents: 0, testSalesCents: 0, cogsCents: 0, operatingCents: 0, marketingCents: 0, rndCents: 0, learningCents: 0 },
+    cohorts: [],
     hiredAt: [],
     wages: secret.business ? WAGE_BY_MODEL[secret.business.model.id] : { builder: 0, seller: 0, ops: 0 },
     network: { contacts: 0, events: 0 },

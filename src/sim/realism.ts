@@ -120,6 +120,19 @@ export const BUILDS_BY_MODEL: Readonly<Record<ModelId, BuildSpecs>> = {
   product: { "landing-page": { weeks: 1, cashCents: 30_000, progressPct: 5 }, concierge: { weeks: 2, cashCents: 200_000, progressPct: 25 }, prototype: { weeks: 4, cashCents: 1_000_000, progressPct: 50 } },
 };
 
+/**
+ * Newcomers leave faster than regulars. Of the people a gym signs up, most who quit do so in the first months
+ * (a large study found 63 percent gone before month three), while app users and clients stay a little more. This is the
+ * extra weekly churn, in percent, for each person in their first twelve weeks.
+ */
+export const NEWCOMER_CHURN_PCT: Readonly<Record<ModelId, number>> = { software: 2, service: 1, location: 4, product: 1 };
+export const NEWCOMER_WEEKS = 12;
+/** A week's new customers, kept until they have been customers for NEWCOMER_WEEKS. */
+export interface Cohort {
+  readonly week: number;
+  readonly n: number;
+}
+
 export type NetworkKind = "coffee" | "meetup" | "conference";
 
 /** Ways to meet people: what it costs, how long it takes, and how many people you can hope to meet. */
@@ -149,6 +162,7 @@ export interface WeekResult {
   readonly discountCents: number;
   readonly reputation: number;
   readonly rivalOpened: boolean;
+  readonly cohorts: readonly Cohort[];
   /** How many customers the business can serve now, counting people who are still settling in. */
   readonly capacity: number;
   readonly notes: readonly string[];
@@ -181,6 +195,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const rivalPct = pub.rivalSince !== null ? Math.max(0, 100 - Math.floor(quality / 2)) : 0;
   const promoSpec = pub.promo ? promotionsFor(model).find((q) => q.id === pub.promo?.id) : undefined;
   let promoSignups = pub.promo?.signups ?? 0;
+  let newcomers = 0;
 
   // Marketing and outreach win customers in the group they are aimed at.
   const target = pub.marketing.target ?? pub.focusSegment;
@@ -211,6 +226,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
       if (taken < acquired) notes.push(model === "location" ? "The place is full: new people are being turned away." : "You are at capacity: new customers go on a waiting list.");
       customers[target] = (customers[target] ?? 0) + taken;
       if (promoSpec) promoSignups += taken;
+      newcomers += taken;
     }
   }
 
@@ -227,6 +243,14 @@ export function realisticWeek(run: InternalRun): WeekResult {
     const ceiling = Math.floor((marketCeiling(seg.trueDemand, weatherPctAt(secret, pub.week), conversionPct(priceRatioPct(monthlyOf(pub.priceCents, pub.billing), wtpBoost(seg.willingnessToPayCents)))) * (100 + Math.floor(Math.max(0, season.index - 100) / 2))) / 100);
     customers[i] = Math.max(0, Math.min(ceiling, here - churned));
   });
+
+  // Newcomers leave faster than regulars: a share of everyone who joined in the last twelve weeks goes each week.
+  const aged = pub.cohorts.filter((c) => pub.week - c.week < NEWCOMER_WEEKS);
+  let cohorts: Cohort[] = aged.map((c) => ({ week: c.week, n: Math.max(0, c.n - Math.floor((c.n * NEWCOMER_CHURN_PCT[model]) / 100)) }));
+  const newcomerLoss = aged.reduce((sum, c, i) => sum + (c.n - (cohorts[i]?.n ?? 0)), 0);
+  if (newcomerLoss > 0) customers[target] = Math.max(0, (customers[target] ?? 0) - newcomerLoss);
+  if (newcomers > 0) cohorts = [...cohorts, { week: pub.week, n: newcomers }];
+  cohorts = cohorts.filter((c) => c.n > 0);
 
   // People won by a promotion leave faster, and pay less while it runs.
   let discountCents = 0;
@@ -245,6 +269,19 @@ export function realisticWeek(run: InternalRun): WeekResult {
       notes.push(`${promoSpec.name} is over. People it brought in now pay the full price.`);
     }
   }
+  // Newcomers are a part of the customers you have: if some left some other way, the count follows (oldest first).
+  let still = customers.reduce((a, b) => a + b, 0);
+  cohorts = cohorts
+    .slice()
+    .reverse()
+    .map((c) => {
+      const keep = Math.min(c.n, still);
+      still -= keep;
+      return { week: c.week, n: keep };
+    })
+    .reverse()
+    .filter((c) => c.n > 0);
+
   // Reputation drifts toward what you deserve: a better product and a place that is not crowded earn it, a rushed discount crowd
   // and a full house lose it. It moves a sixth of the way each week, so it is slow to build and slow to repair.
   const served = customers.reduce((a, b) => a + b, 0);
@@ -253,7 +290,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const reputation = pub.reputation + Math.trunc((deserved - pub.reputation) / 6);
   const rivalOpened = pub.rivalSince === null && pub.week + 1 >= rivalWeekOf(run.seed) && secret.business !== null;
   if (rivalOpened) notes.push(`${cap(secret.business.kinds[0] ?? "a competitor")} has opened nearby, aimed at your customers. Expect fewer people to find you and some to be tempted away. A better product and a good name soften it.`);
-  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, reputation, rivalOpened, capacity, notes };
+  return { progress, quality, marketingSpend, rndSpend, customers, promo, promoCooldown, discountCents, reputation, rivalOpened, capacity, cohorts, notes };
 }
 
 const cap = (s: string): string => {
