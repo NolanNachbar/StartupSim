@@ -1,8 +1,22 @@
 // Words and numbers for the screen. Pure functions; no game rules here.
 import { UNIT_LABEL, type DebriefTag, type Evidence, type HypothesisState, type IllegalReason, type PublicState, type QuestionType } from "../sim";
 
-/** Whole dollars with separators; cents appear only when there are some. Integer math only. */
+/**
+ * Whole dollars with separators once the amount is $100 or more (a cash balance is not shown to the cent); below that,
+ * cents appear when there are some (a $7.50 visit is not "$8"). Integer math only. Use moneyExact for the books.
+ */
 export function money(cents: number): string {
+  const sign = cents < 0 ? "-" : "";
+  const abs = Math.abs(cents);
+  if (abs >= 10_000) {
+    const whole = Math.floor((abs + 50) / 100);
+    return `${sign}$${String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+  }
+  return moneyExact(cents);
+}
+
+/** To the cent, cents only when there are some: for the financial statements. */
+export function moneyExact(cents: number): string {
   const sign = cents < 0 ? "-" : "";
   const abs = Math.abs(cents);
   const dollars = Math.floor(abs / 100);

@@ -6,11 +6,11 @@ import { hypothesisLabel, money, questionLabel, tagExplain, tagLabel } from "../
 function InterviewEntry({ e }: { e: InterviewEvidence }) {
   const b = currentBusiness();
   const asked = e.topic ? questionTextFor(b, e.topic) : "";
-  const who = e.customer === "friend" ? "A friend of yours" : e.customer === "stranger" ? "A stranger" : "No one";
+  const who = e.customer === "friend" ? "A friend of yours" : e.customer === "stranger" ? "A stranger" : "Nobody answered";
   return (
     <li class={`entry${e.tag ? ` entry--${e.tag}` : ""}`}>
       <p class="entry__meta">{`Week ${e.week}, interview`}</p>
-      <p class="entry__head">{`${who}, asked: ${asked || questionLabel(e.question)}`}</p>
+      <p class="entry__head">{e.customer === "none" ? `${who} when you asked: ${asked || questionLabel(e.question)}` : `${who}, asked: ${asked || questionLabel(e.question)}`}</p>
       <p class="entry__quote">{e.quote}</p>
       {e.outcome === "completed" && e.tag ? (
         <p class="entry__debrief"><span class={`tag tag--${e.tag}`}>{tagLabel(e.tag)}</span>{` ${tagExplain(e.tag)}`}</p>

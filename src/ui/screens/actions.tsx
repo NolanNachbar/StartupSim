@@ -22,8 +22,8 @@ export function Actions() {
         <ul class="menu-list">
           {stageInfo(s, currentBusiness()).steps.filter((st) => FORMS.find((f) => f.id === st.form)?.listed(s) !== false).map((st) => (
             <li key={st.form + st.label}>
-              <button type="button" class="button button--row" onClick={() => openForm(lockedReason(st.form, s)?.first ?? st.form)}>
-                <span class="row__text"><span class="row__title">{st.label}</span><span class="row__hint">{lockedReason(st.form, s)?.reason ?? st.why}</span></span>
+              <button type="button" class="button button--row" onClick={() => openForm(lockedReason(st.form, s, currentBusiness())?.first ?? st.form)}>
+                <span class="row__text"><span class="row__title">{st.label}</span><span class="row__hint">{lockedReason(st.form, s, currentBusiness())?.reason ?? st.why}</span></span>
               </button>
             </li>
           ))}
@@ -32,8 +32,8 @@ export function Actions() {
         <ul class="menu-list">
           {listed.map((f, i) => (
             <li key={f.id}>
-              <button type="button" class="button button--row" data-action-index={i} aria-keyshortcuts={i < 4 ? String(i + 1) : undefined} onClick={() => openForm(lockedReason(f.id, s)?.first ?? f.id)}>
-                <span class="row__text"><span class="row__title">{f.title}</span><span class="row__hint">{lockedReason(f.id, s)?.reason ?? f.blurb}</span></span>
+              <button type="button" class="button button--row" data-action-index={i} aria-keyshortcuts={i < 4 ? String(i + 1) : undefined} onClick={() => openForm(lockedReason(f.id, s, currentBusiness())?.first ?? f.id)}>
+                <span class="row__text"><span class="row__title">{f.title}</span><span class="row__hint">{lockedReason(f.id, s, currentBusiness())?.reason ?? f.blurb}</span></span>
                 {i < 4 ? <span class="key" aria-hidden="true">{i + 1}</span> : null}
               </button>
             </li>

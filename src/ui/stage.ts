@@ -1,6 +1,7 @@
 // The stage the company is in, what it means, and what you can do in it. Derived only from public state, and written in
 // the words of the chosen business. It explains what each option is for; it never says which one to pick.
 import { CATALOG, type Business, type PublicState } from "../sim";
+import { buildCopy } from "./business";
 import type { FormId } from "./forms";
 
 export const STAGE_COUNT = 5;
@@ -21,9 +22,9 @@ export interface StageGoal {
 }
 
 /** Whether an action cannot work yet, and what to do first. Rules live in the sim; this only explains them. */
-export function lockedReason(form: FormId, s: PublicState): { reason: string; first: FormId } | null {
+export function lockedReason(form: FormId, s: PublicState, b: Business | null = null): { reason: string; first: FormId } | null {
   if (form === "charge" && !s.landingPageBuilt) {
-    return { reason: "Not yet: there is nothing built to sell. Build the first test (a page people can pay on), then return to this.", first: "build" };
+    return { reason: `Not yet: there is nothing built to sell. Build the first test (${buildCopy(b)["landing-page"].label.toLowerCase()}), then return to this.`, first: "build" };
   }
   return null;
 }
@@ -104,7 +105,7 @@ export function stageInfo(s: PublicState, b: Business | null): StageInfo {
       { label: "Or test a channel to see who responds", done: s.evidence.some((e) => e.kind === "channel-test"), form: "test-channel" },
     ],
     [
-      { label: "Build the first test, a page people can pay on", done: s.landingPageBuilt, form: "build" },
+      { label: `Build the first test: ${buildCopy(b)["landing-page"].label.toLowerCase()}`, done: s.landingPageBuilt, form: "build" },
       { label: "Or get a first payment from a paid test", done: s.firstPaymentWeek !== null, form: "charge" },
     ],
     [

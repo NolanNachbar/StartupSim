@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { CALLOUTS, nextCallout, type CalloutScreen } from "./callouts";
 import { hypothesisLabel, money } from "./format";
 import { pathProgress } from "./guide";
-import { currentBusiness, last, weekAhead, markCalloutShown, openForm, openNotebook, openHelp, openMenu, screen, selected, settings, shownCallouts, startPivots, state } from "./store";
+import { currentBusiness, last, weekAhead, markCalloutShown, openForm, openNotebook, openHelp, openMenu, screen, savedRun, selected, settings, shownCallouts, startPivots, state } from "./store";
 import { STAGE_COUNT, lockedReason, stageInfo } from "./stage";
-import { CATALOG, MONTH_NAMES, type Hypothesis, type PublicState } from "../sim";
+import { CATALOG, MONTH_NAMES, view, type Hypothesis, type PublicState } from "../sim";
 
 export function Instrument({ caption, value }: { caption: string; value: string }) {
   return (
@@ -19,9 +19,9 @@ export function Instrument({ caption, value }: { caption: string; value: string 
   );
 }
 
-/** Pivots remaining: the largest number, with runway edge lights beside it (one lit for every pivot left, up to five). */
+/** Pivots remaining: the largest number, with runway edge lights beside it (one lit for every pivot left, up to four). */
 export function Pivots({ count, max }: { count: number; max: number }) {
-  const shown = Math.min(Math.max(max, count, 1), 5);
+  const shown = Math.min(Math.max(max, count, 1), 4);
   return (
     <div class="pivots">
       <span class="instrument__caption">Pivots remaining</span>
@@ -37,7 +37,8 @@ export function Pivots({ count, max }: { count: number; max: number }) {
 
 /** The HUD: pivots first, then cash and week, then the menu. `fresh` is the starting state shown on the board. */
 export function Strip({ fresh }: { fresh: PublicState }) {
-  const s = state.value ?? fresh;
+  // on the front door the HUD shows the saved run's real cash and pivots, not a fresh company's
+  const s = state.value ?? (savedRun.value ? view(savedRun.value) : fresh);
   const max = Math.max(startPivots.value || fresh.pivotsRemaining, s.pivotsRemaining, 1);
   return (
     <header class="strip">
@@ -189,12 +190,12 @@ export function StageBar({ s, compact = false }: { s: PublicState; compact?: boo
       {compact ? null : <p class="stage__goal-title">{info.exitTitle}</p>}
       <ul class="stage__goals">
         {(compact ? info.goals.filter((g) => !g.done).slice(0, 1) : info.goals).map((g) => {
-          const lock = g.form ? lockedReason(g.form, s) : null;
+          const lock = g.form ? lockedReason(g.form, s, currentBusiness()) : null;
           const target = lock ? lock.first : g.form;
           return (
             <li key={g.label} class={g.done ? "goal goal--done" : "goal"}>
               <span class="goal__box" aria-hidden="true">{g.done ? "\u2713" : ""}</span>
-              <span class="goal__text">{compact ? `Next: ${g.label}` : g.label}<span class="sr-only">{g.done ? ", done" : ", not done"}</span></span>
+              <span class="goal__text"><span class="sr-only">{g.done ? "Done: " : "Not done: "}</span>{compact ? `Next: ${g.label}` : g.label}</span>
               {!g.done && target ? <button type="button" class="button button--small" onClick={() => openForm(target)}>{lock ? "Build first" : "Do it"}</button> : null}
             </li>
           );
@@ -228,7 +229,7 @@ export function StatusCard({ s }: { s: PublicState }) {
       <dt>Cash lasts</dt><dd>{weeks === null ? "You are not losing cash" : `${weeks} ${weeks === 1 ? "week" : "weeks"} at this rate`}</dd>
       <dt>Product ready</dt><dd>{`${s.productProgressPct} percent`}</dd>
       <dt>Paying customers</dt><dd>{String(s.payingCustomers)}</dd>
-      {s.season ? (<><dt>Reviews</dt><dd>{s.payingCustomers < 5 ? "Too few customers to have reviews yet" : `${(1 + s.reputation / 25).toFixed(1)} out of 5`}</dd></>) : null}
+      {s.season ? (<><dt>Reviews</dt><dd>{s.payingCustomers < 5 ? "Needs 5 customers before reviews appear" : `${(1 + s.reputation / 25).toFixed(1)} out of 5`}</dd></>) : null}
       {s.rivalSince !== null ? (<><dt>Competition</dt><dd>{`A rival opened in week ${s.rivalSince}`}</dd></>) : null}
       {s.promo ? (<><dt>Promotion</dt><dd>{`${s.promo.weeksLeft} ${s.promo.weeksLeft === 1 ? "week" : "weeks"} left`}</dd></>) : null}
       <dt>Team</dt><dd>{s.hires === 0 ? "Just you" : `${s.hires} ${s.hires === 1 ? "person" : "people"} besides you`}</dd>

@@ -107,7 +107,7 @@ export const FORMS: readonly FormDef[] = [
     title: "Build a test",
     blurb: "Make something customers can react to.",
     intro: (s) =>
-      `Make something customers can react to. A landing page is what lets you ask people to pay in a test. Prototypes and concierge versions add to the product itself, which is ${s.productProgressPct} percent built now; at 100 percent it is launched and customers can really use it.`,
+      `Make something customers can react to. ${buildCopy(biz())["landing-page"].label} is what lets you ask people to pay in a test (do it once). ${buildCopy(biz()).concierge.label} and ${buildCopy(biz()).prototype.label.toLowerCase()} add to getting ${ideaOf(biz())} ready, which is ${s.productProgressPct} percent done now; at 100 percent it is open and customers can really use it.`,
     fields: (s) => {
       const kinds = Object.keys(s.builds) as BuildKind[];
       const doneKind = (k: BuildKind): boolean => (k === "landing-page" ? s.landingPageBuilt : s.productProgressPct >= 100);
@@ -149,7 +149,7 @@ export const FORMS: readonly FormDef[] = [
     title: "Charge for a test",
     blurb: "Ask for real money and see who pays.",
     intro: (s) =>
-      `Ask real leads from one group to pay ${priceWords(s, s.priceCents)} for ${ideaOf(biz())}. Anyone who pays counts as real evidence, and the cash lands in your books as paid-test sales. ${s.landingPageBuilt ? "" : "You cannot run this yet: build the first test (a page people can pay on) from Build a test, then come back."}`.trim(),
+      `Ask real leads from one group to pay ${priceWords(s, s.priceCents)} for ${ideaOf(biz())}. Anyone who pays counts as real evidence, and the cash lands in your books as paid-test sales. ${s.landingPageBuilt ? "" : `You cannot run this yet: build the first test (${buildCopy(biz())["landing-page"].label.toLowerCase()}) from Build a test, then return to this.`}`.trim(),
     fields: (s) => [segmentField(s), channelField(s)],
     submit: "Charge for a test",
     build: (v) => ({ type: "chargeTest", segment: num(v, "segment"), channel: num(v, "channel") }),
@@ -302,7 +302,8 @@ export const FORMS: readonly FormDef[] = [
                 const wage = s.wages[r];
                 const after = s.weeklyBurnCents + wage;
                 const weeks = Math.floor(s.cashCents / after);
-                return { value: r, label: `${info.label} (${have} of ${CATALOG.roleCap}), ${money(wage)} a week`, hint: `Someone who ${info.what}. ${effect} Your running costs would go from ${money(s.weeklyBurnCents)} to ${money(after)} a week: your cash would cover ${weeks} ${weeks === 1 ? "week" : "weeks"} of them with no income at all.` };
+                const need = (s.weeklyBurnCents + wage) * 4;
+                return { value: r, label: `${info.label} (${have} of ${CATALOG.roleCap}), ${money(wage)} a week`, ...(s.cashCents < need ? { locked: `Needs ${money(need)} in the bank (a month of the new payroll); you have ${money(s.cashCents)}.` } : {}), hint: `Someone who ${info.what}. ${effect} Your running costs would go from ${money(s.weeklyBurnCents)} to ${money(after)} a week: your cash would cover ${weeks} ${weeks === 1 ? "week" : "weeks"} of them with no income at all.${s.cashCents < need ? ` Needs ${money(need)} in the bank first.` : ""}` };
               }),
               initial: "builder",
             },
@@ -357,7 +358,9 @@ export const FORMS: readonly FormDef[] = [
     title: "Raise money",
     blurb: "Take outside money in exchange for part of the company.",
     intro: (s) =>
-      `Take ${money(CATALOG.raiseAmountCents)} for ${CATALOG.raiseEquityPcts[s.raisesUsed] ?? 20} percent of the company. Raising takes three to nine weeks of your time. A second raise needs a customer who has paid.`,
+      s.capacity === null
+        ? `Take ${money(CATALOG.raiseAmountCents)} for ${CATALOG.raiseEquityPcts[s.raisesUsed] ?? 20} percent of the company. Raising takes three to nine weeks of your time. A second raise needs a customer who has paid.`
+        : `Take ${money(CATALOG.raiseAmountCents)} for ${CATALOG.raiseEquityPcts[s.raisesUsed] ?? 20} percent of the company. Real raises take months: about twelve to twenty-six weeks (a little less if you know people), and your costs keep running the whole time. At ${money(s.weeklyBurnCents)} a week that is ${money(12 * s.weeklyBurnCents)} to ${money(26 * s.weeklyBurnCents)} before the money arrives, and you have ${money(s.cashCents)}.${s.cashCents < 12 * s.weeklyBurnCents ? " You would very likely run out of cash first." : ""} A second raise needs a customer who has paid.`,
     fields: () => [],
     submit: "Raise money",
     build: () => ({ type: "raiseMoney" }),

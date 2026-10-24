@@ -244,7 +244,7 @@ test("the financials show an income statement, a cash flow statement and a balan
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Start the company" }).click();
-  await expect(page.locator(".light")).toHaveCount(5); // the runway lights show at most five, whatever the number
+  await expect(page.locator(".light")).toHaveCount(4); // the runway lights show at most four, whatever the number
   await page.getByRole("button", { name: "Wait a week" }).click();
   await page.getByRole("button", { name: "Financials" }).click();
   for (const name of ["Income statement", "Cash flow statement", "Balance sheet"]) await expect(page.getByRole("heading", { name })).toBeVisible();

@@ -184,6 +184,6 @@ The city is the star, so the interface plays the city's own signage: street sign
 - **Type.** Chillax 600 and 700 for headings, numbers, buttons and plates. General Sans 500 and 700 for every sentence. All text is 16 px or more.
 - **Outlines and shadows.** Panels, buttons and plates carry a 3 px ink outline (`--outline`) and a hard 4 px offset shadow in the same ink, no blur. Corners are 10 px on panels and controls, 6 px on plates and chips. No pills. Buttons press down by their shadow.
 - **Plates.** A map label is a signboard on a short post: ink outline, cream board, post as its pointer, a longer stem when the map is crowded, hanging below its building when there is no room above. Green is your company, blue is the selected group.
-- **Pivot gauge.** The big number stays the largest figure. Beside it, runway edge lights: one amber light for every pivot left (at most five shown), grey when spent. No vehicles, no icons.
+- **Pivot gauge.** The big number stays the largest figure. Beside it, runway edge lights: one amber light for every pivot left (at most four shown), grey when spent. No vehicles, no icons.
 - **Stage tracker.** Five outlined steps: blue on top when done, amber when current, pale when ahead. Numbered dots on the action screen; a thin bar on the map.
 - **Evidence.** Dotted untested, dashed weak, solid verified: unchanged.

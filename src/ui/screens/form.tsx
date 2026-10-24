@@ -29,7 +29,7 @@ function FieldView({ field, value, onChange }: { field: Field; value: string; on
         <label key={o.value} class="choice">
           <input type="radio" name={field.id} value={o.value} checked={value === o.value} disabled={o.done === true || o.locked !== undefined} onChange={() => onChange(o.value)} />
           <span class="choice__text">
-            <span class="choice__title">{o.label}{o.done ? <span class="built">Built</span> : null}</span>
+            <span class="choice__title">{o.label}{o.done ? <> <span class="built">Built</span></> : null}</span>
             {o.hint ? <span class="choice__hint">{o.hint}</span> : null}
           </span>
         </label>
@@ -146,7 +146,7 @@ export function FormScreen({ id }: { id: FormId }) {
             <span class="row__text"><span class="row__title">See what past interviews said</span><span class="row__hint">So you can ask something new. Asking the same question again teaches you less.</span></span>
           </button>
         ) : null}
-        {lockedReason(id, s) ? <p class="notice notice--error" role="note">{lockedReason(id, s)?.reason}</p> : null}
+        {lockedReason(id, s, currentBusiness()) ? <p class="notice notice--error" role="note">{lockedReason(id, s, currentBusiness())?.reason}</p> : null}
         {formError.value ? <p class="notice notice--error" role="alert">{formError.value}</p> : null}
         {id === "interview" ? (
           <InterviewFields s={s} values={values} setValues={setValues} />
@@ -160,7 +160,7 @@ export function FormScreen({ id }: { id: FormId }) {
       <Panel />
       <footer class="actions">
         <button type="button" class="button button--primary" onClick={() => {
-          const lock = lockedReason(id, s);
+          const lock = lockedReason(id, s, currentBusiness());
           if (lock) {
             openForm(lock.first);
             return;
@@ -174,7 +174,7 @@ export function FormScreen({ id }: { id: FormId }) {
             return;
           }
           act(def.build(values, s));
-        }} disabled={id === "interview" && pickedOf(s, values).length !== 3}>{lockedReason(id, s) ? "Build the first test" : def.submit}</button>
+        }} disabled={id === "interview" && pickedOf(s, values).length !== 3}>{lockedReason(id, s, currentBusiness()) ? "Build the first test" : def.submit}</button>
         <button type="button" class="button" onClick={back}>Back</button>
       </footer>
     </>

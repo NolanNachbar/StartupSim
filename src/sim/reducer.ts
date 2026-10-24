@@ -517,7 +517,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
               hiredAt: [...hired.pub.hiredAt, { role, week: hired.pub.week }],
               weeklyBurnCents: hired.pub.weeklyBurnCents + wage,
               capacity: hired.pub.capacitySpec ? capacityWith(hired.pub.capacitySpec, team.ops) : null,
-              log: withLog(hired.pub, `Hired ${role === "builder" ? "a builder" : role === "seller" ? "a salesperson" : "an operations person"}.`),
+              log: withLog(hired.pub, `Hired ${role === "builder" ? "a builder" : role === "seller" ? "a salesperson" : (hired.secret.business?.hire ?? "an operations person")}.`),
             }),
             action,
           ),

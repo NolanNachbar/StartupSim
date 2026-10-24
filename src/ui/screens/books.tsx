@@ -1,5 +1,5 @@
 import { statements, type Line } from "../../sim";
-import { money } from "../format";
+import { moneyExact as money } from "../format";
 import { back, run } from "../store";
 
 const figure = (cents: number): string => (cents < 0 ? `-${money(-cents)}` : money(cents));
