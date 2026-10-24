@@ -3,6 +3,7 @@
 // the player typed adjust it ("a pizza restaurant" is not "a coffee cart"). Percentages of the usual for a place; 100
 // changes nothing. Only places use this: apps, services and products keep their own numbers.
 import type { ModelId } from "./business";
+import { INDUSTRIES } from "./world";
 
 export interface Scale {
   /** The starting price, as a percent of the usual. */
@@ -25,7 +26,7 @@ const PLACE_BY_INDUSTRY: readonly Scale[] = [
   /* 1 Consumer apps: a board-game cafe */ S(100, 200, 70, 80, 90),
   /* 2 Business software: coworking */ S(100, 100, 90, 100, 110),
   /* 3 Health and wellness: a gym */ NO_SCALE,
-  /* 4 Money: an office */ S(100, 80, 100, 40, 60),
+  /* 4 Money: an office */ S(100, 80, 100, 50, 100),
   /* 5 Creators and education: a studio */ S(100, 70, 90, 60, 70),
   /* 6 Food and drink */ S(100, 300, 60, 150, 110),
   /* 7 Retail: a shop */ S(100, 200, 70, 70, 90),
@@ -36,6 +37,8 @@ const PLACE_BY_INDUSTRY: readonly Scale[] = [
   /* 12 Transport: a bike hub */ S(100, 100, 90, 60, 80),
   /* 13 Beauty: barber, nails, spa */ S(100, 60, 100, 70, 90),
 ];
+
+const SERVICE_BURN_BY_INDUSTRY: readonly number[] = [100, 100, 100, 100, 100, 100, 75, 100, 100, 100, 85, 75, 90, 100];
 
 /** Words in the idea that change what kind of place it is. Every match multiplies. */
 const IDEA_WORDS: readonly (readonly [RegExp, Scale])[] = [
@@ -52,6 +55,14 @@ const IDEA_WORDS: readonly (readonly [RegExp, Scale])[] = [
 
 /** What a place of this industry and idea is like, as percents of the usual. Not a place: no change. */
 export function scaleFor(industry: number | null, model: ModelId, idea: string): Scale {
+  // A service's costs follow its industry a little (a private chef or party planner runs lighter than a courier firm or clinic).
+  // and so does what clients will pay.
+  // A cheaper service means more clients per hour of the founder's time, and lighter running costs.
+  if (model === "service") {
+    if (industry === 12) return S(220, 100, 100, 100, 100); // a courier firm bills businesses, not households
+    const price = Math.min(100, Math.max(55, INDUSTRIES[industry ?? 0]?.wtpPct ?? 100));
+    return S(price, Math.round(10_000 / price), 100, 100, Math.round(((100 + price) / 2 * (SERVICE_BURN_BY_INDUSTRY[industry ?? 0] ?? 100)) / 100));
+  }
   if (model !== "location") return NO_SCALE;
   const base = PLACE_BY_INDUSTRY[industry ?? 3] ?? NO_SCALE;
   let out = base;

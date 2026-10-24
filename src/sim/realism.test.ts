@@ -408,7 +408,7 @@ describe("keeping a business honest", () => {
   });
 
   it("lets customers drift away when staff leave and the place is over capacity, and fire is a legal move", () => {
-    let r = play(newRun(2, 3, { ...gym, startCashCents: 90_000_000 }), { type: "hire", role: "ops" });
+    const r = play(newRun(2, 3, { ...gym, startCashCents: 90_000_000 }), { type: "hire", role: "ops" });
     expect(legalActions(r).some((a) => a.type === "fire")).toBe(true);
     expect(legalActions(newRun(2, 3, gym)).some((a) => a.type === "fire")).toBe(false);
   });

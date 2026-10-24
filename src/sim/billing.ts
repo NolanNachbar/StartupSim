@@ -32,7 +32,7 @@ const BILLING: readonly (readonly [Billing, Billing, Billing, Billing])[] = [
   /* 9 Real estate and home */ [SUB, SUB, SUB, M(5, "order")],
   /* 10 Pets and animals */ [SUB, M(4, "job"), M(3, "visit"), M(10, "order")],
   /* 11 Entertainment and events */ [SUB, M(1, "job"), M(4, "visit"), M(5, "order")],
-  /* 12 Transport and logistics */ [SUB, M(5, "job"), M(2, "visit"), M(5, "order")],
+  /* 12 Transport and logistics */ [SUB, M(14, "job"), M(2, "visit"), M(5, "order")],
   /* 13 Beauty and personal care */ [SUB, M(3, "job"), M(3, "visit"), M(7, "order")],
 ];
 const MODEL_INDEX: Readonly<Record<ModelId, 0 | 1 | 2 | 3>> = { software: 0, service: 1, location: 2, product: 3 };
@@ -63,8 +63,8 @@ export function ladderAround(base: number): readonly number[] {
  * payments. Rough real figures (see docs/specs/realism-pass-3.md); places and services here, goods for products.
  */
 const COGS_LOCATION: readonly number[] = [25, 33, 12, 8, 8, 12, 33, 55, 18, 10, 18, 15, 12, 22];
-const COGS_SERVICE: readonly number[] = [10, 5, 3, 5, 3, 5, 30, 10, 12, 3, 10, 30, 50, 18];
-const COGS_PRODUCT: readonly number[] = [35, 35, 35, 35, 35, 30, 50, 45, 35, 40, 45, 35, 35, 30];
+const COGS_SERVICE: readonly number[] = [10, 5, 3, 5, 3, 5, 14, 10, 12, 3, 10, 18, 22, 18];
+const COGS_PRODUCT: readonly number[] = [35, 35, 28, 35, 35, 30, 50, 45, 35, 40, 45, 35, 35, 30];
 export function cogsFor(industry: number | null, model: ModelId): number {
   const i = industry ?? 0;
   if (model === "software") return 13;
