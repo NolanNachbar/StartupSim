@@ -204,6 +204,8 @@ export interface PublicState {
   readonly hiredAt: readonly { readonly role: "builder" | "seller" | "ops"; readonly week: number }[];
   /** What each role costs a week in this business (cents, salary plus payroll tax and benefits). */
   readonly wages: Readonly<Record<"builder" | "seller" | "ops", number>>;
+  /** How many customers the business can serve with nobody extra, and how many more each operations hire adds (null: no limit). */
+  readonly capacitySpec: { readonly base: number; readonly perOps: number } | null;
   /** Weekly R&D budget level, 0 for none. */
   readonly rndLevel: number;
   /** What R&D has built up, 0 to 100: a better product that converts and keeps more customers. */

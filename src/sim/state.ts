@@ -1,7 +1,8 @@
 // Internal run state. Nothing outside src/sim imports this: the public API wraps it as an opaque Run.
 import { DIFFICULTIES, DIFFICULTY_DEFAULT, type BusinessChoice } from "./business";
 import { BUILD_TABLE, INTERVIEW_ROUND_CASH_CENTS, PIVOT_COST_CENTS, ROUND_WEEKS, START_CASH_CENTS, TEST_CASH_CENTS, WEEKLY_BURN_CENTS, pivotsRemaining } from "./runway";
-import { BURN_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, BUILDS_BY_MODEL, WAGE_BY_MODEL, capacityOf } from "./realism";
+import { BURN_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, BUILDS_BY_MODEL, CAPACITY_BY_MODEL, WAGE_BY_MODEL, ROLES, type Role } from "./realism";
+import { NO_SCALE, pct, scaleFor } from "./scale";
 import { billingFor, cogsFor, ladderAround, nicePrice } from "./billing";
 import { PRICE_LADDER_CENTS } from "./actions";
 import { hypothesesFrom } from "./hypotheses";
@@ -30,8 +31,13 @@ export function initialRun(seed: number, industry: number | null = null, busines
     ? (secret.business.startCashCents ?? Math.round((START_CASH_BY_MODEL[secret.business.model.id] * level.cashPct) / 100 / 50_000) * 50_000)
     : START_CASH_CENTS;
   const billing = secret.business ? billingFor(industry, secret.business.model.id) : null;
-  const startPrice = secret.business && billing ? nicePrice(Math.round((START_PRICE_BY_MODEL[secret.business.model.id] * 10) / billing.perMonthX10)) : START_PRICE_CENTS;
-  const burn = secret.business ? Math.round((BURN_BY_MODEL[secret.business.model.id] * level.burnPct) / 100 / 100) * 100 : WEEKLY_BURN_CENTS;
+  // What kind of place it is (an industry's base, then the words of the idea) scales a place's price, size, staff and costs.
+  const scale = secret.business ? scaleFor(industry, secret.business.model.id, secret.business.idea) : NO_SCALE;
+  const startPrice = secret.business && billing ? nicePrice(Math.round((((START_PRICE_BY_MODEL[secret.business.model.id] * 10) / billing.perMonthX10) * scale.price) / 100)) : START_PRICE_CENTS;
+  const burn = secret.business ? Math.round((((BURN_BY_MODEL[secret.business.model.id] * level.burnPct) / 100) * scale.burn) / 100 / 100) * 100 : WEEKLY_BURN_CENTS;
+  const capacitySpec = secret.business ? { base: pct(CAPACITY_BY_MODEL[secret.business.model.id].base, scale.capacity), perOps: pct(CAPACITY_BY_MODEL[secret.business.model.id].perOps, scale.capacity) } : null;
+  const wages = secret.business ? (Object.fromEntries(ROLES.map((r) => [r, Math.round(pct(WAGE_BY_MODEL[secret.business!.model.id][r], scale.wage) / 1000) * 1000])) as Record<Role, number>) : { builder: 0, seller: 0, ops: 0 };
+  const builds = secret.business ? (Object.fromEntries(Object.entries(BUILDS_BY_MODEL[secret.business.model.id]).map(([k, v]) => [k, { ...v, cashCents: Math.round(pct(v.cashCents, scale.fitout) / 100) * 100 }])) as typeof BUILD_TABLE) : BUILD_TABLE;
   const pivotCost = secret.business ? INTERVIEW_ROUND_CASH_CENTS + TEST_CASH_CENTS + ROUND_WEEKS * burn : PIVOT_COST_CENTS;
   const pub: PublicState = {
     week: 0,
@@ -49,7 +55,8 @@ export function initialRun(seed: number, industry: number | null = null, busines
     books: { startCashCents: startCash, equityRaisedCents: 0, loanReceivedCents: 0, principalRepaidCents: 0, interestCents: 0, salesCashCents: 0, testSalesCents: 0, cogsCents: 0, operatingCents: 0, marketingCents: 0, rndCents: 0, learningCents: 0, capexCents: 0, depreciationCents: 0 },
     cohorts: [],
     hiredAt: [],
-    wages: secret.business ? WAGE_BY_MODEL[secret.business.model.id] : { builder: 0, seller: 0, ops: 0 },
+    wages,
+    capacitySpec,
     network: { contacts: 0, events: 0 },
     promo: null,
     reputation: 50,
@@ -59,7 +66,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     cogsPct: secret.business ? cogsFor(industry, secret.business.model.id) : 0,
     priceLadderCents: secret.business ? ladderAround(startPrice) : PRICE_LADDER_CENTS,
     billing,
-    builds: secret.business ? BUILDS_BY_MODEL[secret.business.model.id] : BUILD_TABLE,
+    builds,
     payingCustomers: 0,
     weeklyRevenueCents: 0,
     profitableStreakWeeks: 0,
@@ -76,7 +83,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     rndLevel: 0,
     qualityPct: 0,
     customersBySegment: secret.segments.map(() => 0),
-    capacity: secret.business ? capacityOf(secret.business.model.id, 0) : null,
+    capacity: capacitySpec ? capacitySpec.base : null,
     receivables: [],
     offer: null,
     loan: null,

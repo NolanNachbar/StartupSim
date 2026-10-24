@@ -10,7 +10,7 @@ import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, top
 import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
 import { MONTH_NAMES, seasonAt } from "./seasons";
 import { monthlyOf } from "./billing";
-import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_SEARCH_WEEKS, QUIT_PCT_BY_ROLE, SEVERANCE_WEEKS, wageOf, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
+import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_SEARCH_WEEKS, QUIT_PCT_BY_ROLE, SEVERANCE_WEEKS, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityWith, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
@@ -212,7 +212,7 @@ function tick(run: InternalRun): InternalRun {
       if (settled >= 0 && randChance(run.seed, QUIT_PCT_BY_ROLE[role] / 100, "quit", week, role)) {
         team = { ...team, [role]: team[role] - 1 };
         hiredAt = hiredAt.filter((_, i) => i !== settled);
-        burnNow -= wageOf(run.secret.business.model.id, role);
+        burnNow -= pub.wages[role];
         hiresNow -= 1;
         note(`Someone on your team quit (${role === "builder" ? "the one who builds" : role === "seller" ? "the one who sells" : "the one who serves customers"}). You have to find and train a replacement.`);
       }
@@ -272,7 +272,7 @@ function tick(run: InternalRun): InternalRun {
         ...pub.ledger,
         revenueCents: pub.ledger.revenueCents + weeklyRevenueCents,
         marketingCents: pub.ledger.marketingCents + marketingSpend + rndSpend,
-        payrollCents: pub.ledger.payrollCents + (secret.business ? ROLES.reduce((sum, role) => sum + pub.team[role] * wageOf(secret.business!.model.id, role), 0) : pub.hires * HIRE_WEEKLY_CENTS),
+        payrollCents: pub.ledger.payrollCents + (secret.business ? ROLES.reduce((sum, role) => sum + pub.team[role] * pub.wages[role], 0) : pub.hires * HIRE_WEEKLY_CENTS),
       },
       receivables,
       loan,
@@ -460,7 +460,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       const role = action.role;
       if (!(ROLES as readonly string[]).includes(role)) return fail("invalid-role");
       if (run.pub.team[role] < 1) return fail("nobody-to-let-go");
-      const wage = wageOf(run.secret.business.model.id, role);
+      const wage = run.pub.wages[role];
       const severance = SEVERANCE_WEEKS * wage;
       if (run.pub.cashCents < severance) return fail("insufficient-cash");
       // The newest person in the role goes (the least settled in).
@@ -476,7 +476,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
             team,
             hiredAt,
             weeklyBurnCents: run.pub.weeklyBurnCents - wage,
-            capacity: capacityOf(run.secret.business.model.id, team.ops),
+            capacity: run.pub.capacitySpec ? capacityWith(run.pub.capacitySpec, team.ops) : null,
             log: withLog(run.pub, `You let someone go (${SEVERANCE_WEEKS} weeks of pay).`),
           }),
           action,
@@ -490,8 +490,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
         if (!role || !(ROLES as readonly string[]).includes(role)) return fail("invalid-role");
         if (run.pub.hires >= MAX_TEAM) return fail("hire-limit");
         if (run.pub.team[role] >= ROLE_CAP) return fail("role-limit");
-        const model = run.secret.business.model.id;
-        const wage = wageOf(model, role);
+        const wage = run.pub.wages[role];
         // A founder who hires without a month of the new payroll in the bank is gambling: the sim will not let it.
         if (run.pub.cashCents < (run.pub.weeklyBurnCents + wage) * 4) return fail("insufficient-cash");
         // Finding the right person takes weeks of the founder's time.
@@ -505,7 +504,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
               team,
               hiredAt: [...hired.pub.hiredAt, { role, week: hired.pub.week }],
               weeklyBurnCents: hired.pub.weeklyBurnCents + wage,
-              capacity: capacityOf(model, team.ops),
+              capacity: hired.pub.capacitySpec ? capacityWith(hired.pub.capacitySpec, team.ops) : null,
               log: withLog(hired.pub, `Hired ${role === "builder" ? "a builder" : role === "seller" ? "a salesperson" : "an operations person"}.`),
             }),
             action,

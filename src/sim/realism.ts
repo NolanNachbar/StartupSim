@@ -153,8 +153,9 @@ export const NETWORK_KINDS: readonly NetworkKind[] = ["coffee", "meetup", "confe
 export const WARM_PER_ROUND = 3;
 
 export const capacityOf = (model: ModelId, ops: number): number => CAPACITY_BY_MODEL[model].base + CAPACITY_BY_MODEL[model].perOps * ops;
+export const capacityWith = (spec: { readonly base: number; readonly perOps: number }, ops: number): number => spec.base + spec.perOps * ops;
 /** The same, counting people still settling in as part of a person (opsPct is 100 per fully working person). */
-export const capacityOfPct = (model: ModelId, opsPct: number): number => CAPACITY_BY_MODEL[model].base + Math.floor((CAPACITY_BY_MODEL[model].perOps * opsPct) / 100);
+export const capacityOfPct = (spec: { readonly base: number; readonly perOps: number }, opsPct: number): number => spec.base + Math.floor((spec.perOps * opsPct) / 100);
 
 export interface WeekResult {
   readonly progress: number;
@@ -195,7 +196,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
   const credibility = Math.min(100, Math.max(CREDIBILITY_FLOOR_PCT, progress) + Math.floor(quality / 4) + Math.floor((pub.reputation - 50) / 5));
 
   const customers = pub.segmentNames.map((_, i) => pub.customersBySegment[i] ?? 0);
-  const capacity = capacityOfPct(model, workingPct(pub.hiredAt, "ops", pub.week));
+  const capacity = capacityOfPct(pub.capacitySpec ?? CAPACITY_BY_MODEL[model], workingPct(pub.hiredAt, "ops", pub.week));
   const season = seasonAt(run.industry ?? 1, run.seed, pub.week);
   // A rival nearby takes some of the people you would have reached and tempts some of the ones you have. A better product
   // blunts it: at full quality it hurts half as much.

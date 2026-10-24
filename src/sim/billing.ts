@@ -26,7 +26,7 @@ const BILLING: readonly (readonly [Billing, Billing, Billing, Billing])[] = [
   /* 3 Health and wellness */ [SUB, M(4, "job"), SUB, M(7, "order")],
   /* 4 Money and fintech */ [SUB, M(2, "job"), M(2, "job"), M(5, "order")],
   /* 5 Creators and education */ [SUB, M(4, "job"), M(4, "visit"), M(5, "order")],
-  /* 6 Food and drink */ [SUB, M(4, "job"), M(8, "visit"), M(7, "order")],
+  /* 6 Food and drink */ [SUB, M(4, "job"), M(13, "visit"), M(7, "order")],
   /* 7 Retail and e-commerce */ [SUB, SUB, M(2, "order"), M(7, "order")],
   /* 8 Travel and hospitality */ [SUB, M(1, "job"), M(3, "night"), M(5, "order")],
   /* 9 Real estate and home */ [SUB, SUB, SUB, M(5, "order")],

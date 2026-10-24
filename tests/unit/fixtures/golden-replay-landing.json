@@ -130,6 +130,7 @@
       "seller": 0,
       "ops": 0
     },
+    "capacitySpec": null,
     "network": {
       "contacts": 0,
       "events": 0

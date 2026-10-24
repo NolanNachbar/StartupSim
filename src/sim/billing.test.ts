@@ -13,10 +13,10 @@ describe("how customers pay", () => {
     expect(view(newRun(5, 3)).billing).toBeNull(); // the original worlds bill a month
   });
 
-  it("starts a cafe near ten dollars a visit and a gym near a hundred a month, with sensible menu prices to try", () => {
+  it("starts a cafe near eight dollars a visit and a gym near a hundred a month, with sensible menu prices to try", () => {
     const cafe = view(newRun(5, 6, { model: 2, idea: "a neighbourhood cafe" }));
-    expect(cafe.priceCents).toBeGreaterThanOrEqual(800);
-    expect(cafe.priceCents).toBeLessThanOrEqual(1800);
+    expect(cafe.priceCents).toBeGreaterThanOrEqual(600);
+    expect(cafe.priceCents).toBeLessThanOrEqual(1200);
     const gym = view(newRun(5, 3, { model: 2, idea: "a small strength-training gym" }));
     expect(gym.priceCents).toBeGreaterThanOrEqual(8_000);
     expect(gym.priceCents).toBeLessThanOrEqual(12_000);
@@ -29,7 +29,7 @@ describe("how customers pay", () => {
 
   it("compares a visit price with what a customer will pay a month by how often they come", () => {
     const b = billingFor(6, "location");
-    expect(monthlyOf(1_000, b)).toBe(8_000); // ten dollars, eight visits a month
+    expect(monthlyOf(1_000, b)).toBe(13_000); // ten dollars, a visit about three times a week
     expect(monthlyOf(1_000, null)).toBe(1_000);
   });
 
@@ -43,5 +43,28 @@ describe("how customers pay", () => {
 
   it("has a billing for every industry and kind of business", () => {
     for (let i = 0; i < INDUSTRY_LIST.length; i++) for (const m of ["software", "service", "location", "product"] as const) expect(billingFor(i, m).perMonthX10).toBeGreaterThan(0);
+  });
+});
+
+describe("what kind of place it is", () => {
+  const at = (industry: number, idea: string) => view(newRun(5, industry, { model: 2, idea }));
+  it("makes a pizza restaurant dearer and costlier to open than a coffee cart, and a gym different from a yoga studio", () => {
+    const restaurant = at(6, "a family pizza restaurant");
+    const cart = at(6, "a coffee cart");
+    expect(restaurant.priceCents).toBeGreaterThan(cart.priceCents);
+    expect(restaurant.builds.prototype.cashCents).toBeGreaterThan(cart.builds.prototype.cashCents * 3);
+    expect(restaurant.weeklyBurnCents).toBeGreaterThan(cart.weeklyBurnCents);
+    expect(cart.capacity as number).toBeLessThan(restaurant.capacity as number * 2);
+    const gym = at(3, "a small strength-training gym");
+    const yoga = at(3, "a boutique yoga studio");
+    expect(yoga.priceCents).toBeGreaterThan(gym.priceCents);
+    expect(yoga.capacity as number).toBeLessThan(gym.capacity as number);
+  });
+
+  it("serves far more people in a cafe than in a gym, and pays barista wages below trainer wages", () => {
+    const cafe = at(6, "a neighbourhood cafe");
+    const gym = at(3, "a small strength-training gym");
+    expect(cafe.capacity as number).toBeGreaterThan((gym.capacity as number) * 2);
+    expect(cafe.wages.ops).toBeLessThan(gym.wages.ops);
   });
 });
