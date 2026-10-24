@@ -35,8 +35,19 @@ H. Churn by tenure; interviews with many more lines per business; reply rate by 
 I. Money: price the loan as what it is (a merchant cash advance), rounds by traction, deposits for paid tests.
 J. Content fixes from the industry audits (wrong customer groups, per-visit pricing, regulated industries).
 
-## Already done from the audits
+## Status (2026-10-23)
 
-Capacity no longer evicts customers; quality lowers churn at any progress; per-kind start cash, cost of goods and price
-ladders; hiring takes weeks and costs payroll tax; financial statements; difficulty and starting money; networking;
-interview checklist with follow-ups; notebook of results; stage goals; build status.
+All ten steps (A to J) are built. In order: billing units per visit, order, job, night or month (A); per-kind channels,
+promotions, reputation, seasonality and a rival (B to E); fit-out costs, start cash and what kind of place it is by industry
+and by the words of the idea (F); wages by role and kind, ramp-up, firing, quitting (G); newcomer churn and many more
+interview lines (H); money: raising takes months, lenders want revenue, deposits are liabilities, card fees (I); content
+fixes and rules to know before opening (J).
+
+A second round of Haiku re-audits (gym, cafe, software and service, balance and bugs, a newcomer playthrough) found and
+fixed: small cohorts never churning, fit-outs expensed instead of kept as an asset, a hire gate that disagreed with the
+list of legal moves, ledger payroll at a flat wage, an overdrawn balance shown as an asset, contacts that never faded,
+referrals without a product, no capacity enforcement after quits, cost of goods the same for a gym and a cafe, and
+service prices that ignored the industry.
+
+Still open (not built): personal training and join fees for gyms, attendance as a driver of retention, trial and freemium
+funnels, founder hours as a hard ceiling, a gym's peak hours, a pricing-tier system, a cash-scaling path for big starts.

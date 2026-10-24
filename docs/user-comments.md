@@ -65,5 +65,8 @@ Status: done (built and tested), partial (built, with a stated gap), open (not b
 | Difficulty slider; adjustable start money | done | setup step 4, saved and carried in challenge links |
 | Networking | done | Network action: coffee, meetup, conference; warm interviews, referral leads, faster hires and raises |
 | Promotions for a gym | done | per-kind promotions with costs, lifts, discounts, deal churn, cooldown |
-| Marketing options real and dynamic | partial | six channels per kind, seasonality, reputation, a rival; channel saturation, per-visit billing, capex and wages still to do (realism-pass-3.md) |
+| Marketing options real and dynamic | done | channels per kind and industry (delivery apps, repeat offers), promotions, seasonality, reputation, a rival, per-visit billing, fit-out costs, wages by role (realism-pass-3.md) |
 | Full audit with Haiku agents | done | sixteen audits; synthesis in `docs/specs/realism-pass-3.md` |
+| Wait-a-week forecast and weekly expenses | done | money in, each cost and cash at the end, exact, on the map and the action screen |
+| UI look (fonts, bubbles, van icons) | done | option A: Chillax and General Sans self-hosted, signboard plates, runway lights, outlined panels |
+| Fully build everything out | done | steps A to J of realism pass 3, new buildings, re-audits; open items listed in the spec |
