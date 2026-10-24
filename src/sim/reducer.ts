@@ -219,6 +219,11 @@ function tick(run: InternalRun): InternalRun {
     }
   }
 
+  // People you know drift out of touch: about three percent of them a week, so a network has to be kept up.
+  const heldContacts = pub.network.contacts;
+  const lostContacts = fuller ? Math.floor((heldContacts * 3) / 100) + (randInt(run.seed, 1, 100, "drift", week) <= (heldContacts * 3) % 100 ? 1 : 0) : 0;
+  const network = fuller ? { ...pub.network, contacts: Math.max(0, heldContacts - lostContacts) } : pub.network;
+
   // A cash offer appears once, when the runway is nearly gone, and lapses after a few weeks.
   let offer: LoanOffer | null = pub.offer;
   let offersShown = pub.offersShown;
@@ -248,6 +253,7 @@ function tick(run: InternalRun): InternalRun {
       status,
       endReason,
       team,
+      network,
       hiredAt,
       hires: hiresNow,
       weeklyBurnCents: burnNow,

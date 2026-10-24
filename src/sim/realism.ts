@@ -216,7 +216,8 @@ export function realisticWeek(run: InternalRun): WeekResult {
     const paidLeads = channel && marketingSpend > 0 ? marketingLeads(marketingSpend, channel.costPerLeadCents, pub.team.seller) : 0;
     const handLeads = pub.landingPageBuilt ? Math.floor((SELLER_OUTREACH_LEADS * workingPct(pub.hiredAt, "seller", pub.week)) / 100) : 0;
     // contacts you have made send people your way: one lead a week for every three
-    const referralLeads = Math.floor(pub.network.contacts / 3);
+    // (and only once there is something to buy: people you know cannot send customers to nothing)
+    const referralLeads = pub.landingPageBuilt ? Math.floor(pub.network.contacts / 3) : 0;
     const standing = customers.reduce((a, b) => a + b, 0);
     const lifted = Math.floor((Math.floor((Math.floor(((paidLeads + handLeads) * level.leadsPct) / 100) * season.index) / 100) * (100 - Math.floor((15 * rivalPct) / 100))) / 100);
     const leads = (promoSpec ? Math.floor((lifted * (100 + promoSpec.leadLiftPct)) / 100) + Math.floor((standing * promoSpec.referralPct) / 100) : lifted) + referralLeads;
@@ -288,6 +289,23 @@ export function realisticWeek(run: InternalRun): WeekResult {
       notes.push(`${promoSpec.name} is over. People it brought in now pay the full price.`);
     }
   }
+  // A business cannot serve more people than it has room for. If staff left or were let go, the customers it can no longer
+  // serve drift away, a fifth of the excess each week.
+  const heldNow = customers.reduce((a, b) => a + b, 0);
+  if (heldNow > capacity) {
+    let drop = Math.ceil((heldNow - capacity) / 5);
+    notes.push("You are over capacity: some customers are leaving because you cannot serve them all.");
+    while (drop > 0) {
+      let biggest = 0;
+      customers.forEach((c, i) => {
+        if (c > (customers[biggest] ?? 0)) biggest = i;
+      });
+      if ((customers[biggest] ?? 0) === 0) break;
+      customers[biggest] = (customers[biggest] ?? 0) - 1;
+      drop -= 1;
+    }
+  }
+
   // Newcomers are a part of the customers you have: if some left some other way, the count follows (oldest first).
   let still = customers.reduce((a, b) => a + b, 0);
   cohorts = cohorts

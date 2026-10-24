@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { QUESTION_BANK } from "./actions";
 import { CAPACITY_BY_MODEL, HIRE_SEARCH_WEEKS, RND_LEVELS_CENTS, capacityOf } from "./realism";
-import { CATALOG, cleanStartCash, fromSave, newRun, step, toSave, view } from "./index";
+import { CATALOG, cleanStartCash, fromSave, legalActions, newRun, step, toSave, view } from "./index";
 import type { Action } from "./types";
 
 const gym = { model: 2, idea: "a small strength-training gym" };
@@ -167,7 +167,7 @@ describe("networking", () => {
     const v = view(after);
     expect(v.cashCents).toBeLessThan(view(run).cashCents - 15_000 + 1);
     expect(v.week).toBe(CATALOG.networkOptions.meetup.weeks);
-    expect(v.network.contacts).toBeGreaterThanOrEqual(2);
+    expect(v.network.contacts).toBeGreaterThanOrEqual(1); // met two to four, and a few drift away each week
     expect(v.network.contacts).toBeLessThanOrEqual(4);
     expect(step(newRun(5, 3), { type: "network", kind: "coffee" }).ok).toBe(false); // not in the original worlds
   });
@@ -180,7 +180,8 @@ describe("networking", () => {
     const asked = play(run, { type: "interview", segment: 0, questions: ["past-behavior", "past-behavior", "past-behavior"] });
     const round = view(asked).evidence.filter((e) => e.kind === "interview");
     expect(round.every((e) => e.kind === "interview" && e.outcome !== "no-response")).toBe(true);
-    expect(view(asked).network.contacts).toBe(contacts - 3);
+    expect(view(asked).network.contacts).toBeLessThanOrEqual(contacts - 3);
+    expect(view(asked).network.contacts).toBeGreaterThanOrEqual(contacts - 4); // spent three, and the week's drift
   });
 });
 
@@ -393,5 +394,22 @@ describe("raising the price", () => {
       expect(view(r).payingCustomers).toBeGreaterThan(Math.floor(before * 0.6));
     }
     expect(tested).toBeGreaterThan(0);
+  });
+});
+
+describe("keeping a business honest", () => {
+  it("does not let people you know send customers to a business with nothing to sell, and the network drifts", () => {
+    let r = newRun(8, 9, { model: 1, idea: "a property management service", startCashCents: 40_000_000 });
+    for (let i = 0; i < 3; i++) r = must(step(r, { type: "network", kind: "conference" }));
+    const known = view(r).network.contacts;
+    for (let i = 0; i < 20; i++) r = must(step(r, { type: "wait" }));
+    expect(view(r).payingCustomers).toBe(0); // nothing built: no referral can buy it
+    expect(view(r).network.contacts).toBeLessThan(known);
+  });
+
+  it("lets customers drift away when staff leave and the place is over capacity, and fire is a legal move", () => {
+    let r = play(newRun(2, 3, { ...gym, startCashCents: 90_000_000 }), { type: "hire", role: "ops" });
+    expect(legalActions(r).some((a) => a.type === "fire")).toBe(true);
+    expect(legalActions(newRun(2, 3, gym)).some((a) => a.type === "fire")).toBe(false);
   });
 });

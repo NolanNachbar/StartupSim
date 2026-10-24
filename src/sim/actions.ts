@@ -158,6 +158,7 @@ export function legalActions(run: InternalRun): readonly Action[] {
       for (const role of ROLES) if (pub.team[role] < ROLE_CAP && pub.cashCents >= (pub.weeklyBurnCents + pub.wages[role]) * 4) actions.push({ type: "hire", role });
     }
     for (let level = 0; level < RND_LEVELS_CENTS.length; level++) if (level !== pub.rndLevel) actions.push({ type: "setRnd", level });
+    for (const role of ROLES) if (pub.team[role] > 0 && pub.cashCents >= 2 * pub.wages[role]) actions.push({ type: "fire", role });
     if (!pub.promo && pub.promoCooldown === 0 && run.secret.business) {
       for (const spec of promotionsFor(run.secret.business.model.id)) if (pub.cashCents >= spec.cashCents && pub.payingCustomers >= spec.needsCustomers) actions.push({ type: "setPromotion", promo: spec.id });
     }
