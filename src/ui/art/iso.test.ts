@@ -9,7 +9,7 @@ const key = (c: Cell) => `${c.gx},${c.gy}`;
 const view = "(-r(90|180|270))?";
 const ALLOWED = new RegExp(
   "^(" +
-    `((com-[a-n]|sky-[a-e]|ind-[a-t]|sub-[a-u](-brick|-slate)?|low-([a-n]|wide-[ab])|c[xs]-(court|podium|wing|solar|yard|towers|terrace)-\\d+)(-z\\d+)?${view})` +
+    `((com-[a-n]|sky-[a-e]|ind-[a-t]|sub-[a-u](-brick|-slate)?|low-([a-n]|wide-[ab])|c[xs]-(court|podium|wing|solar|yard|towers|terrace|ring|wave|garden)-\\d+)(-z\\d+)?${view})` +
     "|water-tower|solar-group|silo|windmill|plant_bushLarge|tree_(oak|default|pineTallA|pineRoundA)|sub-tree-(large|small)|sub-planter" +
     "|flower_(redA|yellowB|purpleC)|crops_(wheatStageA|wheatStageB|cornStageD|leafsStageB)(-r90)?" +
     "|car-(sedan|suv|taxi|van|police|truck-flat)-(0|90|180|270)|car-tractor-(0|90|180|270)" +

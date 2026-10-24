@@ -211,7 +211,7 @@ const TIERS: readonly (readonly string[])[] = [
  * Compound buildings assembled from kit pieces (see build_compound in render_city.py): how many of each kind are
  * rendered. "cx-" fills a 3 x 3 lot, "cs-" (the first three of each kind) the same complex in 2 x 2.
  */
-const COMPOUNDS: Record<string, number> = { court: 6, podium: 8, wing: 6, solar: 6, yard: 4, towers: 4, terrace: 4 };
+const COMPOUNDS: Record<string, number> = { court: 6, podium: 8, wing: 6, solar: 6, yard: 4, towers: 4, terrace: 4, ring: 4, wave: 4, garden: 5 };
 const compound = (kind: string, pick: (n: number) => number, small: boolean): string => {
   const n = small ? Math.min(3, COMPOUNDS[kind] as number) : (COMPOUNDS[kind] as number);
   return `${small ? "cs" : "cx"}-${kind}-${1 + pick(n)}`;
@@ -361,7 +361,7 @@ export function buildCity(seed: number, route: Route, size: number, theme: Theme
   };
   const rollN = (n: number): number => Math.floor(rng() * n);
   /** The kind of complex a district of this density holds. */
-  const complexKind = (i: number): string => pick(i > 0.62 ? ["towers", "podium", "terrace", "podium", "court"] : i > 0.4 ? ["court", "wing", "podium", "terrace", "court"] : i > 0.25 ? ["solar", "court", "wing", "yard", "solar"] : ["solar", "yard", "yard", "solar"]);
+  const complexKind = (i: number): string => pick(i > 0.62 ? ["towers", "podium", "terrace", "wave", "court", "ring", "wave"] : i > 0.4 ? ["court", "wing", "podium", "terrace", "garden", "ring", "court"] : i > 0.25 ? ["solar", "court", "wing", "yard", "garden", "solar"] : ["solar", "yard", "yard", "solar", "garden"]);
   // Pick a model and a view of it, never the same building as one of the last several placed.
   const recent: string[] = [];
   const baseAt = new Map<string, string>();
