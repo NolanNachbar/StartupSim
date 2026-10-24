@@ -420,7 +420,13 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
           // Payments are real money; only payers in the focus segment become ongoing customers.
           cashCents: run.pub.cashCents - CHANNEL_TEST_BUDGET_CENTS + test.payments * run.pub.priceCents,
           books: { ...run.pub.books, learningCents: run.pub.books.learningCents + CHANNEL_TEST_BUDGET_CENTS, testSalesCents: run.pub.books.testSalesCents + test.payments * run.pub.priceCents },
-          payingCustomers: segment === run.pub.focusSegment ? run.pub.payingCustomers + test.payments : run.pub.payingCustomers,
+          // In a chosen business, whoever pays in any group becomes a customer of that group (not only the focus group).
+          ...(run.secret.business
+            ? {
+                payingCustomers: run.pub.payingCustomers + test.payments,
+                customersBySegment: run.pub.customersBySegment.map((n, i) => (i === segment ? n + test.payments : n)),
+              }
+            : { payingCustomers: segment === run.pub.focusSegment ? run.pub.payingCustomers + test.payments : run.pub.payingCustomers }),
           firstPaymentWeek: run.pub.firstPaymentWeek ?? (test.payments > 0 ? run.pub.week : null),
           ...withEvidence(run.pub, [test]),
           log: withLog(run.pub, `Paid test: ${test.payments} of ${test.leads} paid.`),

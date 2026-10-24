@@ -43,3 +43,12 @@ export const CHANNELS_BY_MODEL: Readonly<Record<ModelId, readonly ChannelSpec[]>
     { name: "Marketplaces and shops", blurb: "A listing on a marketplace or on shop shelves. They take a cut of every sale.", costPerLeadCents: 1200 },
   ],
 };
+
+/** Channels that only some industries have: a restaurant or cafe can list on delivery apps, a gym cannot. */
+const EXTRA: readonly { readonly model: ModelId; readonly industries: readonly number[]; readonly spec: ChannelSpec }[] = [
+  { model: "location", industries: [1, 6, 7], spec: { name: "Delivery apps", blurb: "Listed on a delivery app: orders you would never have had, and the app keeps about a quarter of every one.", costPerLeadCents: 2000 } },
+  { model: "product", industries: [6, 7, 10, 13], spec: { name: "Subscription and repeat offers", blurb: "A small discount to turn a first order into a regular one. Cheap leads from people who already know you.", costPerLeadCents: 700 } },
+];
+export function channelsFor(model: ModelId, industry: number | null): readonly ChannelSpec[] {
+  return [...CHANNELS_BY_MODEL[model], ...EXTRA.filter((e) => e.model === model && industry !== null && e.industries.includes(industry)).map((e) => e.spec)];
+}

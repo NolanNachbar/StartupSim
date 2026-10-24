@@ -2,7 +2,7 @@
 import { randChance, randInt, randPick } from "./rng";
 import { LATE_PAYER_DELAY_WEEKS, LATE_PAYER_PCT } from "./runway";
 import { businessFor, type BusinessChoice } from "./business";
-import { CHANNELS_BY_MODEL } from "./channels";
+import { channelsFor } from "./channels";
 import { WTP_PCT_BY_MODEL } from "./realism";
 import type { Channel, LateWindow, Secret, Segment, Weather } from "./types";
 
@@ -125,7 +125,7 @@ export function generateWorld(seed: number, industryIndex: number | null = null,
     return business ? { ...named, willingnessToPayCents: clamp(Math.floor((named.willingnessToPayCents * WTP_PCT_BY_MODEL[business.model.id]) / 100), 500, 59_900) } : named;
   });
   // A chosen business has its own channels (the first three keep their draws); the original worlds keep the original three.
-  const specs: readonly { readonly name: string; readonly costPerLeadCents: number; readonly blurb?: string }[] = business ? CHANNELS_BY_MODEL[business.model.id] : CHANNELS;
+  const specs: readonly { readonly name: string; readonly costPerLeadCents: number; readonly blurb?: string }[] = business ? channelsFor(business.model.id, industryIndex) : CHANNELS;
   const channels: Channel[] = specs.map((c, ci) => ({
     name: c.name,
     ...("blurb" in c && c.blurb ? { blurb: c.blurb } : {}),

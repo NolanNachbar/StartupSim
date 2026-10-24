@@ -60,6 +60,7 @@ export const PROMOTIONS_BY_MODEL: Readonly<Record<ModelId, readonly PromotionSpe
     p("intro-rate", "Intro rate", "Half price for the first two months. People sign up, then half of them leave when the price goes up.", { convLiftPct: 35, discountPct: 50, dealChurnPct: 2 }),
     p("bring-a-friend", "Bring a friend", "Members get a reward for bringing someone. Strong once you have members.", { weeks: 4, referralPct: 10, discountPct: 10, needsCustomers: 10 }),
     p("off-peak", "Off-peak deal", "A lower price in the quiet hours, for people who would not have come at all.", { weeks: 8, convLiftPct: 15, discountPct: 10 }),
+    p("loyalty-card", "Loyalty card", "Every tenth visit is free. Regulars come more often and newcomers stay a little longer; it costs a slice of every sale.", { weeks: 12, convLiftPct: 10, discountPct: 8 }),
   ],
   product: [
     p("launch-sale", "Launch sale", "Twenty percent off for two weeks to get the first orders and the first reviews.", { weeks: 2, convLiftPct: 30, discountPct: 20 }),
