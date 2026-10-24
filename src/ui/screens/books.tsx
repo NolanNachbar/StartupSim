@@ -61,6 +61,12 @@ export function Books() {
               <tr><th scope="row">Cash at the start</th><td>{figure(cashFlow.startCashCents)}</td></tr>
               <Rows lines={cashFlow.operating} />
               <Total label="Cash from running the business" cents={cashFlow.operatingCents} />
+              {cashFlow.investing.length > 0 ? (
+                <>
+                  <Rows lines={cashFlow.investing} />
+                  <Total label="Cash spent on things that last" cents={cashFlow.investingCents} />
+                </>
+              ) : null}
               {cashFlow.financing.length > 0 ? (
                 <>
                   <Rows lines={cashFlow.financing} />

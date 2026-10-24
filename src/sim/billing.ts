@@ -56,3 +56,18 @@ export function ladderAround(base: number): readonly number[] {
   for (const f of [0.4, 0.6, 0.8, 1.3, 1.7, 2.3, 3.2]) out.add(nicePrice(base * f));
   return Array.from(out).sort((a, b) => a - b);
 }
+
+/**
+ * Cost of goods as a percent of sales, by industry and kind of business: a gym's variable cost is tiny (card fees,
+ * cleaning supplies) while a cafe's is a third of every sale and a shop's more than half. Includes about 3 percent for card
+ * payments. Rough real figures (see docs/specs/realism-pass-3.md); places and services here, goods for products.
+ */
+const COGS_LOCATION: readonly number[] = [25, 33, 12, 8, 8, 12, 33, 55, 18, 10, 18, 15, 12, 22];
+const COGS_SERVICE: readonly number[] = [10, 5, 3, 5, 3, 5, 30, 10, 12, 3, 10, 30, 50, 18];
+const COGS_PRODUCT: readonly number[] = [35, 35, 35, 35, 35, 30, 50, 45, 35, 40, 45, 35, 35, 30];
+export function cogsFor(industry: number | null, model: ModelId): number {
+  const i = industry ?? 0;
+  if (model === "software") return 13;
+  const table = model === "location" ? COGS_LOCATION : model === "service" ? COGS_SERVICE : COGS_PRODUCT;
+  return table[i] ?? 25;
+}

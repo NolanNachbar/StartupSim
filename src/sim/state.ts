@@ -1,8 +1,8 @@
 // Internal run state. Nothing outside src/sim imports this: the public API wraps it as an opaque Run.
 import { DIFFICULTIES, DIFFICULTY_DEFAULT, type BusinessChoice } from "./business";
 import { BUILD_TABLE, INTERVIEW_ROUND_CASH_CENTS, PIVOT_COST_CENTS, ROUND_WEEKS, START_CASH_CENTS, TEST_CASH_CENTS, WEEKLY_BURN_CENTS, pivotsRemaining } from "./runway";
-import { BURN_BY_MODEL, COGS_PCT_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, BUILDS_BY_MODEL, WAGE_BY_MODEL, capacityOf } from "./realism";
-import { billingFor, ladderAround, nicePrice } from "./billing";
+import { BURN_BY_MODEL, START_CASH_BY_MODEL, START_PRICE_BY_MODEL, BUILDS_BY_MODEL, WAGE_BY_MODEL, capacityOf } from "./realism";
+import { billingFor, cogsFor, ladderAround, nicePrice } from "./billing";
 import { PRICE_LADDER_CENTS } from "./actions";
 import { hypothesesFrom } from "./hypotheses";
 import { seasonAt } from "./seasons";
@@ -46,7 +46,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     raisesUsed: 0,
     equityGivenPct: 0,
     productProgressPct: 0,
-    books: { startCashCents: startCash, equityRaisedCents: 0, loanReceivedCents: 0, principalRepaidCents: 0, interestCents: 0, salesCashCents: 0, testSalesCents: 0, cogsCents: 0, operatingCents: 0, marketingCents: 0, rndCents: 0, learningCents: 0 },
+    books: { startCashCents: startCash, equityRaisedCents: 0, loanReceivedCents: 0, principalRepaidCents: 0, interestCents: 0, salesCashCents: 0, testSalesCents: 0, cogsCents: 0, operatingCents: 0, marketingCents: 0, rndCents: 0, learningCents: 0, capexCents: 0, depreciationCents: 0 },
     cohorts: [],
     hiredAt: [],
     wages: secret.business ? WAGE_BY_MODEL[secret.business.model.id] : { builder: 0, seller: 0, ops: 0 },
@@ -56,7 +56,7 @@ export function initialRun(seed: number, industry: number | null = null, busines
     rivalSince: null,
     season: secret.business && industry !== null ? seasonAt(industry, seed, 0) : null,
     promoCooldown: 0,
-    cogsPct: secret.business ? COGS_PCT_BY_MODEL[secret.business.model.id] : 0,
+    cogsPct: secret.business ? cogsFor(industry, secret.business.model.id) : 0,
     priceLadderCents: secret.business ? ladderAround(startPrice) : PRICE_LADDER_CENTS,
     billing,
     builds: secret.business ? BUILDS_BY_MODEL[secret.business.model.id] : BUILD_TABLE,

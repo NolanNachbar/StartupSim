@@ -97,6 +97,10 @@ export interface Books {
   readonly rndCents: Cents;
   /** Interviews, channel tests, paid tests and builds. */
   readonly learningCents: Cents;
+  /** Money spent on things that last (a fit-out, equipment): kept as an asset and written off over five years. */
+  readonly capexCents: Cents;
+  /** How much of the capex has been written off so far. */
+  readonly depreciationCents: Cents;
 }
 
 export interface Marketing {
@@ -195,7 +199,7 @@ export interface PublicState {
   /** The team by role (the roles of a chosen business: someone who builds, someone who sells, someone who serves customers). */
   readonly team: Team;
   /** Recent weeks' new customers, kept to model how newcomers leave faster than regulars. */
-  readonly cohorts: readonly { readonly week: number; readonly n: number }[];
+  readonly cohorts: readonly { readonly week: number; readonly n: number; readonly segment: number }[];
   /** When each person on the team started (a chosen business): new people take weeks to get up to speed. */
   readonly hiredAt: readonly { readonly role: "builder" | "seller" | "ops"; readonly week: number }[];
   /** What each role costs a week in this business (cents, salary plus payroll tax and benefits). */

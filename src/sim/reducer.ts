@@ -10,7 +10,7 @@ import { hasKnownType, isBuildKind, isQuestionTriple, RESERVED_ACTION_TYPES, top
 import { PROMOTION_COOLDOWN_WEEKS, promotionsFor } from "./promotions";
 import { MONTH_NAMES, seasonAt } from "./seasons";
 import { monthlyOf } from "./billing";
-import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_SEARCH_WEEKS, QUIT_CHANCE_PCT, SEVERANCE_WEEKS, wageOf, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
+import { NETWORK_KINDS, NETWORK_OPTIONS, WARM_PER_ROUND, BUILD_LABEL_BY_MODEL, BUSINESS_LOAN_WEEKLY_REPAYMENT_CENTS, HIRE_SEARCH_WEEKS, QUIT_PCT_BY_ROLE, SEVERANCE_WEEKS, wageOf, MAX_TEAM, RND_LEVELS_CENTS, ROLES, ROLE_CAP, capacityOf, realisticWeek } from "./realism";
 import { runChannelTest, runPaidTest } from "./experiments";
 import { hypothesesFrom } from "./hypotheses";
 import { runInterviewRound } from "./interview";
@@ -209,7 +209,7 @@ function tick(run: InternalRun): InternalRun {
   if (fuller && run.secret.business) {
     for (const role of ROLES) {
       const settled = hiredAt.findIndex((h) => h.role === role && week - h.week >= 12);
-      if (settled >= 0 && randChance(run.seed, QUIT_CHANCE_PCT / 100, "quit", week, role)) {
+      if (settled >= 0 && randChance(run.seed, QUIT_PCT_BY_ROLE[role] / 100, "quit", week, role)) {
         team = { ...team, [role]: team[role] - 1 };
         hiredAt = hiredAt.filter((_, i) => i !== settled);
         burnNow -= wageOf(run.secret.business.model.id, role);
@@ -264,6 +264,7 @@ function tick(run: InternalRun): InternalRun {
         operatingCents: pub.books.operatingCents + pub.weeklyBurnCents,
         marketingCents: pub.books.marketingCents + marketingSpend,
         rndCents: pub.books.rndCents + rndSpend,
+        depreciationCents: pub.books.depreciationCents + Math.min(pub.books.capexCents - pub.books.depreciationCents, Math.floor(pub.books.capexCents / 260)),
         principalRepaidCents: pub.books.principalRepaidCents + principal,
         interestCents: pub.books.interestCents + (repayment - principal),
       },
@@ -271,7 +272,7 @@ function tick(run: InternalRun): InternalRun {
         ...pub.ledger,
         revenueCents: pub.ledger.revenueCents + weeklyRevenueCents,
         marketingCents: pub.ledger.marketingCents + marketingSpend + rndSpend,
-        payrollCents: pub.ledger.payrollCents + pub.hires * HIRE_WEEKLY_CENTS,
+        payrollCents: pub.ledger.payrollCents + (secret.business ? ROLES.reduce((sum, role) => sum + pub.team[role] * wageOf(secret.business!.model.id, role), 0) : pub.hires * HIRE_WEEKLY_CENTS),
       },
       receivables,
       loan,
@@ -377,7 +378,8 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
       const after = advance(
         withPub(run, {
           cashCents: run.pub.cashCents - spec.cashCents,
-          books: { ...run.pub.books, learningCents: run.pub.books.learningCents + spec.cashCents },
+          // A fit-out lasts: it is an asset written off over five years, not an expense in the week it is paid.
+          books: run.secret.business?.model.id === "location" && action.kind === "prototype" ? { ...run.pub.books, capexCents: run.pub.books.capexCents + spec.cashCents } : { ...run.pub.books, learningCents: run.pub.books.learningCents + spec.cashCents },
           ledger: { ...run.pub.ledger, buildCents: run.pub.ledger.buildCents + spec.cashCents },
         }),
         weeks,
@@ -504,7 +506,7 @@ export function step(run: InternalRun, action: Action): InternalStepResult {
               hiredAt: [...hired.pub.hiredAt, { role, week: hired.pub.week }],
               weeklyBurnCents: hired.pub.weeklyBurnCents + wage,
               capacity: capacityOf(model, team.ops),
-              log: withLog(hired.pub, `Hired a ${role === "builder" ? "builder" : role === "seller" ? "salesperson" : "operations person"}.`),
+              log: withLog(hired.pub, `Hired ${role === "builder" ? "a builder" : role === "seller" ? "a salesperson" : "an operations person"}.`),
             }),
             action,
           ),

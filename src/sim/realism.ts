@@ -89,6 +89,11 @@ export function workingPct(hires: readonly Hire[], role: Role, week: number): nu
 }
 /** Each week a person might quit: about one in a hundred, and only once they have settled in. */
 export const QUIT_CHANCE_PCT = 1.2;
+/** How often people in each role quit a week, in percent: developers stay, cleaners and front-desk staff turn over. */
+export const QUIT_PCT_BY_ROLE: Readonly<Record<Role, number>> = { builder: 0.4, seller: 1.0, ops: 2.2 };
+
+/** Weekly churn of a finished product, in basis points, by kind of business: a gym or shop loses people faster than an app or a client list. */
+export const BASE_CHURN_BP: Readonly<Record<ModelId, number>> = { software: 90, service: 80, location: 130, product: 130 };
 /** Letting someone go costs this many weeks of their pay. */
 export const SEVERANCE_WEEKS = 2;
 
@@ -131,6 +136,8 @@ export const NEWCOMER_WEEKS = 12;
 export interface Cohort {
   readonly week: number;
   readonly n: number;
+  /** The customer group they joined. */
+  readonly segment: number;
 }
 
 export type NetworkKind = "coffee" | "meetup" | "conference";
@@ -236,7 +243,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
     const here = customers[i] ?? 0;
     if (here === 0) return;
     // A better product keeps people even when it is already finished: quality cuts churn by up to a third.
-    const raw = churnedCustomers(here, effective, randInt(run.seed, 1, 10_000, "churn", pub.week, i));
+    const raw = churnedCustomers(here, effective, randInt(run.seed, 1, 10_000, "churn", pub.week, i), BASE_CHURN_BP[model]);
     // happy customers stay: a good name cuts churn by up to 30 percent, a bad one raises it by as much
     const churned = Math.floor((((raw - Math.floor((raw * quality) / 300)) * level.churnPct) / 100 * (130 - Math.floor((pub.reputation * 6) / 10)) * (100 + Math.floor((20 * rivalPct) / 100))) / 10_000);
     // a busy month holds more people; a quiet one does not send anyone away
@@ -250,10 +257,17 @@ export function realisticWeek(run: InternalRun): WeekResult {
 
   // Newcomers leave faster than regulars: a share of everyone who joined in the last twelve weeks goes each week.
   const aged = pub.cohorts.filter((c) => pub.week - c.week < NEWCOMER_WEEKS);
-  let cohorts: Cohort[] = aged.map((c) => ({ week: c.week, n: Math.max(0, c.n - Math.floor((c.n * NEWCOMER_CHURN_PCT[model]) / 100)) }));
-  const newcomerLoss = aged.reduce((sum, c, i) => sum + (c.n - (cohorts[i]?.n ?? 0)), 0);
-  if (newcomerLoss > 0) customers[target] = Math.max(0, (customers[target] ?? 0) - newcomerLoss);
-  if (newcomers > 0) cohorts = [...cohorts, { week: pub.week, n: newcomers }];
+  // (A small group still loses people: the odd one is rounded up or down by a keyed roll, not always down to nothing.)
+  let cohorts: Cohort[] = aged.map((c, i) => {
+    const x = c.n * NEWCOMER_CHURN_PCT[model];
+    const lose = Math.floor(x / 100) + (randInt(run.seed, 1, 100, "newcomer", pub.week, i) <= x % 100 ? 1 : 0);
+    return { week: c.week, n: Math.max(0, c.n - lose), segment: c.segment };
+  });
+  aged.forEach((c, i) => {
+    const gone = c.n - (cohorts[i]?.n ?? 0);
+    if (gone > 0) customers[c.segment] = Math.max(0, (customers[c.segment] ?? 0) - gone);
+  });
+  if (newcomers > 0) cohorts = [...cohorts, { week: pub.week, n: newcomers, segment: target }];
   cohorts = cohorts.filter((c) => c.n > 0);
 
   // People won by a promotion leave faster, and pay less while it runs.
@@ -281,7 +295,7 @@ export function realisticWeek(run: InternalRun): WeekResult {
     .map((c) => {
       const keep = Math.min(c.n, still);
       still -= keep;
-      return { week: c.week, n: keep };
+      return { week: c.week, n: keep, segment: c.segment };
     })
     .reverse()
     .filter((c) => c.n > 0);

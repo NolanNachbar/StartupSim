@@ -63,7 +63,9 @@
       "operatingCents": 600000,
       "marketingCents": 0,
       "rndCents": 0,
-      "learningCents": 90000
+      "learningCents": 90000,
+      "capexCents": 0,
+      "depreciationCents": 0
     },
     "cohorts": [],
     "hiredAt": [],

@@ -19,6 +19,8 @@ export interface Statements {
   readonly cashFlow: {
     readonly operating: readonly Line[];
     readonly operatingCents: Cents;
+    readonly investing: readonly Line[];
+    readonly investingCents: Cents;
     readonly financing: readonly Line[];
     readonly financingCents: Cents;
     readonly netChangeCents: Cents;
@@ -55,6 +57,7 @@ export function statementsOf(pub: PublicState): Statements {
     { label: "Marketing", cents: b.marketingCents },
     { label: "R&D", cents: b.rndCents },
     { label: "Interviews, tests and builds", cents: b.learningCents },
+    { label: "Wear on the fit-out and equipment", cents: b.depreciationCents },
     { label: "Loan interest", cents: b.interestCents },
   ]);
   const grossProfitCents = revenueCents - b.cogsCents;
@@ -69,6 +72,7 @@ export function statementsOf(pub: PublicState): Statements {
     { label: "Interviews, tests and builds", cents: -b.learningCents },
     { label: "Loan interest", cents: -b.interestCents },
   ]);
+  const investing = keep([{ label: "Fit-out and equipment bought", cents: -b.capexCents }]);
   const financing = keep([
     { label: "Money raised from investors", cents: b.equityRaisedCents },
     { label: "Loan received", cents: b.loanReceivedCents },
@@ -76,12 +80,14 @@ export function statementsOf(pub: PublicState): Statements {
   ]);
 
   const assets = keep([
-    { label: "Cash", cents: pub.cashCents },
+    { label: "Cash", cents: Math.max(0, pub.cashCents) },
     { label: "Owed to you by customers", cents: owed },
+    { label: "Fit-out and equipment, after wear", cents: b.capexCents - b.depreciationCents },
   ]);
   const liabilities = keep([
     { label: "Loan still to repay", cents: b.loanReceivedCents - b.principalRepaidCents },
     { label: "Paid in advance, not yet delivered", cents: deposits },
+    { label: "Overdrawn: cash you do not have", cents: Math.max(0, -pub.cashCents) },
   ]);
   const equity = keep([
     { label: "Money you started with", cents: b.startCashCents },
@@ -94,9 +100,11 @@ export function statementsOf(pub: PublicState): Statements {
     cashFlow: {
       operating,
       operatingCents: sum(operating),
+      investing,
+      investingCents: sum(investing),
       financing,
       financingCents: sum(financing),
-      netChangeCents: sum(operating) + sum(financing),
+      netChangeCents: sum(operating) + sum(investing) + sum(financing),
       startCashCents: b.startCashCents,
       endCashCents: pub.cashCents,
     },

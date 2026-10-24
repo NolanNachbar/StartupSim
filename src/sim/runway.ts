@@ -100,13 +100,13 @@ export function randomizedRound(num: number, den: number, draw: number): number 
 }
 
 /** Weekly churn in basis points: 1.5 percent for a finished product, 5.5 percent for none. */
-export function churnBp(productProgressPct: number): number {
-  return 150 + 4 * (100 - productProgressPct);
+export function churnBp(productProgressPct: number, baseBp = 150): number {
+  return baseBp + 4 * (100 - productProgressPct);
 }
 
 /** Customers lost this week. `draw` is a roll in 1..10000. */
-export function churnedCustomers(customers: number, productProgressPct: number, draw: number): number {
-  return randomizedRound(customers * churnBp(productProgressPct), 10_000, draw);
+export function churnedCustomers(customers: number, productProgressPct: number, draw: number, baseBp = 150): number {
+  return randomizedRound(customers * churnBp(productProgressPct, baseBp), 10_000, draw);
 }
 
 /**

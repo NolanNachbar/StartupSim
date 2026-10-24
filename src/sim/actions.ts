@@ -153,8 +153,9 @@ export function legalActions(run: InternalRun): readonly Action[] {
   }
   if (pub.marketing.level !== 0) actions.push({ type: "setMarketing", channel: null, level: 0 });
   if (run.secret.business) {
-    if (pub.hires < MAX_TEAM && pub.cashCents >= pub.weeklyBurnCents + HIRE_WEEKLY_CENTS) {
-      for (const role of ROLES) if (pub.team[role] < ROLE_CAP) actions.push({ type: "hire", role });
+    if (pub.hires < MAX_TEAM) {
+      // the same gate the reducer uses: a month of the new payroll in the bank
+      for (const role of ROLES) if (pub.team[role] < ROLE_CAP && pub.cashCents >= (pub.weeklyBurnCents + pub.wages[role]) * 4) actions.push({ type: "hire", role });
     }
     for (let level = 0; level < RND_LEVELS_CENTS.length; level++) if (level !== pub.rndLevel) actions.push({ type: "setRnd", level });
     if (!pub.promo && pub.promoCooldown === 0 && run.secret.business) {
